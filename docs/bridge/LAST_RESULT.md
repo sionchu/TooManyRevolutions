@@ -1,16 +1,16 @@
 # TMR Last Bridge Result
 
-TASK_ID: F05_FIX2_R
+TASK_ID: F05_FIX3
 
-STATUS: REVIEW_COMPLETE / AWAITING_CHATGPT_REVIEW
+STATUS: REPAIR_COMPLETE / AWAITING_CHATGPT_REVIEW
 
 START_BRANCH: master
 
-START_COMMIT: 501ee8a805164b1db9f011ecfa50243701178fa0
+START_COMMIT: f18332474c52b9998ac2fff214ba507b34067044
 
 END_BRANCH: master
 
-END_COMMIT: f9f108696bf2de724428d0d61a8c4ba14935e42e
+END_COMMIT: 49511e43d40d39408ad96e31d45109eb79afa63c
 
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 
@@ -18,60 +18,53 @@ COMMIT_CREATED: YES
 
 PUSHED: YES
 
-END_COMMIT_NOTE: developer-only continuity architecture probe commit; review
-documentation is included in the follow-up bridge documentation commit.
+END_COMMIT_NOTE: the implementation commit removes the rejected writer; the
+current Bridge result and state are recorded in the follow-up documentation
+commit.
 
-## REVIEW_OUTCOME
+## OUTCOME
 
-- countdown: `EFFECTIVE_PERMANENCE_TIMER`
-- ratchet: `ONE_WAY_CONTINUITY_RATCHET`
-- dissolution evidence: `GOVERNMENT_DEFEAT_ONLY`
-- succession seam: `SUCCESSION_SEAM_EXISTS_BUT_EVIDENCE_MISSING`
-- writer semantic verdict:
-  `WRITER_TRACKS_GOVERNMENT_CONTROL_NOT_STATE_CONTINUITY`
-- architecture verdict: `REJECT_WRITER_REQUIRES_NEW_CONTINUITY_EVIDENCE`
+F05_FIX3 removed the rejected F05_FIX2 unresolved-internal-rebellion weekly
+continuity writer, its configuration field, and its conflict-phase call. No
+replacement writer, threshold change, pacing retune, or succession logic was
+added. The developer-only probe that encoded the rejected behavior was retired;
+historical F05_FIX2/F05_FIX2_R records remain intact.
 
-The controlled probe varied only initial continuity and reproduced terminal
-ticks of 700, 350, and 70 for initial values 100, 50, and 10 with identical
-political prefixes. Recovery restored one real Country LandHex but did not
-restore continuity; later qualifying displacement resumed the decrement.
-The unchanged F05 terminal branches prove incumbent-government physical defeat
-and domestic rebellion control, not annexation, permanent fragmentation,
-sovereign-function loss, or extinction of the independent political community.
+The exact F05 matrix was rerun unchanged: seed `40103`, 1,800 days, contexts
+`0/1`, `18/19`, `180/181`, and six strategies (36 branches). Representative
+results are:
 
-The existing typed `governmentTransition` seam preserves CountryId, LandHex
-state, and active RunOutcome when switching to an already existing Government,
-but current F05 state has no candidate-successor or succession evidence.
+| context | WAIT | meaningful responses | old major-event silence | reassessment silence | readable |
+| --- | --- | ---: | ---: | ---: | --- |
+| early/preventive tick 0 | `WAIT_WORSE` | 4 | 1,695d | 1,200d | NO |
+| near-crisis tick 18 | `WAIT_WORSE` | 4 | 1,713d | 1,200d | NO |
+| active-conflict/recovery tick 180 | `TRADEOFF` | 3 | 1,787d | 510d | YES |
 
-## SCOPE
+Accommodation remains `CONDITIONALLY_STRONG`; causal readability is YES and
+each representative context retains six trajectory signatures. All 36
+branches end `active`, with zero `stateDissolved` and zero `orderConsolidated`
+outcomes. The pre-FIX2 late steady-state span returns in early and near-crisis
+families, so the truthful Gate 1F recommendation is `NOT_READY`.
 
-- review only; no production gameplay writer change;
-- no continuity restoration formula, threshold change, succession
-  implementation, pacing retune, renderer/UI, or V02 work;
-- repository grounding was sufficient; no new external research;
-- detailed review:
-  `docs/F05_FIX2_STATE_CONTINUITY_ARCHITECTURE_REVIEW.md`.
+## CORRECTNESS
+
+- persistent domestic-rebellion displacement for 700 days leaves continuity at
+  `100`, keeps `RunOutcome = active`, and emits no `STATE_DISSOLVED`;
+- displacement-only continuity remains stable across save/load;
+- existing government-transition, F04B recovery, and T024 persistence/replay
+  contracts pass;
+- `docs/ARCHITECTURE.md` now states that displacement alone is non-terminal and
+  that continuity evidence remains deferred.
 
 ## VERIFICATION
 
-- environment: Node `v25.2.1`, pnpm `11.19.0`; no Node 24 runtime manager was
-  available in the workspace environment;
-- install: PASS — `pnpm install --frozen-lockfile`;
-- format: PASS — `pnpm run format`;
-- typecheck: PASS — `pnpm run typecheck`;
-- lint: PASS — `pnpm run lint`;
-- build: PASS — `pnpm run build`;
-- inspect:t024: PASS — `pnpm run inspect:t024`;
-- inspect:f01: PASS — `pnpm run inspect:f01`;
-- inspect:f04b: PASS — `pnpm run inspect:f04b`;
-- inspect:f04d: PASS — `pnpm run inspect:f04d`;
-- inspect:f05: PASS_WITH_NOTES — unchanged 36-branch matrix, readable
-  measured arcs, and continuity-threshold terminal branches;
-- focused probe: PASS —
-  `pnpm exec vitest run src/sim/inspection/f05Fix2StateContinuityReview.test.ts
-  --reporter=verbose --silent=false`;
-- full tests: PASS — `pnpm test`;
-- git diff --check: PASS — `git diff --check`;
+- runtime: Node `v25.2.1`, pnpm `11.19.0`; Node 24.19.0 unavailable;
+- install, format, typecheck, lint, build: PASS;
+- inspect:t024, inspect:f01, inspect:f04b, inspect:f04d: PASS;
+- inspect:f05: PASS as a measurement run, recommendation `NOT_READY`;
+- focused tests: PASS — 5 files / 76 tests;
+- full tests: PASS — 51 files / 423 tests;
+- `git diff --check`: PASS.
 
 ## NEXT
 
@@ -81,11 +74,8 @@ NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
 
 GATE1F_RECOMMENDATION: NOT_READY
 
-V02: NOT_STARTED
+V02: NOT STARTED
 
-Smallest follow-up recommendation: a separate
-`REMOVE_OR_DISABLE_CONTINUITY_WRITER` task should remove only the weekly
-decrement and rerun the unchanged F05 matrix. Any replacement writer requires
-separately grounded continuity evidence.
+Detailed result: `docs/bridge/results/F05_FIX3_RESULT.md`
 
-Historical result: `docs/bridge/results/F05_FIX2_RESULT.md`
+Historical F05_FIX2_R result: `docs/bridge/results/F05_FIX2_R_RESULT.md`

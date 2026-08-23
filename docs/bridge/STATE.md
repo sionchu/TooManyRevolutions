@@ -26,9 +26,11 @@ F05_FIX2_R_RESULT_COMMIT: 1191bd1865200f4542d571a8af493392b075c4bd
 
 F05_FIX3_TASK_COMMIT: dda5949ba70165dd65ac86c48561d82f69b3a375
 
+F05_FIX3_IMPLEMENTATION_COMMIT: 49511e43d40d39408ad96e31d45109eb79afa63c
+
 CURRENT_GATE: Gate 1F
 
-CURRENT_PHASE: F05_FIX3 remove rejected continuity writer + exact F05 remeasurement
+CURRENT_PHASE: F05_FIX3 repair complete / exact F05 remeasurement / ChatGPT review pending
 
 F04: CLOSED / PASS
 
@@ -62,7 +64,15 @@ F05_FIX2_R_GATE1F_RECOMMENDATION: NOT_READY
 
 GATE1F_CHATGPT_DECISION: NOT_READY
 
-F05_FIX3: AUTHORIZED / NOT STARTED
+F05_FIX3: REPAIR_COMPLETE / AWAITING_CHATGPT_REVIEW
+
+F05_FIX3_WRITER_REMOVAL: PASS
+
+F05_FIX3_MEASUREMENT: TRUSTWORTHY_LATE_STEADY_STATE_RETURNED
+
+F05_FIX3_REMAINING_BLOCKER: LATE_STEADY_STATE_RETURNS
+
+F05_FIX3_GATE1F_RECOMMENDATION: NOT_READY
 
 V02: NOT STARTED
 
@@ -70,15 +80,15 @@ POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
 
 PERSISTENCE: SerializedSimulationSnapshotV2
 
-LAST_COMPLETED_TASK_ID: F05_FIX2_R
+LAST_COMPLETED_TASK_ID: F05_FIX3
 
-NEXT_AUTHORIZED_TASK_ID: F05_FIX3
+NEXT_AUTHORIZED_TASK_ID: NONE
 
-NEXT_TASK_STATUS: AUTHORIZED
+NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
 
-CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX3.md`
+CURRENT_TASK_FILE: NONE
 
-LAST_RESULT_FILE: `docs/bridge/results/F05_FIX2_R_RESULT.md`
+LAST_RESULT_FILE: `docs/bridge/results/F05_FIX3_RESULT.md`
 
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
@@ -96,7 +106,7 @@ The F05_FIX2 unresolved-internal-rebellion continuity writer is rejected because
 
 Therefore F05_FIX2's readable pacing cannot be used as Gate 1F evidence while that writer remains authoritative.
 
-## F05_FIX3 authorized repair
+## F05_FIX3 repair scope and completion
 
 F05_FIX3 is a narrow correctness rollback plus measurement task.
 
@@ -112,6 +122,13 @@ It must:
 8. not repair any returning pacing blocker in the same task.
 
 A truthful `GATE1F_RECOMMENDATION: NOT_READY` is an acceptable and likely F05_FIX3 result.
+
+F05_FIX3 completed the authorized removal and reran the unchanged matrix. The
+writer is absent from production, displacement-only continuity remains stable,
+and all 36 F05 branches remain active through the five-year horizon. The early
+and near-crisis late steady-state span returns, so Gate 1F remains `NOT_READY`.
+Detailed evidence is recorded in `docs/bridge/results/F05_FIX3_RESULT.md` and
+`docs/F05_GATE1F_REPAIR3_REMOVE_CONTINUITY_WRITER.md`.
 
 ## External-reference / grounding guardrail
 
