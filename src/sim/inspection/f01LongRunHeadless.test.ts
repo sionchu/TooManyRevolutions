@@ -73,8 +73,8 @@ describe("F01 long-run headless harness", () => {
     );
 
     expect(comparison.midpointTick).toBe(360);
-    expect(comparison.continuousFinalTick).toBe(720);
-    expect(comparison.resumedFinalTick).toBe(720);
+    expect(comparison.continuousFinalTick).toBe(714);
+    expect(comparison.resumedFinalTick).toBe(714);
     expect(comparison.equivalent).toBe(true);
   });
 });

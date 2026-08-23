@@ -541,16 +541,22 @@ describe("T021 simplified conflict / war", () => {
     expect(result.world.conflicts[T021_CONFLICT_IDS.rebellion]?.status).toBe(
       "active",
     );
+    expect(result.world.countries[countryId]?.stateContinuity).toBe(100);
   });
 
-  it("does not recover a zero-territory state without sufficient residual strength", () => {
+  it("applies one continuity point only at the weekly boundary when a displaced government cannot recover", () => {
     const { scenario, world, countryId } = zeroTerritoryRebellionWorld({
       stateControl: 0.1,
     });
     const intents = deriveConflictIntents(scenario, world);
     expect(intents).toEqual([]);
 
-    const result = runDays(scenario, world, 7);
+    const beforeBoundary = runDays(scenario, world, 6);
+    expect(beforeBoundary.world.countries[countryId]?.stateContinuity).toBe(
+      100,
+    );
+
+    const result = runDays(scenario, beforeBoundary.world, 1);
     expect(
       Object.values(result.world.landHexStates).filter(
         (state) =>
@@ -563,6 +569,36 @@ describe("T021 simplified conflict / war", () => {
         (event) => event.type === "LAND_HEX_CONTROL_CHANGED",
       ),
     ).toHaveLength(0);
+    expect(result.world.countries[countryId]?.stateContinuity).toBe(99);
+    expect(result.world.run.outcome).toEqual({ status: "active" });
+  });
+
+  it("clamps unresolved rebellion pressure at zero and lets T023 own dissolution", () => {
+    const { scenario, world, countryId } = zeroTerritoryRebellionWorld({
+      stateControl: 0.1,
+    });
+    const threatened: WorldState = {
+      ...world,
+      countries: {
+        ...world.countries,
+        [countryId]: {
+          ...world.countries[countryId]!,
+          stateContinuity: 1,
+        },
+      },
+    };
+
+    const result = runDays(scenario, threatened, 7);
+
+    expect(result.world.countries[countryId]?.stateContinuity).toBe(0);
+    expect(result.world.run.outcome).toMatchObject({
+      status: "defeated",
+      kind: "stateDissolved",
+      reason: "stateContinuityThreshold",
+    });
+    expect(
+      result.events.filter((event) => event.type === "STATE_DISSOLVED"),
+    ).toHaveLength(1);
   });
 
   it("keeps zero-territory recovery equivalent across a save/load boundary", () => {
@@ -587,6 +623,28 @@ describe("T021 simplified conflict / war", () => {
         (event) => event.type === "LAND_HEX_CONTROL_CHANGED",
       ),
     ).toHaveLength(1);
+  });
+
+  it("keeps unresolved continuity pressure equivalent across a save/load boundary", () => {
+    const { scenario, world, countryId } = zeroTerritoryRebellionWorld({
+      stateControl: 0.1,
+    });
+    const initialRecord = cloneRunRecordViaSnapshot(scenario, {
+      world,
+      eventStore: createEventStore(),
+    });
+    const continuous = runRecordDays(scenario, initialRecord, 14);
+    const firstHalf = runRecordDays(scenario, initialRecord, 5);
+    const resumed = runRecordDays(
+      scenario,
+      cloneRunRecordViaSnapshot(scenario, firstHalf),
+      9,
+    );
+
+    expect(serializeSimulationSnapshotJson(scenario, resumed)).toBe(
+      serializeSimulationSnapshotJson(scenario, continuous),
+    );
+    expect(continuous.world.countries[countryId]?.stateContinuity).toBe(98);
   });
 
   it("keeps recovery insertion-order independent and excludes coups", () => {
@@ -667,6 +725,11 @@ describe("T021 simplified conflict / war", () => {
     );
 
     expect(deriveConflictIntents(scenario, world)).toEqual([]);
+    expect(
+      runDays(scenario, world, 7).world.countries[
+        CONTACT_FIXTURE_COUNTRY_IDS.player
+      ]?.stateContinuity,
+    ).toBe(100);
   });
 
   it("uses Country.militaryPower for country war and stalemates on a tie", () => {

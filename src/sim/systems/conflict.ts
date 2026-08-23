@@ -14,6 +14,7 @@ import type {
 } from "./politicalCrisis";
 import { derivePoliticalCrisisPrerequisites } from "./politicalCrisis";
 import {
+  applyUnresolvedInternalRebellionContinuityPressure,
   isConflictResolutionBoundary,
   resolveTerritorialConflictIntents,
   deriveConflictIntents,
@@ -257,6 +258,10 @@ export function runConflictPhase(
     currentWorld = resolution.nextWorld;
     nextEventSequence = resolution.nextEventSequence;
     emittedEvents.push(...resolution.emittedEvents);
+    currentWorld = applyUnresolvedInternalRebellionContinuityPressure(
+      scenario,
+      currentWorld,
+    );
   }
 
   const eligibleCandidates = [

@@ -33,6 +33,8 @@ export const CONFLICT_RESOLUTION_CONFIG = {
   cadence: "weekly" as const,
   advantageMargin: 5,
   factionResourceReference: 0.5,
+  /** Minimum 0-100 continuity unit lost per unresolved full-displacement boundary. */
+  unresolvedInternalRebellionContinuityLoss: 1,
 } as const;
 
 export interface ConflictFrontEdge {
@@ -106,6 +108,77 @@ export interface ConflictOutcomeApplicationResult {
   readonly nextWorld: WorldState;
   readonly emittedEvents: readonly GameEvent[];
   readonly nextEventSequence: number;
+}
+
+/**
+ * Apply the existing stateContinuity consequence of an unresolved internal
+ * rebellion only after territorial resolution has had an opportunity to
+ * restore a Hex. The caller owns the weekly cadence boundary.
+ *
+ * This is not an occupation/annexation shortcut: foreign control, coups, and
+ * a rebellion without physical faction control are insufficient. T023 remains
+ * the sole terminal-defeat writer and evaluates the resulting continuity value.
+ */
+export function applyUnresolvedInternalRebellionContinuityPressure(
+  scenario: ScenarioDefinition,
+  world: WorldState,
+): WorldState {
+  const countryId = scenario.playerCountryId;
+  if (countryId === null || world.run.outcome.status !== "active") {
+    return world;
+  }
+
+  const country = world.countries[countryId];
+  if (
+    country === undefined ||
+    getCountryControlledLandHexIds(scenario, world, countryId).length > 0
+  ) {
+    return world;
+  }
+
+  const activeInternalRebellionFactionIds = new Set<FactionId>();
+  for (const conflict of Object.values(world.conflicts)) {
+    if (
+      conflict.kind !== "rebellion" ||
+      conflict.status !== "active" ||
+      !conflict.participantCountryIds.includes(countryId)
+    ) {
+      continue;
+    }
+
+    for (const factionId of conflict.participantFactionIds) {
+      if (world.factions[factionId]?.countryId === countryId) {
+        activeInternalRebellionFactionIds.add(factionId);
+      }
+    }
+  }
+
+  const hasPhysicalRebellionControl = [
+    ...activeInternalRebellionFactionIds,
+  ].some(
+    (factionId) =>
+      getFactionControlledLandHexIds(scenario, world, factionId).length > 0,
+  );
+  if (!hasPhysicalRebellionControl) {
+    return world;
+  }
+
+  const stateContinuity = Math.max(
+    0,
+    country.stateContinuity -
+      CONFLICT_RESOLUTION_CONFIG.unresolvedInternalRebellionContinuityLoss,
+  );
+  if (stateContinuity === country.stateContinuity) {
+    return world;
+  }
+
+  return {
+    ...world,
+    countries: {
+      ...world.countries,
+      [countryId]: { ...country, stateContinuity },
+    },
+  };
 }
 
 function compareStableText(first: string, second: string): number {

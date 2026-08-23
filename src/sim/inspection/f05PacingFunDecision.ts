@@ -1096,7 +1096,7 @@ function buildFindings(
   accommodation: F05AccommodationClassification,
 ): readonly string[] {
   const findings: string[] = [
-    "Silence diagnosis: MIXED_GAP; Agenda and response availability expose omitted reassessment points, but some early-context branches still settle into a 1,200-day span without another meaningful threshold change.",
+    "Silence diagnosis: MIXED_GAP repaired; unresolved full territorial displacement under an active internal rebellion now reaches the existing state-continuity dissolution consumer instead of remaining inert.",
     `Accommodation classification: ${accommodation}.`,
     `Representative WAIT classes: ${primaryContexts
       .map(
