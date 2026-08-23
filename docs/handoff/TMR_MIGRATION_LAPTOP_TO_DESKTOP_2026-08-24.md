@@ -2,6 +2,8 @@
 
 **Checkpoint:** F04C-R PASS / F04D READY but NOT STARTED  
 **Purpose:** reproduce the reviewed laptop worktree on another machine without depending on the old ChatGPT conversation.
+**Remote source of truth:** `https://github.com/sionchu/TooManyRevolutions` (`PRIVATE`)  
+**First reviewed checkpoint:** `master` at `cfa38907973f239c4a8260a0a82fe7ff748e9f73`
 
 ## 1. Source of truth
 
@@ -14,7 +16,7 @@ Preferred authority order:
 
 Copied working directories must not become competing long-term sources of truth.
 
-Current laptop caveat: this repository currently has no commit and no configured remote. master exists, but its HEAD is absent and all repository files are untracked. Therefore a reproducible git clone is not available until the user creates a reviewed commit and publishes it manually. This task does not commit, push, initialize a remote, or discard files.
+The reviewed F04C-R worktree is now published to the private repository above. `master` tracks `origin/master`; the first source checkpoint is the commit recorded above. Later migration-document-only commits do not change the F04C-R gameplay/source boundary.
 
 ## 2. Laptop-side checklist
 
@@ -31,7 +33,7 @@ Run from the repository root:
     node --version
     pnpm --version
 
-On the current laptop checkpoint, git rev-parse --verify HEAD, git log, and remote output show that there is no commit/remote. git ls-files reports zero tracked files. Preserve this fact; do not represent the worktree as a pushed checkpoint.
+Expected published state: branch `master`, upstream `origin/master`, private remote `sionchu/TooManyRevolutions`, and a clean worktree.
 
 Run the repository checks:
 
@@ -45,17 +47,7 @@ Run the repository checks:
     pnpm run inspect:f01
     pnpm test
 
-Do not use git reset --hard, git clean -fd, branch deletion, history rewriting, or automatic push. Review all untracked files before staging anything.
-
-If the user chooses to create the desktop-clone checkpoint after review, the manual commands are:
-
-    git add --all
-    git status --short
-    git commit -m "checkpoint: F04C-R complete before desktop migration"
-    git remote add origin <REMOTE_URL>
-    git push -u origin master
-
-These commands are a user-controlled recommendation only. They were not executed by this task. Do not put credentials in <REMOTE_URL> or in any Markdown file.
+Do not use git reset --hard, git clean -fd, branch deletion, history rewriting, or force-push. The initial snapshot was reviewed for generated paths, secrets, binaries, and unusually large files before publication.
 
 ## 3. Files not to migrate manually
 
@@ -76,11 +68,11 @@ The source, docs/, package.json, pnpm-lock.yaml, pnpm-workspace.yaml, TypeScript
 - A local pnpm cache exists at .pnpm-store/, but it does not need to be copied.
 - If a future machine adds local configuration, document only its filename, purpose, and whether a template exists; never copy secret values into handoff files.
 
-## 5. Desktop setup — preferred clone route
+## 5. Desktop setup — clone route
 
-After a reviewed commit is available on a remote:
+Authenticate GitHub CLI to an account with access to the private repository, then run:
 
-    git clone <REMOTE_URL> TooManyRevolutions
+    gh repo clone sionchu/TooManyRevolutions TooManyRevolutions
     Set-Location TooManyRevolutions
     git checkout master
     git log -1 --oneline --decorate
@@ -97,7 +89,7 @@ After a reviewed commit is available on a remote:
 
 The laptop observed Node v24.19.0 and pnpm 11.19.0; use those versions or the project's compatible maintained equivalents, then record any difference. The lockfile is the dependency authority.
 
-If the user must transfer the current uncommitted worktree before a remote checkpoint exists, use a reviewed manual file copy as a temporary bridge and exclude the regenerable directories above. Do not call that copy a clone or a reproducible commit. Establish the reviewed Git commit/remote before normal desktop continuation.
+Verify that the cloned history contains first checkpoint `cfa38907973f239c4a8260a0a82fe7ff748e9f73`. Use the latest `origin/master` migration-document commit as the desktop checkout target; do not copy the laptop worktree over the clone.
 
 ## 6. Verification baseline
 
@@ -118,7 +110,9 @@ The default pnpm test command uses Vitest's default 5-second per-test timeout wh
 
 produced 50 files / 410 tests PASS. Do not change the repository-global timeout merely to hide this behavior; report both results if it recurs.
 
-Migration-task rerun note (2026-08-24): the default command produced 407/410 passing with three timeout failures: f03bAgencyLeverageDiagnosis.test.ts at 15 seconds, f04aEndogenousFactionDynamicsInspection.test.ts at 5 seconds, and t017InstabilityInspection.test.ts at 5 seconds. There were no assertion failures in those reports. Passing the timeout arguments through the package script raised the F03B/F04A limits, but T017 still reported its 5-second timeout and the run ended at 409/410. A focused non-fork run of those four long inspection files with testTimeout=60000 and maxWorkers=1 completed with 4 files / 6 tests PASS and no unhandled errors. The known 50 files / 410 tests PASS baseline above remains the prior F04C-R result; this current timing behavior must be rechecked on the desktop rather than silently called fully green.
+Migration-prep rerun note (2026-08-24): the default command produced 407/410 passing with three timeout failures. A focused non-fork run of the four long inspection files with `testTimeout=60000` and `maxWorkers=1` completed with 4 files / 6 tests PASS.
+
+Git-checkpoint rerun note (2026-08-24): the default command produced 406/410 passing with four timeout failures: one F03B test at 15 seconds, two F04A tests at 5 seconds, and the T017 inspection at 5 seconds. There were no assertion failures. A focused single-worker run of those three files with `testTimeout=60000` completed with 3 files / 5 tests PASS. Format, typecheck, lint, build, `inspect:t024`, `inspect:v01`, and `inspect:f01` passed. The F01 authoritative result was unchanged; this run measured the 40-year case at 14.4 seconds and flagged it for performance observation. Recheck timing on the desktop without changing gameplay or global test timeouts during migration.
 
 ## 7. Desktop readiness gate
 
