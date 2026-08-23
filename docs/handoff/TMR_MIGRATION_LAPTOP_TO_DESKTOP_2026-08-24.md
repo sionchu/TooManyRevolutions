@@ -135,3 +135,13 @@ Attach/read these files in a new desktop ChatGPT/Codex conversation:
 3. docs/handoff/TMR_NEW_CHAT_BOOTSTRAP_2026-08-24_F04CR_COMPLETE.md
 
 This migration README is operational support; the master handoff and current-task file are the project context.
+
+## 9. Desktop verification — 2026-08-24
+
+- Desktop OS: Microsoft Windows 11 Pro, build 26200.
+- Runtime: Node v24.19.0 and pnpm 11.19.0.
+- Verified base checkpoint: `7ebdadeb7df729fc65f12ae6b53dbc30dc14d7d4` on `master`, matching `origin/master` before this documentation update.
+- `pnpm install --frozen-lockfile`, format, typecheck, lint, build, T024, V01, and F01 passed without gameplay/source changes.
+- The first default test attempt ended in a transient Vitest worker `ERR_IPC_CHANNEL_CLOSED`; an unchanged immediate rerun passed 50 files / 410 tests, with zero assertion failures. The focused single-worker run passed 3 files / 5 tests.
+- F01 preserved the authoritative 40-year result and completed 14,400 ticks in 4.269 seconds, compared with the laptop's 14.4-second migration baseline. No residual performance blocker was observed.
+- F04D remained not started during desktop verification.
