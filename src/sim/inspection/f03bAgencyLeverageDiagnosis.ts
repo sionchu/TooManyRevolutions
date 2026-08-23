@@ -1350,10 +1350,11 @@ function cloneScenarioWithEffectScale(
       ...scenario.interventionCatalog,
       [interventionId]: {
         ...definition,
-        completionEffects: definition.completionEffects?.map((effect) => ({
-          ...effect,
-          delta: effect.delta * scale,
-        })),
+        completionEffects: definition.completionEffects?.map((effect) =>
+          effect.kind === "institutionalRuleSet"
+            ? effect
+            : { ...effect, delta: effect.delta * scale },
+        ),
       },
     },
   };

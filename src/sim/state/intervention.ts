@@ -8,7 +8,13 @@ import {
   type InterventionId,
   type RegionId,
 } from "./ids";
-import { INSTITUTIONAL_RULE_KEYS, type PolicyPrerequisite } from "./policy";
+import {
+  INSTITUTIONAL_RULE_KEYS,
+  isInstitutionalRuleValue,
+  type InstitutionalRuleKey,
+  type InstitutionalRuleState,
+  type PolicyPrerequisite,
+} from "./policy";
 import { RESOURCE_TYPES, type ResourceType } from "./region";
 import type { ScenarioDefinition } from "./scenario";
 import type { WorldState } from "./world";
@@ -23,6 +29,14 @@ export const INTERVENTION_CATEGORIES: readonly InterventionDefinitionCategory[] 
  * Small, scenario-owned completion effects. These are concrete state deltas,
  * not a general scripting or modifier language.
  */
+type InstitutionalRuleSetEffect = {
+  [Key in InstitutionalRuleKey]: {
+    readonly kind: "institutionalRuleSet";
+    readonly rule: Key;
+    readonly value: InstitutionalRuleState[Key];
+  };
+}[InstitutionalRuleKey];
+
 export type InterventionEffect =
   | {
       readonly kind: "regionResourceProductionCapacityDelta";
@@ -39,7 +53,8 @@ export type InterventionEffect =
       readonly kind: "factionOrganizationDelta";
       readonly factionId: FactionId;
       readonly delta: number;
-    };
+    }
+  | InstitutionalRuleSetEffect;
 
 /** Static content owned by ScenarioDefinition. */
 export interface InterventionDefinition {
@@ -53,6 +68,8 @@ export interface InterventionDefinition {
   readonly prerequisites?: readonly PolicyPrerequisite[];
   /** Applied exactly once when the active commitment reaches completionTick. */
   readonly completionEffects?: readonly InterventionEffect[];
+  /** Reject starts that cannot change any declared completion target. */
+  readonly requireCompletionEffectChange?: boolean;
 }
 
 /** Minimal mutable runtime state for an active intervention. */
@@ -94,7 +111,8 @@ export type InterventionFeasibilityFailure =
       readonly kind: "PREREQUISITE_NOT_MET";
       readonly prerequisiteIndex: number;
       readonly prerequisite: PolicyPrerequisite;
-    };
+    }
+  | { readonly kind: "NO_COMPLETION_EFFECT_CHANGE" };
 
 export interface InterventionFeasibilityResult {
   readonly feasible: boolean;
@@ -171,7 +189,8 @@ export function assertScenarioInterventionCatalog(
 
     for (const prerequisite of definition.prerequisites ?? []) {
       if (
-        prerequisite.kind === "ruleEquals" &&
+        (prerequisite.kind === "ruleEquals" ||
+          prerequisite.kind === "ruleNotEquals") &&
         !INSTITUTIONAL_RULE_KEYS.includes(prerequisite.rule)
       ) {
         throw new Error(
@@ -181,7 +200,10 @@ export function assertScenarioInterventionCatalog(
     }
 
     for (const effect of definition.completionEffects ?? []) {
-      if (!Number.isFinite(effect.delta)) {
+      if (
+        effect.kind !== "institutionalRuleSet" &&
+        !Number.isFinite(effect.delta)
+      ) {
         throw new Error(
           `${definition.id} contains a non-finite completion effect delta.`,
         );
@@ -205,6 +227,16 @@ export function assertScenarioInterventionCatalog(
           if (!factionIds.has(effect.factionId)) {
             throw new Error(
               `${definition.id} references missing effect Faction ${effect.factionId}.`,
+            );
+          }
+          break;
+        case "institutionalRuleSet":
+          if (
+            !INSTITUTIONAL_RULE_KEYS.includes(effect.rule) ||
+            !isInstitutionalRuleValue(effect.rule, effect.value)
+          ) {
+            throw new Error(
+              `${definition.id} contains an invalid institutional rule effect.`,
             );
           }
           break;
@@ -287,6 +319,45 @@ function prerequisiteIsMet(
     case "ruleEquals":
       return (
         policyState.institutionalRules[prerequisite.rule] === prerequisite.value
+      );
+    case "ruleNotEquals":
+      return (
+        policyState.institutionalRules[prerequisite.rule] !== prerequisite.value
+      );
+  }
+}
+
+function completionEffectWouldChange(
+  world: WorldState,
+  countryId: CountryId,
+  effect: InterventionEffect,
+): boolean {
+  switch (effect.kind) {
+    case "regionResourceProductionCapacityDelta": {
+      const previous =
+        world.regions[effect.regionId]?.resourceProductionCapacity[
+          effect.resourceType
+        ] ?? 0;
+      return Math.max(0, previous + effect.delta) !== previous;
+    }
+    case "factionGrievanceDelta": {
+      const previous = world.factions[effect.factionId]?.grievance;
+      return (
+        previous !== undefined &&
+        Math.min(1, Math.max(0, previous + effect.delta)) !== previous
+      );
+    }
+    case "factionOrganizationDelta": {
+      const previous = world.factions[effect.factionId]?.organization;
+      return (
+        previous !== undefined &&
+        Math.min(1, Math.max(0, previous + effect.delta)) !== previous
+      );
+    }
+    case "institutionalRuleSet":
+      return (
+        world.policies[countryId]?.institutionalRules[effect.rule] !==
+        effect.value
       );
   }
 }
@@ -383,6 +454,15 @@ export function evaluateInterventionFeasibility(input: {
         }
       },
     );
+
+    if (
+      definition.requireCompletionEffectChange === true &&
+      !(definition.completionEffects ?? []).some((effect) =>
+        completionEffectWouldChange(world, countryId, effect),
+      )
+    ) {
+      reasons.push({ kind: "NO_COMPLETION_EFFECT_CHANGE" });
+    }
   }
 
   return {
@@ -429,6 +509,8 @@ export function interventionFailureToJson(
         prerequisiteIndex: failure.prerequisiteIndex,
         prerequisite: prerequisiteToJson(failure.prerequisite),
       };
+    case "NO_COMPLETION_EFFECT_CHANGE":
+      return { kind: failure.kind };
   }
 }
 
@@ -438,6 +520,7 @@ function prerequisiteToJson(prerequisite: PolicyPrerequisite): JsonValue {
     case "policyInactive":
       return { kind: prerequisite.kind, policyId: prerequisite.policyId };
     case "ruleEquals":
+    case "ruleNotEquals":
       return {
         kind: prerequisite.kind,
         rule: prerequisite.rule,

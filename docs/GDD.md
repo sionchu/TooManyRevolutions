@@ -357,6 +357,33 @@ political competition의 조합에 따라 서로 다른 대응·비용·반작�
 F04C는 design-only slice다. 선거, 군부 faction, 전쟁, arcane privilege,
 renderer는 아직 구현하지 않는다.
 
+## F04D Narrow institution-action slice
+
+F04D는 `InstitutionalRuleState`에 좁은 법적 정치조직 접근성인
+`politicalCompetition = banned | restricted | plural`을 추가한다. 이 규칙은
+민주주의·정통성·선거·의회·정부 교체 점수가 아니다. `plural`은 기존 faction
+pressure의 `BARGAIN` 경로를 열지만 press freedom이 여는 `LOBBY`, labor law가
+여는 `ORGANIZE`와 서로 대체되지 않는다.
+
+검증 시나리오의 최소 대응은 material relief, 제한된 political
+accommodation, opposition legalization, coercive restriction 네 가지다. 모두
+기존 Intervention의 국고 비용, 행정 부하, 구현 기간, prerequisite, completion
+effect를 사용한다. 제도 변경은 authoritative PolicyState에 기록되고 기존
+Faction·resource·crisis·conflict·consolidation consumer가 다음 cadence에서 읽는다.
+행동 이름이 사건이나 결과를 직접 예약하지 않는다.
+
+정치적 타협은 grievance를 낮추되 organization을 지우지 않는다. 야권 합법화는
+정치 경쟁을 plural로 만들지만 경쟁 엘리트의 grievance를 높일 수 있다. 강제
+제한은 press와 competition을 좁히고 단기 organization을 줄이지만 faction을
+삭제하지 않으며 grievance 반작용과 F04A의 재형성 가능성을 보존한다. 동일
+starting state의 rule/response branch가 다른 위기·영토 history를 만들 수 있어야
+한다. 상세 구현과 반사실 결과는
+`docs/F04D_INSTITUTION_ACTION_IMPLEMENTATION.md`가 소유한다.
+
+선거·정당·의석·선거를 통한 정부 교체, full labor bargaining, transitional
+justice, 군부 faction, 전쟁 정치, 지방자치, arcane privilege, F05 pacing/fun,
+V02 renderer는 이 slice 밖이다.
+
 ## No political progression tree and no moral outcome tags
 
 핵심 정치 시스템은 `Constitution I -> Constitution II -> Democracy` 같은

@@ -2563,3 +2563,94 @@ T022/T023, F05, V02는 시작하지 않았다.
 
 - source ledger, case limitation, TMR fit, F04D counterfactual plan을 문서에 기록
 - code/test/inspection 변경 없음; F04D와 F05는 시작하지 않음
+
+### 2026-08-24 — F04D — Narrow Institution-Action Implementation
+
+**Scope**
+
+- `politicalCompetition = banned | restricted | plural`을 required institutional
+  rule로 구현하고 기존 BARGAIN availability에 연결했다
+- material relief, 제한된 political accommodation, opposition legalization,
+  coercive restriction 네 developer-validation response를 기존 Intervention
+  lifecycle에 연결했다
+- election/party/full bargaining/transitional justice/military/war/fantasy/F05/
+  V02는 구현하지 않았다
+
+**Implementation**
+
+- typed `institutionalRuleSet` completion effect, `ruleNotEquals` prerequisite,
+  no-op completion guard를 추가했다
+- institution completion은 PolicyState를 immutable replacement하고 기존
+  completion event를 원인으로 갖는 `INSTITUTION_RULE_CHANGED`를 기록한다
+- relief는 food capacity, accommodation은 grievance, legalization은 competition과
+  상반된 faction grievance, coercion은 press/competition과 bounded
+  organization/grievance를 바꾼다
+- snapshot format은 version 2로 전환했다. version 1과 missing/invalid
+  competition은 strict deserialize boundary에서 거부한다
+
+**Counterfactual**
+
+- seed 40103, tick 0, 720-day horizon에서 banned/plural same-state pair의
+  BARGAIN·legalization eligibility와 coup/rebellion/territory history가 갈라졌다
+- WAIT와 네 response 모두 서로 다른 history를 만들었다. 어떤 branch도
+  Government transition 또는 terminal consolidation을 직접 만들지 않았다
+- continuous run과 day-360 save/load continuation, branch insertion order가
+  canonical comparison에서 일치했다
+- no-op repeat는 거부되고 repeated start는 treasury/headroom으로 bounded였다.
+  WAIT dominance, cheap permanent gate shutoff, one-way ratchet, pre-crisis timing
+  cliff는 이 slice에서 나타나지 않았다
+
+상세 문서: `docs/F04D_INSTITUTION_ACTION_IMPLEMENTATION.md`
+
+**Verification**
+
+- `pnpm install --frozen-lockfile`: PASS
+- `pnpm run format`: PASS
+- `pnpm run typecheck`: PASS
+- `pnpm run lint`: PASS
+- `pnpm run build`: PASS
+- `pnpm run inspect:t024`: PASS
+- `pnpm run inspect:v01`: PASS
+- `pnpm run inspect:f01`: PASS
+- `pnpm run inspect:f04d`: PASS
+- `pnpm test`: PASS — 51 files / 421 tests
+- F04: ready for overall assessment
+- F05 / V02: not started
+
+### 2026-08-24 — F04B + F04D Targeted Architecture / Gate Review
+
+**Review result**
+
+- actual source and uncommitted F04D worktree reviewed; gameplay/source changes by
+  review: none
+- F04B current-state active-conflict response, internal zero-territory recovery,
+  LandHex authority, foreign/coup exclusion, insertion order, and save/load: PASS
+- `politicalCompetition` ownership, required enum/default, BARGAIN availability,
+  typed Intervention institution mutation, event provenance, and snapshot V2: PASS
+- banned/plural comparison attribution narrowed: later crisis difference comes from
+  the same legalization attempt being accepted only in the non-plural branch, not
+  from a hidden BARGAIN stability effect
+- hidden F04D ID/scenario/strategy branches in downstream systems: none found
+
+**Gameplay finding**
+
+- political accommodation treasury `500 → 2447` is explained by retaining three
+  controlled Hexes until day 300; WAIT loses them by day 49. The action delays but
+  does not remove crisis and preserves opposition organization
+- dominance/trade-off magnitude is `ACCEPTED_FOR_F04 / F05_MEASUREMENT`, not an
+  architecture fix. No balance constants or new political domain were added
+- neighboring checks at industrial unrest `0.18` and treasury `510` retained the
+  qualitative response divergence
+
+**Verification / gate**
+
+- install, format, typecheck, lint, build: PASS
+- inspect:t024, inspect:f01, inspect:f04b, inspect:f04d: PASS
+- full tests: 51 files / 421 tests / 0 assertion failures
+- `REQUIRED_FIX_BEFORE_F04_CLOSE`: NONE
+- F04: `PASS / CLOSED`
+- F05: `READY / NOT STARTED`; political accommodation and broader WAIT/timing are
+  F05 measurement notes
+- commit/push and Bridge setup: not executed
+
+Detailed record: `docs/F04_TARGETED_ARCHITECTURE_GATE_REVIEW.md`

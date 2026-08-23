@@ -70,6 +70,14 @@ function prerequisitesAreMet(
           return false;
         }
         break;
+      case "ruleNotEquals":
+        if (
+          policyState.institutionalRules[prerequisite.rule] ===
+          prerequisite.value
+        ) {
+          return false;
+        }
+        break;
     }
   }
 

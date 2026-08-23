@@ -365,7 +365,7 @@ T024 is complete as an in-memory typed snapshot/replay contract. It does not add
 save UI, browser storage, cloud saves, replay viewer, or Gate 1V.
 
 - `pnpm test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run format`, and
-  `pnpm run build` must pass with the explicit `SerializedSimulationSnapshotV1`
+  `pnpm run build` must pass with the explicit `SerializedSimulationSnapshotV2`
   decoder, `EventStore` commit boundary, and regression tests
 - `pnpm run inspect:t024` must pass snapshot version/scenario identity,
   authoritative runtime roundtrip, LandHex/contact/conflict/RNG/EventStore
@@ -374,7 +374,7 @@ save UI, browser storage, cloud saves, replay viewer, or Gate 1V.
 - snapshot input must contain no static ScenarioDefinition/topology,
   `Region.controller`, front, agenda, threat, regime, consolidation, dissolution,
   or other derived read model; those are reconstructed after load
-- wrong scenario identity, unsupported format/unknown keys, incomplete/extra V1
+- wrong scenario identity, unsupported format/unknown keys, incomplete/extra V2
   Country/Region/Faction/PolicyState identity sets, incomplete ideology catalog
   coverage, invalid policy/faction/intervention references, Government/Conflict
   outcome references, missing or unknown LandHex runtime state, static LandHex →
@@ -394,7 +394,7 @@ save UI, browser storage, cloud saves, replay viewer, or Gate 1V.
   tick/date/RNG/event freeze across snapshot boundaries
 - invalid live serialization and invalid candidate next-state commit must fail
   atomically without mutating the source RunRecord
-- V1 has no dynamic Country/Region/Faction/PolicyState lifecycle; incompatible
+- V2 has no dynamic Country/Region/Faction/PolicyState lifecycle; incompatible
   ScenarioDefinition content requires a `scenario.version` bump. Gate 1V
   visualization, save UI, and persistence backend selection remain future work.
 
@@ -844,6 +844,68 @@ F04C는 production simulation을 변경하지 않는 design-only checkpoint다.
 `docs/F04C_INSTITUTION_MEDIATED_STABILIZATION_DESIGN.md`에 기록한다.
 이번 checkpoint에서 gameplay code, balance, RNG, F04D, F05, V02는 변경하지
 않는다.
+
+## F04D Narrow institution-action QA
+
+F04D는 제도 규칙 자체, 네 대응의 직접 효과, 기존 consumer를 통한 후속 history,
+T024 save/load를 함께 검사한다. 대표 명령은 `pnpm run inspect:f04d`다.
+
+- `politicalCompetition`은 required `banned | restricted | plural` enum이고
+  snapshot version 2에서 roundtrip한다. version 1, 누락 값, enum 밖의 값은
+  deserialize 단계에서 거부한다
+- 같은 state에서 competition만 `banned`와 `plural`로 바꾸면 BARGAIN
+  availability가 달라져야 한다. LOBBY와 ORGANIZE는 각각 press/labor rule만
+  계속 읽어야 한다
+- material relief, 제한된 accommodation, opposition legalization, coercive
+  restriction 네 정의가 같은 base checkpoint에서 각각 시작 가능해야 한다
+- 모든 response는 treasury cost, administrative load, duration을 가지며,
+  이미 같은 completion state에 도달한 의미 없는 반복은 거부되어야 한다
+- accommodation과 legalization은 조직을 직접 지우지 않는다. coercion도
+  organization을 0으로 만들거나 faction/conflict를 삭제하지 않고 grievance
+  반작용 및 F04A 재형성 경로를 남긴다
+- 제도 변경 event는 completion event를 원인으로 참조하고 이전/새 값을
+  기록해야 한다. action ID가 coup/rebellion/conflict/territory/government/
+  consolidation을 직접 쓰면 실패다
+- seed 40103의 동일 tick-0 checkpoint에서 WAIT와 네 response가 2년 후 서로
+  다른 실제 history를 만들어야 한다. same-state rule pair도 eligibility와
+  history가 모두 달라야 한다
+- continuous 720-day run과 day 360 save/load continuation, branch insertion-order
+  comparison이 각각 같은 canonical result를 만들어야 한다
+- WAIT dominance, cheap permanent gate shutoff, one-way ratchet, pre-crisis timing
+  cliff를 다시 검사한다. no-op repeat는 blocked, repeated starts는 국고/행정
+  headroom으로 bounded여야 한다
+
+2026-08-24 결과: F04D counterfactual `PASS`. 기본 테스트 51개 파일/421개
+테스트와 F04D 전용 inspection이 통과했다. active-conflict response와
+zero-territory recovery는 F04B가 소유하며, F04D fixture는 decision boundary만
+측정한다. F05와 V02는 시작하지 않는다.
+
+## F04 Targeted architecture / Gate review
+
+2026-08-24 F04B+F04D targeted review 결과는 `PASS WITH F05 NOTES`다. 코드
+REQUIRED FIX는 없고 F04는 `CLOSED`, F05는 balance/pacing 측정을 시작할 수 있는
+`READY` 상태다. F05와 V02 자체는 이 review에서 시작하지 않았다.
+
+- F04B는 active internal rebellion에서 현재 organization/resources/local
+  activation을 다시 읽고, strong residual state에서만 canonical LandHex writer로
+  최대 1 Hex를 회복한다. weak state/coup/foreign war는 shortcut이 없다
+- `politicalCompetition`은 PolicyState의 required authority로 남고, BARGAIN은
+  plural competition에서만 열리는 최소 정치 협상 전략이다. BARGAIN 자체는
+  직접 crisis modifier가 아니므로 banned/plural timing 차이는 같은 legalization
+  시도의 feasibility와 faction effect 경로로 설명한다
+- `institutionalRuleSet`은 cost/load/duration을 가진 Intervention completion에서
+  동일 PolicyState를 쓰는 typed effect이며, Policy path와 별도 rule store를
+  만들지 않는다
+- snapshot V2의 version 1 명시적 거부, strict enum decode, roundtrip, runtime
+  closure, replay는 현재 개발 단계 계약에 맞아 PASS다
+- political accommodation의 높은 treasury는 day 300까지 영토/경제 기반을
+  유지한 결과다. grievance가 다시 상승하고 crisis가 지연될 뿐 제거되지 않지만,
+  상대적 우세와 repeated-use trade-off는 F05 measurement로 이관한다
+- industrial unrest `0.20 → 0.18`과 starting treasury `500 → 510` 인접 조건에서도
+  네 response의 qualitative divergence가 유지됐다
+
+상세 판정과 original F04 finding closure table은
+`docs/F04_TARGETED_ARCHITECTURE_GATE_REVIEW.md`가 소유한다.
 
 ---
 

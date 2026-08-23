@@ -326,7 +326,9 @@ function deriveAvailableActions(
     LOBBY:
       institutionalRules === null ||
       institutionalRules.pressFreedom !== "censored",
-    BARGAIN: true,
+    BARGAIN:
+      institutionalRules === null ||
+      institutionalRules.politicalCompetition === "plural",
     ORGANIZE:
       institutionalRules === null ||
       institutionalRules.laborOrganization !== "illegal",

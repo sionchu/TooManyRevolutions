@@ -2,6 +2,7 @@ import { createEventStore } from "../events/eventStore";
 import {
   commitSimulationStep,
   deserializeSimulationSnapshot,
+  SIMULATION_SNAPSHOT_FORMAT_VERSION,
   serializeSimulationSnapshot,
   serializeSimulationSnapshotJson,
 } from "../core/persistence";
@@ -143,7 +144,7 @@ export function runT024PersistenceReplayInspection(): T024InspectionReport {
     makeCase(
       "Snapshot version",
       String(snapshot.formatVersion),
-      snapshot.formatVersion === 1,
+      snapshot.formatVersion === SIMULATION_SNAPSHOT_FORMAT_VERSION,
     ),
     makeCase(
       "Scenario identity",

@@ -18,6 +18,11 @@ import {
 } from "../state/policyFixture";
 import { createInitialWorldState, type WorldState } from "../state/world";
 import { deriveRegimeClassification } from "../state/government";
+import {
+  createDefaultInstitutionalRuleState,
+  INSTITUTIONAL_RULE_KEYS,
+  POLITICAL_COMPETITIONS,
+} from "../state/policy";
 import { createPolicyPhaseHook } from "./policy";
 
 function createFixtureWorld(): {
@@ -70,6 +75,14 @@ function runPolicyStep(
 }
 
 describe("T012 policy rule engine", () => {
+  it("includes the explicit political competition rule and all narrow values", () => {
+    expect(INSTITUTIONAL_RULE_KEYS).toContain("politicalCompetition");
+    expect(POLITICAL_COMPETITIONS).toEqual(["banned", "restricted", "plural"]);
+    expect(createDefaultInstitutionalRuleState().politicalCompetition).toBe(
+      "restricted",
+    );
+  });
+
   it("keeps static definitions in ScenarioDefinition and mutable rules in WorldState", () => {
     const { scenario, world, countryId } = createFixtureWorld();
     const abolition =

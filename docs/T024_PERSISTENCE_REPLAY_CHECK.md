@@ -6,7 +6,7 @@ and deterministic continuation. Gate 1V/UI/storage backend는 시작하지 않�
 
 ## Contract
 
-- `SerializedSimulationSnapshotV1` stores `formatVersion`, scenario identity,
+- `SerializedSimulationSnapshotV2` stores `formatVersion`, scenario identity,
   mutable `WorldState` runtime, `RunState`/ActionRecord history, actual `rngState`,
   and sibling `EventStore` history.
 - `ScenarioDefinition`, static TerritorialTopology/ContactGraph definitions,
@@ -16,7 +16,7 @@ and deterministic continuation. Gate 1V/UI/storage backend는 시작하지 않�
   `assertScenarioRuntimeClosure()`, including
   `assertLandHexRuntimeStateInvariants()`. `Region.controller` is not recreated;
   `WorldState.landHexStates[*].controller` remains the physical authority.
-- V1 closure requires exact runtime Country/Region/Faction/PolicyState identity
+- V2 closure requires exact runtime Country/Region/Faction/PolicyState identity
   sets, complete Region ideology catalog coverage, catalog-valid PolicyState and
   Faction ideology references, valid Government/Conflict outcome references, and
   static LandHex → runtime Region membership.
@@ -68,7 +68,7 @@ comparison. The inspection now reports the ordering audit as covered by source
 audit/tests rather than claiming a runtime numeric scan. No balance constants or
 gameplay formulas changed.
 
-V1 has no dynamic Country/Region/Faction/PolicyState identity lifecycle. A
+V2 has no dynamic Country/Region/Faction/PolicyState identity lifecycle. A
 ScenarioDefinition content change that is not compatible with a saved runtime must
 bump `scenario.version`; no content hash or migration framework is introduced here.
 
@@ -98,4 +98,5 @@ serialize/deserialize와 corrupt snapshot trust boundary의 full validation은
 Save UI, localStorage/IndexedDB/cloud persistence, compression, migration chains,
 rewind/branching/multiplayer replay, replay viewer, full event-sourced rebuild,
 content hashing, dynamic entity lifecycle, Gate 1V visualization, and UI remain
-future work. The Terra trust-boundary review fixes are complete for this V1 scope.
+future work. F04D raised the format to version 2 so `politicalCompetition` is a
+required validated rule; version 1 is rejected without a hidden default or migration.

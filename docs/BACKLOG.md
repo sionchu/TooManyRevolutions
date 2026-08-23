@@ -556,12 +556,12 @@ Same inputs recreate the same run across a validated snapshot boundary.
 
 Acceptance completed:
 
-- `SerializedSimulationSnapshotV1` stores format/scenario identity, authoritative
+- `SerializedSimulationSnapshotV2` stores format/scenario identity, authoritative
   `WorldState` runtime, `RunState`/ActionRecord history, actual RNG state, and the
   sibling `EventStore` history without duplicating static `ScenarioDefinition` or
   derived read models
 - deserialize is an explicit trust boundary: unknown format/keys, wrong scenario,
-  incomplete/extra V1 Country/Region/Faction/PolicyState identity sets, ideology
+  incomplete/extra V2 Country/Region/Faction/PolicyState identity sets, ideology
   catalog gaps, invalid policy/faction/intervention references,
   Government/Conflict outcome reference errors, missing or unknown LandHex runtime
   state, static LandHex → Region mismatches, broken event causes, forward causes,
@@ -604,7 +604,7 @@ SAFE_TO_DEFER:
 - full event-sourced rebuild from history; T024 persists both runtime snapshot and
   recorded history but does not replace the state model with event sourcing
 - dynamic Country/Region/Faction/PolicyState lifecycle, content hashing, and
-  migration framework; V1 content compatibility is governed by scenario version
+  migration framework; V2 content compatibility is governed by scenario version
 
 ### Future direction — Procedural Political Press / Gazette
 
@@ -1157,6 +1157,64 @@ ADD 후보로 정렬했다.
 F04D, F05, V02를 변경하거나 시작하지 않았다. 다음은 F04D의 narrow
 institution-action implementation과 counterfactual 재검증이다.
 
+## F04D — Narrow Institution-Action Implementation — COMPLETE / COUNTERFACTUAL PASS (2026-08-24)
+
+F04D는 `politicalCompetition = banned | restricted | plural`을 required
+Institutional Rule로 구현하고, 기존 Faction `BARGAIN` availability에 직접
+연결했다. 이 rule은 suffrage, press freedom, labor organization, legitimacy,
+election, government turnover 또는 regime bonus를 대체하지 않는다.
+
+- Intervention completion에 typed `institutionalRuleSet` effect와
+  `ruleNotEquals` prerequisite를 추가했다
+- `requireCompletionEffectChange`를 사용하는 definition은 이미 동일한 결과인
+  no-op repeat를 start 전에 거부한다
+- 제도 변경은 `INTERVENTION_COMPLETED -> INSTITUTION_RULE_CHANGED`의 실제
+  cause chain을 남기며 PolicyState, EventStore, T024 replay를 통과한다
+- developer validation fixture는 material relief, 제한된 political
+  accommodation, opposition legalization, coercive restriction 정확히 네
+  response만 제공한다. 각 response는 비용, 행정 부하, 기간과 서로 다른
+  material/faction/institution effect를 가진다
+- coercion은 faction을 삭제하지 않고 organization 감소와 grievance 반작용을
+  함께 남겨 F04A recovery dynamics를 보존한다
+- snapshot format을 version 2로 올려 `politicalCompetition`을 required로
+  저장한다. version 1을 hidden default로 복원하거나 silent migration하지 않는다
+
+`pnpm run inspect:f04d`의 seed 40103 동일-state 비교에서 banned와 plural은
+BARGAIN availability와 coup/rebellion/territory history가 갈라졌다. 동일
+checkpoint의 WAIT 및 네 response도 모두 서로 다른 history를 만들었다. 720일
+continuous와 day-360 save/load continuation, insertion-order comparison은 동일한
+canonical result를 냈다. WAIT dominance, cheap permanent gate shutoff, one-way
+ratchet, pre-crisis timing cliff는 이 narrow slice에서 나타나지 않았고 no-op
+repeat와 capacity spam은 blocked/bounded였다.
+
+상세 구현과 결과는 `docs/F04D_INSTITUTION_ACTION_IMPLEMENTATION.md`에 기록한다.
+F04는 이제 overall assessment를 수행할 수 있다. F05는 그 종합 판정 전에는
+시작하지 않으며, elections/party system/full bargaining/transitional justice/
+military faction/war/arcane privilege/V02도 시작하지 않는다.
+
+## F04 Targeted Architecture / Gate Review — PASS / F04 CLOSED (2026-08-24)
+
+F04B와 uncommitted F04D를 실제 source, counterfactual, persistence, full test
+기준으로 함께 검토했다. `REQUIRED_FIX_BEFORE_F04_CLOSE`는 없으며 F04는
+`PASS / CLOSED`, F05는 `READY / NOT STARTED`로 변경한다.
+
+- F04B current-state response와 conditional internal recovery는 LandHex authority,
+  stateControl 의미, one-Hex boundary, foreign/coup exclusion, save/load/order
+  determinism을 보존한다
+- required `politicalCompetition` ownership, BARGAIN의 최소 legal-channel 의미,
+  typed Intervention institution mutation, snapshot V2 strict boundary는 PASS다
+- banned/plural 비교의 crisis divergence는 BARGAIN 직접 bonus가 아니라 같은
+  legalization action의 rule-dependent feasibility와 completion effect로 설명한다
+- political accommodation의 treasury 우세는 territory/economic base retention의
+  정상 결과이며, dominance/trade-off magnitude는 F04 architecture fix가 아니라
+  F05 balance/pacing measurement다
+- unrest와 treasury 소폭 인접 조건에서도 response의 qualitative ordering과
+  divergence가 유지됐다
+
+상세 review는 `docs/F04_TARGETED_ARCHITECTURE_GATE_REVIEW.md`에 기록한다. 다음
+순서는 reviewed F04D checkpoint commit/push → ChatGPT ↔ Codex GitHub Bridge setup
+→ F05다. 이 review는 commit, push, Bridge, F05, V02를 실행하지 않았다.
+
 ---
 
 # V00 — Visual System & Asset Quality Contract — COMPLETE / PASS (2026-08-22)
@@ -1222,10 +1280,9 @@ planning에서 매핑한다.
 - F03B Agency Leverage / Threshold Sensitivity Diagnosis — COMPLETE / PASS
   (T018 margins, eligibility windows, cadence, T017 attenuation, T022 blockers;
   PLAYER_AGENCY_WEAK remains; F04 narrow READY)
-- F04 Exploit / Degeneracy Survey — COMPLETE / F05 NOT READY (decision-boundary
-  matrix; no gameplay/balance changes; WAIT dominance, ratchet, post-conflict
-  futility, and no-recovery concerns recorded)
-- F05 Pacing / Fun Decision — FUTURE / BLOCKED BY F04 FINDINGS
+- F04 Exploit / Degeneracy Survey — READY FOR OVERALL ASSESSMENT (F04A recovery,
+  F04B active-conflict repair, F04D institution-action counterfactual complete)
+- F05 Pacing / Fun Decision — FUTURE / AWAITS F04 OVERALL ASSESSMENT
 - V02 Flat Hex Renderer — after Gate 1F F01–F05
 - V03 Political Overlay
 - V04 Organization Tokens

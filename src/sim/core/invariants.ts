@@ -1,6 +1,9 @@
 import { createDeterministicActionId } from "../state/action";
 import type { CountryId } from "../state/ids";
-import { INSTITUTIONAL_RULE_KEYS } from "../state/policy";
+import {
+  INSTITUTIONAL_RULE_KEYS,
+  POLITICAL_COMPETITIONS,
+} from "../state/policy";
 import { RESOURCE_TYPES } from "../state/region";
 import type { WorldState } from "../state/world";
 import type { SimDate } from "./clock";
@@ -97,6 +100,11 @@ function assertInstitutionalRules(value: unknown, label: string): void {
     rules.pressFreedom,
     ["censored", "restricted", "free"],
     `${label}.pressFreedom`,
+  );
+  assertStringEnum(
+    rules.politicalCompetition,
+    POLITICAL_COMPETITIONS,
+    `${label}.politicalCompetition`,
   );
 }
 

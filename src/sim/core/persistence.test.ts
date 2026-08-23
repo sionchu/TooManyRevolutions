@@ -17,6 +17,7 @@ import {
 import {
   commitSimulationStep,
   deserializeSimulationSnapshot,
+  SIMULATION_SNAPSHOT_FORMAT_VERSION,
   serializeSimulationSnapshot,
   serializeSimulationSnapshotJson,
 } from "./persistence";
@@ -53,6 +54,7 @@ import {
 } from "../state/interventionFixture";
 import { createPoliticalCrisisFixtureScenario } from "../state/politicalCrisisFixture";
 import { createPolicyFixtureScenario } from "../state/policyFixture";
+import { POLITICAL_COMPETITIONS } from "../state/policy";
 import { createT022OrderConsolidationScenario } from "../state/orderConsolidationFixture";
 import { createT023StateDissolutionScenario } from "../state/stateDissolutionFixture";
 import { createInterventionPhaseHooks } from "../systems/interventionHooks";
@@ -71,6 +73,7 @@ import {
 type MutableRecord = Record<string, unknown>;
 
 type MutableSnapshot = {
+  formatVersion: number;
   scenarioId: string;
   scenarioVersion: number;
   world: {
@@ -284,6 +287,78 @@ describe("T024 persistence and replay", () => {
     expect(
       record.world.countries[CONTACT_FIXTURE_COUNTRY_IDS.player]?.treasury,
     ).toBe(0);
+  });
+
+  it.each(POLITICAL_COMPETITIONS)(
+    "round-trips politicalCompetition=%s in the strict v2 snapshot",
+    (politicalCompetition) => {
+      const baseScenario = createPolicyFixtureScenario();
+      const countryId = baseScenario.playerCountryId;
+      if (countryId === null) {
+        throw new Error("Policy fixture requires a player country.");
+      }
+      const scenario: ScenarioDefinition = {
+        ...baseScenario,
+        initialCountryPolicies: {
+          ...baseScenario.initialCountryPolicies,
+          [countryId]: {
+            ...baseScenario.initialCountryPolicies[countryId]!,
+            institutionalRules: {
+              ...baseScenario.initialCountryPolicies[countryId]!
+                .institutionalRules,
+              politicalCompetition,
+            },
+          },
+        },
+      };
+      const record = createRecord(scenario);
+      const snapshot = serializeSimulationSnapshot(scenario, record);
+      const loaded = deserializeSimulationSnapshot(scenario, snapshot);
+
+      expect(snapshot.formatVersion).toBe(SIMULATION_SNAPSHOT_FORMAT_VERSION);
+      expect(
+        loaded.world.policies[countryId]?.institutionalRules
+          .politicalCompetition,
+      ).toBe(politicalCompetition);
+    },
+  );
+
+  it("rejects legacy, missing, and invalid politicalCompetition snapshot data", () => {
+    const scenario = createPolicyFixtureScenario();
+    const countryId = scenario.playerCountryId;
+    if (countryId === null) {
+      throw new Error("Policy fixture requires a player country.");
+    }
+    const json = serializeSimulationSnapshotJson(
+      scenario,
+      createRecord(scenario),
+    );
+
+    const legacy = JSON.parse(json) as MutableSnapshot;
+    legacy.formatVersion = 1;
+    expect(() => deserializeSimulationSnapshot(scenario, legacy)).toThrow(
+      "Unsupported simulation snapshot version 1",
+    );
+
+    const missing = JSON.parse(json) as MutableSnapshot;
+    const missingRules = missing.world.policies[countryId]?.institutionalRules;
+    if (typeof missingRules !== "object" || missingRules === null) {
+      throw new Error("Policy fixture institutional rules are missing.");
+    }
+    delete (missingRules as MutableRecord).politicalCompetition;
+    expect(() => deserializeSimulationSnapshot(scenario, missing)).toThrow(
+      "politicalCompetition is missing",
+    );
+
+    const invalid = JSON.parse(json) as MutableSnapshot;
+    const invalidRules = invalid.world.policies[countryId]?.institutionalRules;
+    if (typeof invalidRules !== "object" || invalidRules === null) {
+      throw new Error("Policy fixture institutional rules are missing.");
+    }
+    (invalidRules as MutableRecord).politicalCompetition = "open";
+    expect(() => deserializeSimulationSnapshot(scenario, invalid)).toThrow(
+      "politicalCompetition has an invalid value",
+    );
   });
 
   it("canonicalizes runtime record insertion order without changing replay", () => {

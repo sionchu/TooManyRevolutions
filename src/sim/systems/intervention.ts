@@ -94,8 +94,8 @@ function rejectionPayload(
 
 interface InterventionEffectApplication {
   readonly effect: InterventionEffect;
-  readonly previousValue: number;
-  readonly nextValue: number;
+  readonly previousValue: JsonValue;
+  readonly nextValue: JsonValue;
   readonly changed: boolean;
 }
 
@@ -106,6 +106,7 @@ function clampNormalized(value: number): number {
 function applyInterventionCompletionEffects(
   world: WorldState,
   definition: InterventionDefinition,
+  countryId: CountryId,
 ): {
   readonly world: WorldState;
   readonly applications: readonly InterventionEffectApplication[];
@@ -181,6 +182,40 @@ function applyInterventionCompletionEffects(
             factions: {
               ...currentWorld.factions,
               [faction.id]: nextFaction,
+            },
+          };
+        }
+        break;
+      }
+      case "institutionalRuleSet": {
+        const policyState = currentWorld.policies[countryId];
+        if (policyState === undefined) {
+          throw new Error(
+            `Intervention ${definition.id} completion effect references missing PolicyState ${countryId}.`,
+          );
+        }
+
+        const previousValue = policyState.institutionalRules[effect.rule];
+        const nextValue = effect.value;
+        applications.push({
+          effect,
+          previousValue,
+          nextValue,
+          changed: nextValue !== previousValue,
+        });
+
+        if (nextValue !== previousValue) {
+          currentWorld = {
+            ...currentWorld,
+            policies: {
+              ...currentWorld.policies,
+              [countryId]: {
+                ...policyState,
+                institutionalRules: {
+                  ...policyState.institutionalRules,
+                  [effect.rule]: nextValue,
+                },
+              },
             },
           };
         }
@@ -409,11 +444,14 @@ export function runInterventionCompletionPhase(
     const applied = applyInterventionCompletionEffects(
       currentWorld,
       definition,
+      commitment.countryId,
     );
     currentWorld = applied.world;
 
-    emittedEvents.push(
-      createInterventionEvent(context, nextEventSequence, {
+    const completionEvent = createInterventionEvent(
+      context,
+      nextEventSequence,
+      {
         type: "INTERVENTION_COMPLETED",
         actorId: commitment.countryId,
         targetId: commitment.id,
@@ -429,9 +467,38 @@ export function runInterventionCompletionPhase(
           effects: applied.applications.map(interventionEffectToJson),
         },
         visibility: "world",
-      }),
+      },
     );
+    emittedEvents.push(completionEvent);
     nextEventSequence += 1;
+
+    for (const application of applied.applications) {
+      if (
+        application.effect.kind !== "institutionalRuleSet" ||
+        !application.changed
+      ) {
+        continue;
+      }
+
+      emittedEvents.push(
+        createInterventionEvent(context, nextEventSequence, {
+          type: "INSTITUTION_RULE_CHANGED",
+          actorId: commitment.countryId,
+          targetId: definition.id,
+          causeIds: [completionEvent.id],
+          payload: {
+            countryId: commitment.countryId,
+            interventionId: definition.id,
+            commitmentId: commitment.id,
+            rule: application.effect.rule,
+            previousValue: application.previousValue,
+            value: application.nextValue,
+          },
+          visibility: "world",
+        }),
+      );
+      nextEventSequence += 1;
+    }
   }
 
   return {

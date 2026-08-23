@@ -443,6 +443,45 @@ describe("T016 faction pressure", () => {
     expect(illegalLaborWorld.run.actionLog).toEqual([]);
   });
 
+  it("keeps political competition distinct while gating public bargaining", () => {
+    const world = createFixtureWorld();
+    const factionId = FACTION_IDS.workers;
+    const countryId = world.factions[factionId]?.countryId;
+    if (countryId === undefined) {
+      throw new Error("Worker country is missing.");
+    }
+    const withCompetition = (
+      politicalCompetition: "banned" | "plural",
+    ): WorldState => ({
+      ...world,
+      policies: {
+        ...world.policies,
+        [countryId]: {
+          ...world.policies[countryId]!,
+          institutionalRules: {
+            ...world.policies[countryId]!.institutionalRules,
+            politicalCompetition,
+          },
+        },
+      },
+    });
+    const banned = deriveFactionObservation(
+      withCompetition("banned"),
+      factionId,
+    );
+    const plural = deriveFactionObservation(
+      withCompetition("plural"),
+      factionId,
+    );
+
+    expect(banned.availableActions.BARGAIN).toBe(false);
+    expect(plural.availableActions.BARGAIN).toBe(true);
+    expect(banned.availableActions.LOBBY).toBe(plural.availableActions.LOBBY);
+    expect(banned.availableActions.ORGANIZE).toBe(
+      plural.availableActions.ORGANIZE,
+    );
+  });
+
   it("changes action when relevant faction capacity changes", () => {
     const world = createFixtureWorld();
     const poorerMerchant: WorldState = {

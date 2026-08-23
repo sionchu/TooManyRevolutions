@@ -13,6 +13,12 @@ export type ProductiveProperty = "privateAllowed" | "mixed" | "publicOnly";
 export type LandOwnership = "feudal" | "private" | "communal" | "state";
 export type LaborOrganization = "illegal" | "restricted" | "legal";
 export type PressFreedom = "censored" | "restricted" | "free";
+export const POLITICAL_COMPETITIONS = [
+  "banned",
+  "restricted",
+  "plural",
+] as const;
+export type PoliticalCompetition = (typeof POLITICAL_COMPETITIONS)[number];
 
 /** The single resolved institutional state used by future systems. */
 export interface InstitutionalRuleState {
@@ -23,6 +29,8 @@ export interface InstitutionalRuleState {
   readonly landOwnership: LandOwnership;
   readonly laborOrganization: LaborOrganization;
   readonly pressFreedom: PressFreedom;
+  /** Legal scope for independent political organizations to contest authority. */
+  readonly politicalCompetition: PoliticalCompetition;
 }
 
 /** Stable key order for validation, mutation, and event emission. */
@@ -34,17 +42,56 @@ export const INSTITUTIONAL_RULE_KEYS = [
   "landOwnership",
   "laborOrganization",
   "pressFreedom",
+  "politicalCompetition",
 ] as const satisfies readonly (keyof InstitutionalRuleState)[];
 
 export type InstitutionalRuleKey = (typeof INSTITUTIONAL_RULE_KEYS)[number];
 export type InstitutionalRuleMutation = Partial<InstitutionalRuleState>;
 
+/** Runtime validator shared by authored catalogs and persistence boundaries. */
+export function isInstitutionalRuleValue(
+  rule: InstitutionalRuleKey,
+  value: unknown,
+): boolean {
+  switch (rule) {
+    case "rulerVeto":
+    case "legislatureRequired":
+      return typeof value === "boolean";
+    case "suffrage":
+      return ["none", "elite", "property", "broad", "universal"].includes(
+        value as string,
+      );
+    case "productiveProperty":
+      return ["privateAllowed", "mixed", "publicOnly"].includes(
+        value as string,
+      );
+    case "landOwnership":
+      return ["feudal", "private", "communal", "state"].includes(
+        value as string,
+      );
+    case "laborOrganization":
+      return ["illegal", "restricted", "legal"].includes(value as string);
+    case "pressFreedom":
+      return ["censored", "restricted", "free"].includes(value as string);
+    case "politicalCompetition":
+      return POLITICAL_COMPETITIONS.includes(value as PoliticalCompetition);
+  }
+}
+
 /** Short name retained for callers that describe definition mutations as rules. */
 export type PolicyRuleSet = InstitutionalRuleMutation;
 
-type InstitutionalRulePrerequisite = {
+type InstitutionalRuleEqualsPrerequisite = {
   [Key in InstitutionalRuleKey]: {
     readonly kind: "ruleEquals";
+    readonly rule: Key;
+    readonly value: InstitutionalRuleState[Key];
+  };
+}[InstitutionalRuleKey];
+
+type InstitutionalRuleNotEqualsPrerequisite = {
+  [Key in InstitutionalRuleKey]: {
+    readonly kind: "ruleNotEquals";
     readonly rule: Key;
     readonly value: InstitutionalRuleState[Key];
   };
@@ -53,7 +100,8 @@ type InstitutionalRulePrerequisite = {
 export type PolicyPrerequisite =
   | { readonly kind: "policyActive"; readonly policyId: PolicyId }
   | { readonly kind: "policyInactive"; readonly policyId: PolicyId }
-  | InstitutionalRulePrerequisite;
+  | InstitutionalRuleEqualsPrerequisite
+  | InstitutionalRuleNotEqualsPrerequisite;
 
 /** Static, serializable policy input owned by ScenarioDefinition. */
 export interface PolicyDefinition {
@@ -86,5 +134,6 @@ export function createDefaultInstitutionalRuleState(): InstitutionalRuleState {
     landOwnership: "feudal",
     laborOrganization: "restricted",
     pressFreedom: "restricted",
+    politicalCompetition: "restricted",
   };
 }

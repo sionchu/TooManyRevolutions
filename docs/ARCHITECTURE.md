@@ -2237,7 +2237,7 @@ No core control may require experimental APIs.
 
 T024는 authoritative runtime과 이미 커밋된 causal history를 함께 보존하는
 versioned in-memory snapshot boundary를 구현했다. 현재 public contract는
-`SerializedSimulationSnapshotV1`, `serializeSimulationSnapshot()`/
+`SerializedSimulationSnapshotV2`, `serializeSimulationSnapshot()`/
 `serializeSimulationSnapshotJson()`, `deserializeSimulationSnapshot()`,
 `commitSimulationStep()`, `cloneRunRecordViaSnapshot()`이다. 브라우저 파일,
 `localStorage`/IndexedDB, cloud save slot은 이 경계의 책임이 아니다.
@@ -2259,7 +2259,7 @@ consolidation/dissolution eligibility, UI/presentation state도 저장하지 않
 
 ```text
 static ScenarioDefinition (별도 로드)
-  + SerializedSimulationSnapshotV1
+  + SerializedSimulationSnapshotV2
   -> validated WorldState + EventStore
   -> derived selectors/read models
 ```
@@ -2269,7 +2269,7 @@ static ScenarioDefinition (별도 로드)
 deserialize는 외부/저장 데이터를 `WorldState`로 직접 cast하지 않는다. JSON
 primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unknown key,
 잘못된 format version, 필수 필드 누락, 잘못된 reference를 거부한다. decode 뒤에는
-`assertScenarioRuntimeClosure(scenario, world)`가 현재 V1 시나리오와 runtime 전체가
+`assertScenarioRuntimeClosure(scenario, world)`가 현재 V2 시나리오와 runtime 전체가
 닫혀 있는지 검증한다.
 
 - snapshot top-level identity와 `WorldState.run.scenarioId/version`이 전달된
@@ -2283,7 +2283,7 @@ primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unk
   않는다. 이 static identity/membership/topology는 scenario에서만 읽는다.
 - Region에 `controller`를 만들지 않으며, physical territory authority는 계속
   `WorldState.landHexStates[*].controller` 하나다.
-- V1에는 Country/Region/Faction/PolicyState의 runtime lifecycle이 없으므로
+- V2에는 Country/Region/Faction/PolicyState의 runtime lifecycle이 없으므로
   `initialCountries`, `initialRegions`, `initialFactions`,
   `initialCountryPolicies`와 각각의 runtime identity set이 정확히 일치해야
   한다. 후속 state successor나 동적 actor 생성을 도입할 때는 별도 lifecycle
@@ -2299,8 +2299,9 @@ primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unk
   commitment는 `sourceActionId`, accepted `START_INTERVENTION` payload, 시작
   tick/country/intervention, deterministic commitment ID가 서로 일치해야 한다.
 
-현재 format은 `version: 1`만 지원한다. migration framework나 과거 format
-chain은 만들지 않았고 unknown version은 명확히 reject한다. 별도 content hash는
+현재 format은 `version: 2`만 지원한다. F04D의 required
+`politicalCompetition`을 누락한 version 1과 unknown version은 명확히
+reject한다. migration framework나 과거 format chain은 만들지 않았다. 별도 content hash는
 아직 도입하지 않으며, 정적 ScenarioDefinition 호환성은 `scenarioId`와
 `scenarioVersion`으로 관리한다. 호환되지 않는 content 변경은 version bump를
 요구한다.
@@ -2388,6 +2389,26 @@ terminal snapshot을 load한 뒤의 step은 공통 terminal gate를 그대로 �
 date/tick/RNG/WorldState/EventStore/action history와 outcome을 변경하지 않고
 새 event도 만들지 않는다. T024는 full event-sourced rebuild, arbitrary rewind,
 branch timeline, save UI, storage backend, replay viewer를 구현하지 않는다.
+
+## 17.3 F04D institutional mutation boundary
+
+`InstitutionalRuleState.politicalCompetition`은 독립 정치조직의 합법적 조직·경쟁
+접근성만 표현하는 required enum이다. `banned | restricted | plural` 외의 값을
+허용하지 않고, regime classification·legitimacy·suffrage·press·labor·election
+state와 합치지 않는다. Faction pressure의 `BARGAIN` availability가 이 규칙을
+직접 읽으며 `LOBBY`와 `ORGANIZE`는 기존의 서로 다른 법적 consumer를 유지한다.
+
+Intervention completion effect의 `institutionalRuleSet`은 typed rule/value 한
+쌍을 authoritative PolicyState에 immutable replacement로 적용한다. 실제 값이
+바뀐 경우 기존 `INTERVENTION_COMPLETED` 뒤에 `INSTITUTION_RULE_CHANGED`가 나오고,
+rule-change event의 `causeIds`는 그 completion event를 가리킨다. 정의가
+`requireCompletionEffectChange`를 선택하면 모든 completion effect가 이미
+동일한 상태인 start request는 `NO_COMPLETION_EFFECT_CHANGE`로 거부한다.
+
+이 effect는 generic scripting DSL이 아니다. crisis/conflict/territory/government/
+consolidation을 직접 쓰지 않으며, 기존 downstream system이 바뀐 PolicyState와
+Faction/Region state를 cadence에 따라 읽는다. F04D의 네 대응 정의는 developer
+validation fixture에만 있고 production intervention catalog로 승격하지 않는다.
 
 Competition build can support:
 - restart same seed

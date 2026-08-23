@@ -1563,7 +1563,7 @@ another authority.
 
 ### Decision
 
-- Use the explicit `SerializedSimulationSnapshotV1` envelope with
+- Use the explicit `SerializedSimulationSnapshotV2` envelope with
   `formatVersion`, `scenarioId`, `scenarioVersion`, authoritative runtime
   `WorldState`, and sibling `EventStore` history. The static ScenarioDefinition is
   supplied separately to `deserializeSimulationSnapshot()`.
@@ -1577,7 +1577,7 @@ another authority.
   static scenario plus current runtime state.
 - Treat deserialize as a trust boundary. Explicit decoding plus
   `assertScenarioRuntimeClosure()` rejects unknown format or keys, wrong scenario
-  identity, incomplete/extra V1 Country/Region/Faction/PolicyState identity sets,
+  identity, incomplete/extra V2 Country/Region/Faction/PolicyState identity sets,
   incomplete ideology catalog coverage, invalid policy/faction/intervention
   references, Government/Conflict outcome reference errors, missing/unknown
   LandHex runtime state or static LandHex → Region membership, invalid terminal
@@ -1625,7 +1625,7 @@ another authority.
 
 The snapshot captures exactly the mutable authority needed to continue the current
 run while static content remains scenario-owned and derived views remain selectors.
-V1 deliberately assumes no runtime lifecycle for Country/Region/Faction/PolicyState;
+V2 deliberately assumes no runtime lifecycle for Country/Region/Faction/PolicyState;
 future successors or dynamically created actors require an explicit lifecycle
 extension rather than silently weakening the exact identity checks. Scenario
 version is the compatibility boundary; a content hash and migration framework are
@@ -1652,7 +1652,7 @@ so an unsupported Map/Set cannot become an apparent completed graph on retry.
   changing their authority or cadence semantics.
 - Future deterministic PressFacts/WHY/read models can consume the committed history,
   but prose remains non-authoritative.
-- `version: 1` is identified and unknown versions are rejected; migration chains,
+- `version: 2` is identified and version 1/unknown versions are rejected; migration chains,
   storage backends, save slots, rewind, branching, multiplayer rollback, and replay
   UI remain future work.
 - A snapshot is a runtime continuation artifact, not a replacement for scenario
@@ -1664,6 +1664,83 @@ so an unsupported Map/Set cannot become an apparent completed graph on retry.
 dropping RNG/history, or restoring derived authority would require snapshot schema
 migration, replay baselines, causal WHY consumers, terminal tests, and every later
 system that reads LandHex/contact/conflict state to be revised.
+
+## ADR-041 — F04D narrow political competition and intervention-owned institution mutation
+
+**Date:** 2026-08-24
+**Status:** Accepted
+
+### Problem
+
+The existing institutional rules could distinguish suffrage, press, labor,
+legislature, veto, and property law, but could not represent whether independent
+political organizations were legally banned, restricted, or allowed to compete.
+F04C-R required that distinction without introducing a democracy score, election
+simulation, regime bonus, or scripted political history. F04D also needed a normal
+action path that could change the rule while preserving treasury, administrative
+capacity, duration, causal events, replay, and downstream detector authority.
+
+### Decision
+
+- Add required `InstitutionalRuleState.politicalCompetition` with exactly
+  `banned | restricted | plural`. It represents legal organization/competition
+  access only and remains independent of suffrage, press, labor, legitimacy,
+  elections, government turnover, and derived `RegimeClassification`.
+- Make the existing faction `BARGAIN` path consume `politicalCompetition ===
+  "plural"`. Keep `LOBBY` on press freedom and `ORGANIZE` on labor law so the three
+  legal channels remain distinct.
+- Add typed `institutionalRuleSet` to Intervention completion effects. The effect
+  writes only one valid InstitutionalRuleState key/value at a time. Completion
+  retains the existing `INTERVENTION_COMPLETED` event and emits
+  `INSTITUTION_RULE_CHANGED` with the completion event as its cause.
+- Add `ruleNotEquals` and opt-in `requireCompletionEffectChange` so F04D definitions
+  can reject a start whose completion would no longer change authoritative state.
+  This does not replace treasury, administrative headroom, prerequisite, or
+  commitment-duration checks.
+- Keep the four F04D response definitions in a developer validation fixture. They
+  use existing material, faction, and institution effects; no response directly
+  writes crisis, conflict, territory, government, or consolidation state.
+- Raise `SNAPSHOT_FORMAT_VERSION` to 2 and require a valid competition value at the
+  deserialize trust boundary. Reject version 1 instead of silently defaulting or
+  adding a migration chain.
+
+### Alternatives
+
+- infer political competition from suffrage, press freedom, or regime label;
+- add a generic democracy/openness/stability meter;
+- let response IDs schedule coup, rebellion, or government transition outcomes;
+- add an unrestricted effect scripting language;
+- silently load version 1 with `restricted` as an implicit default.
+
+### Reason
+
+The narrow rule models a legal distinction that existing axes do not contain, while
+one real BARGAIN consumer makes it mechanically observable. The Intervention seam
+already owns cost, administrative headroom, time, completion, event provenance, and
+replay, so a typed rule mutation is the smallest authoritative extension. Existing
+crisis and territorial systems remain responsible for detecting consequences from
+state. Strict version 2 decoding avoids turning an absent saved field into an
+unstated political choice.
+
+### Consequences
+
+- Same non-institution state can produce different legal availability and later
+  histories from `banned` versus `plural` competition.
+- Legalization and coercive restriction carry costs, duration, faction
+  counter-reaction, and no-op repeat rejection; neither deletes a faction or grants
+  a regime-wide bonus.
+- Every ScenarioDefinition and serialized PolicyState must include the new rule.
+  Version 1 snapshots no longer load.
+- Elections, parties, electoral turnover, full labor bargaining, transitional
+  justice, military factions, war politics, and arcane privilege need later domain
+  decisions rather than being inferred from this enum.
+
+### Reversal cost
+
+Medium. Removing or broadening the rule changes PolicyState, snapshot compatibility,
+Faction pressure availability, intervention effects, event histories, validation
+fixtures, and counterfactual baselines, but it does not change territory, conflict,
+or Government authority.
 
 # Template
 

@@ -47,7 +47,11 @@ import {
   type IdeologyId,
   type LandHexId,
 } from "../state/ids";
-import type { InstitutionalRuleState, PolicyState } from "../state/policy";
+import {
+  POLITICAL_COMPETITIONS,
+  type InstitutionalRuleState,
+  type PolicyState,
+} from "../state/policy";
 import type {
   Region,
   ResourceStock,
@@ -73,7 +77,7 @@ import {
 import { freezeCanonicalGraph } from "./canonicalFreeze";
 import { claimCanonicalSimulationStepResult } from "./tick";
 
-export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 1 as const;
+export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 2 as const;
 
 const canonicalRunRecords = new WeakMap<RunRecord, ScenarioDefinition>();
 
@@ -94,7 +98,7 @@ function registerCanonicalRunRecord<T extends RunRecord>(
   return record;
 }
 
-export interface SerializedWorldStateV1 {
+export interface SerializedWorldStateV2 {
   readonly tick: number;
   readonly date: SimDate;
   readonly countries: Readonly<Record<string, Country>>;
@@ -112,17 +116,17 @@ export interface SerializedWorldStateV1 {
   readonly run: RunState;
 }
 
-export interface SerializedEventStoreV1 {
+export interface SerializedEventStoreV2 {
   readonly events: readonly GameEvent[];
 }
 
 /** Versioned runtime snapshot. Static ScenarioDefinition content is excluded. */
-export interface SerializedSimulationSnapshotV1 {
+export interface SerializedSimulationSnapshotV2 {
   readonly formatVersion: typeof SIMULATION_SNAPSHOT_FORMAT_VERSION;
   readonly scenarioId: string;
   readonly scenarioVersion: number;
-  readonly world: SerializedWorldStateV1;
-  readonly eventStore: SerializedEventStoreV1;
+  readonly world: SerializedWorldStateV2;
+  readonly eventStore: SerializedEventStoreV2;
 }
 
 type UnknownRecord = { readonly [key: string]: unknown };
@@ -378,7 +382,7 @@ function cloneEvent(event: GameEvent): GameEvent {
   };
 }
 
-function cloneWorldState(world: WorldState): SerializedWorldStateV1 {
+function cloneWorldState(world: WorldState): SerializedWorldStateV2 {
   return {
     tick: world.tick,
     date: { ...world.date },
@@ -1330,6 +1334,7 @@ function decodeInstitutionalRules(
       "landOwnership",
       "laborOrganization",
       "pressFreedom",
+      "politicalCompetition",
     ],
     label,
   );
@@ -1367,6 +1372,11 @@ function decodeInstitutionalRules(
       required(record, "pressFreedom", label),
       PRESS_FREEDOMS,
       `${label}.pressFreedom`,
+    ),
+    politicalCompetition: expectEnum(
+      required(record, "politicalCompetition", label),
+      POLITICAL_COMPETITIONS,
+      `${label}.politicalCompetition`,
     ),
   };
 }
@@ -1901,7 +1911,7 @@ function assertRunRecordForPersistence(
 export function serializeSimulationSnapshot(
   scenario: ScenarioDefinition,
   record: RunRecord,
-): SerializedSimulationSnapshotV1 {
+): SerializedSimulationSnapshotV2 {
   assertRunRecordForPersistence(scenario, record);
 
   return {
