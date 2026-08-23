@@ -1,16 +1,16 @@
 # TMR Last Bridge Result
 
-TASK_ID: F05
+TASK_ID: F05_FIX1
 
-STATUS: MEASUREMENT_COMPLETE
+STATUS: REPAIR_COMPLETE
 
 START_BRANCH: master
 
-START_COMMIT: 75ffd60b7ef0335118e404d8be6767c7da37d72b
+START_COMMIT: 0748e594f714a051df9bad8fcaec3a1ef160ba85
 
 END_BRANCH: master
 
-END_COMMIT: 1866287e87072fc9b62f55a4af940f9d0e54b15b
+END_COMMIT: 60c584543f1cfaf89c2066f8060859e7a6d2f103
 
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 
@@ -20,125 +20,54 @@ PUSHED: YES
 
 GATE1F_RECOMMENDATION: NOT_READY
 
-## MEASUREMENT_SCOPE
+## REPAIR_OUTCOME
 
-- contexts: early/preventive, near-crisis, active-conflict/recovery plus a
-  one-day neighbor for each
-- horizon: 5 years / 1,800 days per branch
-- strategies: WAIT, four F04D responses, repeated accommodation
-- condition perturbations: timing-only natural checkpoints; no balance changes
+- silence diagnosis: `MIXED_GAP`
+- recovery repair: existing paid political accommodation now registers its
+  T016 Agenda consequence
+- recovery benefit: critical rebellion pressure day `90 → 420`
+- recovery cost: treasury `-1,137 → -1,207`
+- recovery authority: unchanged 0 controlled Hexes / 2 active conflicts
+- recovery WAIT class: `WAIT_WEAKLY_DOMINANT → TRADEOFF`
+- meaningful recovery responses: `1 → 3`
+- maximum silence: major-event-only `1,787` days; repaired reassessment
+  `1,200` days
+- accommodation: `CONDITIONALLY_STRONG`
+- trajectory diversity: six signatures in each representative context
+- causal readability: YES
+- readable five-year arc: NO overall
 
-## POLITICAL_ACCOMMODATION
+## REMAINING_BLOCKER
 
-- classification: `CONDITIONALLY_STRONG`
-- strongest: early/preventive and near-crisis
-- trade-off: repeated use preserves territory but leaves instability near
-  `96.4`; recovery use is cost-only
-- treasury cause: delayed territorial loss preserves controlled production and
-  daily income
-- repeat behavior: `20/20` starts early and near crisis; `4/20` starts in
-  recovery
+Early/preventive and near-crisis branches still contain a 1,200-day late
+steady-state span without another meaningful decision/consequence threshold.
+No second repair system was added to force a pass.
 
-## WAIT DOMINANCE
+## SCOPE_GUARDRAIL
 
-- early/preventive: `WAIT_WORSE`
-- near-crisis: `WAIT_WORSE`
-- active-conflict/recovery: `WAIT_WEAKLY_DOMINANT`
-- broader verdict: no broad pre-crisis WAIT dominance; weak recovery choice
-  coverage remains
-
-## ACTION STRENGTH
-
-- material relief: meaningful in all three contexts
-- accommodation: strong before collapse, ineffective after it
-- legalization: distinct institutional/crisis path, cost-only in recovery
-- coercion: distinct rule/timing path, cost-only in recovery
-
-## TIMING SENSITIVITY
-
-- early: trace-sensitive, no absolute first-crisis or terminal cliff
-- near-crisis: tick 18/19 crosses the rebellion boundary
-- post-crisis/recovery: stable at tick 180/181
-
-## PACING / ARC
-
-- early pressure: shortage day 1; unrest from day 4; WAIT rebellion day 19
-- territory: WAIT loses Hexes days 35/42/49; accommodation delays to
-  301/308/315
-- longest political silence: `1,695 / 1,713 / 1,787` days by representative
-  context
-- accelerate windows: present
-- pause/decision clusters: too sparse after the early cluster
-- readable five-year arc: NO
-
-## TRAJECTORY DIVERSITY
-
-- six distinct histories per representative context
-- many single-action branches reconverge to 0 Hexes / 2 conflicts
-
-## CAUSAL READABILITY
-
-- action completion, institution, crisis, territory, production, and treasury
-  differences are explainable through emitted events and captured state
-- long recovery silence remains the primary gap
-
-## GATE 1F CRITERIA
-
-- trade-offs: PARTIAL
-- surprising but explainable: YES
-- different histories from choices: YES
-- reasons to accelerate/pause: PARTIAL
-- readable 5–10 year headless arc: NO
-
-## REQUIRED_FIX_BEFORE_GATE1F
-
-1. Add a second distinct paid benefit among existing recovery responses.
-2. Shorten the 1,485–1,787 day political silence with an existing-system
-   decision/event consequence.
-3. Rerun the same matrix, including repeat accommodation.
-
-F05 does not authorize these fixes.
-
-## FUTURE_BALANCE_NOTES
-
-- Keep repeated accommodation's instability cost visible.
-- Treat its treasury result as downstream of territorial production.
-- Retain the tick-18/tick-19 boundary probe.
-
-## DEFERRED
-
-- elections/parties
-- full labor bargaining
-- transitional justice
-- military factions
-- local autonomy
-- war
-- fantasy
-- V02
-
-## FILES_CHANGED
-
-- F05 inspection, CLI, focused test, package script, and decision document
-- F05 immutable Bridge result plus current result/state metadata
+- existing F04C-R grounding reused
+- no new external research
+- no new domain, generic political meter, scheduled story content, RNG, UI,
+  renderer, or V02 work
+- LandHex/conflict authority unchanged
 
 ## VERIFICATION
 
 - install, format, typecheck, lint, build: PASS
-- T024, F01, F04D inspections: PASS
-- F05 inspection: COMPLETE / `NOT_READY`
-- full test suite: PASS — 51 files / 421 tests
-- measurement commit and push: PASS —
-  `1866287e87072fc9b62f55a4af940f9d0e54b15b`
-
-## BLOCKERS
-
-None for measurement completion. Gate 1F is not ready to pass.
+- T024, F01, F04B, F04D inspections: PASS
+- F05 rerun: COMPLETE / `NOT_READY`
+- focused tests: PASS — 27 tests
+- full suite: PASS — 51 files / 422 tests
+- `git diff --check`: PASS before repair commit
+- repair commit/push: PASS —
+  `60c584543f1cfaf89c2066f8060859e7a6d2f103`
 
 ## NEXT
 
-Return to ChatGPT for Gate 1F review. Do not start V02 or any follow-up fix
-without a new Bridge task.
+NEXT_AUTHORIZED_TASK_ID: NONE
 
-Historical result: `docs/bridge/results/F05_RESULT.md`
+V02: NOT STARTED
 
-Detailed evidence: `docs/F05_PACING_FUN_DECISION.md`
+Historical result: `docs/bridge/results/F05_FIX1_RESULT.md`
+
+Detailed evidence: `docs/F05_GATE1F_REPAIR1.md`
