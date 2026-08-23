@@ -1096,7 +1096,7 @@ function buildFindings(
   accommodation: F05AccommodationClassification,
 ): readonly string[] {
   const findings: string[] = [
-    "Silence diagnosis: MIXED_GAP repaired; unresolved full territorial displacement under an active internal rebellion now reaches the existing state-continuity dissolution consumer instead of remaining inert.",
+    "Silence diagnosis: MIXED_GAP remains after rejected-writer removal; unresolved full territorial displacement under an active internal rebellion remains a non-terminal stalemate and does not mutate state continuity.",
     `Accommodation classification: ${accommodation}.`,
     `Representative WAIT classes: ${primaryContexts
       .map(

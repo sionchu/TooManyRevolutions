@@ -505,7 +505,7 @@ T022에서 `requiredStableRegionIds`는 개수로 환산하는 일반 지역 수
 | `production` | 생산 | 하루당 절대 산출 단위, 0 이상 | 불가 | 절대값 | economy | 0 하한, step 경계 검증 |
 | `militaryPower` | 군사력 | 0–100 상대 전력 지수 | 불가 | 0–1이 아닌 지수 | conflict/defense | 0–100 clamp, step 경계 검증 |
 | `instability` | 불안 | 0–100 국가 지수 | 불가 | 0–1이 아닌 지수 | instability | 0–100 clamp, step 경계 검증 |
-| `stateContinuity` | 국가 존속 | 0–100 국가 존속 지수; 시나리오 임계값과 비교 | 불가 | 0–1이 아닌 지수 | conflict phase의 unresolved internal-rebellion displacement writer; T023은 읽기만 함 | 0–100 clamp, step 경계 검증 |
+| `stateContinuity` | 국가 존속 | 0–100 국가 존속 지수; 시나리오 임계값과 비교 | 불가 | 0–1이 아닌 지수 | 명시적으로 근거가 있는 continuity evidence writer가 생길 때만 변경; 현재 production writer 없음; T023은 읽기만 함 | 0–100 clamp, step 경계 검증 |
 
 보조 핵심 수치는 아래를 따른다.
 
@@ -570,7 +570,7 @@ Action intake/validation (step 밖의 staging)
 | `factionPressure` | accepted faction `ActionRecord`가 해소될 때 `Faction.currentStrategy`만 변경; 월간 heuristic은 read-only `ActionProposal`을 반환 | 새 heuristic proposal은 WorldState/actionLog를 직접 변경하지 않음; `Country.instability`, `Region.unrest`, `Region.ideology`, 자원·외교·영토·승패는 변경 금지 |
 | `instability` | 매일 `Region.unrest`와 이를 집계한 `Country.instability` | T017 baseline은 `Country.legitimacy`를 쓰지 않으며, conflict/승패 직접 판정·단일 unrest trigger 금지 |
 | `diplomacy` | accepted T019 outgoing `CLOSE_BORDER`/`REOPEN_BORDER`와 T020 direction-explicit incoming restriction/restore가 directed `contactEdgeStates`의 enabled 상태를 변경; monthly foreign `ActionProposal` 생성 | static ContactGraph/TerritorialTopology 변경 금지; reverse edge·영토·제도·경제 직접 변경 금지; `WAIT`는 event 없는 no-op |
-| `conflict` | `Conflict`, `LandHexRuntimeState.controller` through the typed territorial mutation seam, `Government`, 필요한 `stateContinuity` 입력 | T018 crisis detection과 T021 active armed conflict resolution을 소유; front는 derived이고 `CountryId`를 교체하지 않음 |
+| `conflict` | `Conflict`, `LandHexRuntimeState.controller` through the typed territorial mutation seam, `Government`, continuity evidence inputs (read-only) | T018 crisis detection과 T021 active armed conflict resolution을 소유; front는 derived이고 `CountryId`를 교체하지 않으며, internal-rebellion displacement만으로 `stateContinuity`를 쓰지 않음 |
 | `evaluateOrderConsolidationAndDissolution` | `RunState.consolidation`, `RunState.outcome` | criteria는 읽기 전용 ScenarioDefinition |
 | `closeDay` | `tick`, `date`, `nextEventSequence` | 도메인 규칙을 새로 해소하지 않음 |
 | `eventFinalization` | 현재 step의 event buffer 확정에 필요한 내부 값 | 새 gameplay event를 만들지 않으며 WorldState 도메인 값을 쓰지 않음 |
@@ -1543,13 +1543,16 @@ phase의 territorial snapshot에 포함하지 않는다. 다음 eligible weekly 
 
 같은 weekly boundary의 territorial resolution 뒤에도 player Country가 통제하는
 LandHex가 0이고, 해당 Country의 active internal `rebellion` participant Faction이
-실제 LandHex를 통제하면 conflict phase가 `Country.stateContinuity`를 1 낮춘다.
-이는 0–100 지수의 최소 단위이며, 순수한 경과시간이 아니라 매 boundary에서 다시
-확인한 전면적 물리 displacement와 실패한 실제 recovery 결과의 후속 소비다. 같은
-boundary에서 government recovery가 Hex 하나를 되찾으면 감소하지 않는다. foreign
-occupation, coup, faction의 물리 통제가 없는 반란만으로는 감소하지 않고 0에서
-clamp한다. 별도 사건이나 terminal outcome은 만들지 않으며, 다음 T023 phase가
-scenario-owned threshold를 독점 평가한다.
+실제 LandHex를 통제하는 상태는 유효한 displacement/stalemate 관찰값일 뿐이다.
+그 상태만으로 conflict phase가 `Country.stateContinuity`를 낮추거나
+`STATE_DISSOLVED`를 만들지 않는다. F04B의 strength-qualified government recovery는
+기존대로 최대 하나의 Hex를 회복할 수 있지만, 회복 여부와 무관하게 continuity
+decrement writer는 없다. foreign occupation, coup, faction의 물리 통제가 없는
+반란도 state continuity evidence를 자동으로 만들지 않는다. F05_FIX2가 추가했던
+내부 반란 continuity writer는 이 계약과 충돌하여 F05_FIX3에서 제거되었고,
+그 역사적 근거는 별도 F05_FIX2/F05_FIX2_R 문서에 보존한다. 현재 T023은
+scenario-owned threshold를 읽기만 하며, annexation·permanent fragmentation·
+sovereign-function evidence는 근거가 추가될 때까지 deferred다.
 
 ### Government continuity seam
 
@@ -1626,8 +1629,9 @@ ScenarioDefinition.dissolutionCriteria + current WorldState
 - `deriveStateDissolutionEligibility()`는 pure deterministic read model이다.
   현재 authoritative evidence로 지원하는 유일한 조건은 player Country의
   `stateContinuity <= stateContinuityAtOrBelow`이며, 경계값을 포함한다. T023은
-  `stateContinuity`를 읽지만 writer나 감소 공식을 소유하지 않는다. unresolved
-  internal-rebellion displacement의 좁은 writer는 위 T021 conflict phase가 소유한다.
+  `stateContinuity`를 읽지만 writer나 감소 공식을 소유하지 않는다. F05_FIX2의
+  unresolved internal-rebellion displacement writer는 제거되었으며, 현재 T021
+  conflict phase에도 displacement-only continuity writer가 없다.
 - `fullAnnexationIsTerminal`, `permanentFragmentationIsTerminal`, 그리고
   `sovereignFunctionsRequiredForContinuity`는 ScenarioDefinition의 정적 계약으로
   보존하지만, 현재 authoritative evidence가 없으므로 `deferred`로 기록한다.

@@ -22,8 +22,8 @@ describe("F02 multi-seed outcome survey", () => {
     expect(
       first.seedResults.every(
         (result) =>
-          result.summary.performance.executedTicks === 714 &&
-          result.summary.terminal.outcome === "stateDissolved",
+          result.summary.performance.executedTicks === 720 &&
+          result.summary.terminal.outcome === "active",
       ),
     ).toBe(true);
   });
@@ -55,9 +55,9 @@ describe("F02 multi-seed outcome survey", () => {
 
     expect(outcomeTotal).toBe(3);
     expect(result.outcomes).toEqual({
-      active: 0,
+      active: 3,
       orderConsolidated: 0,
-      stateDissolved: 3,
+      stateDissolved: 0,
     });
     expect(result.politicalActivity.rebellions.min).toBeLessThanOrEqual(
       result.politicalActivity.rebellions.median,
