@@ -20,9 +20,11 @@ F05_FIX2_RESULT_COMMIT: cc51ad77d9ffa27afc49f21fe92dc0992e6ac846
 
 F05_FIX2_R_TASK_COMMIT: 8054e99ae12385bb43cd7e30bf480ff9ee930c5c
 
+F05_FIX2_R_PROBE_COMMIT: f9f108696bf2de724428d0d61a8c4ba14935e42e
+
 CURRENT_GATE: Gate 1F
 
-CURRENT_PHASE: F05_FIX2_R state-continuity / dissolution architecture review
+CURRENT_PHASE: F05_FIX2_R review complete / ChatGPT review pending
 
 F04: CLOSED / PASS
 
@@ -40,7 +42,7 @@ F05_FIX2_CODEX_RECOMMENDATION: PASS_WITH_NOTES
 
 GATE1F_CHATGPT_DECISION: NOT_READY
 
-F05_FIX2_R: AUTHORIZED / NOT STARTED
+F05_FIX2_R: REVIEW_COMPLETE / AWAITING_CHATGPT_REVIEW
 
 V02: NOT STARTED
 
@@ -48,15 +50,29 @@ POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
 
 PERSISTENCE: SerializedSimulationSnapshotV2
 
-LAST_COMPLETED_TASK_ID: F05_FIX2
+LAST_COMPLETED_TASK_ID: F05_FIX2_R
 
-NEXT_AUTHORIZED_TASK_ID: F05_FIX2_R
+NEXT_AUTHORIZED_TASK_ID: NONE
 
-NEXT_TASK_STATUS: AUTHORIZED
+NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
 
-CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX2_R.md`
+CURRENT_TASK_FILE: NONE
 
-LAST_RESULT_FILE: `docs/bridge/results/F05_FIX2_RESULT.md`
+LAST_RESULT_FILE: `docs/bridge/results/F05_FIX2_R_RESULT.md`
+
+F05_FIX2_R_COUNTDOWN_CLASSIFICATION: EFFECTIVE_PERMANENCE_TIMER
+
+F05_FIX2_R_RATCHET_CLASSIFICATION: ONE_WAY_CONTINUITY_RATCHET
+
+F05_FIX2_R_DISSOLUTION_EVIDENCE: GOVERNMENT_DEFEAT_ONLY
+
+F05_FIX2_R_SUCCESSION_REVIEW: SUCCESSION_SEAM_EXISTS_BUT_EVIDENCE_MISSING
+
+F05_FIX2_R_WRITER_SEMANTIC_VERDICT: WRITER_TRACKS_GOVERNMENT_CONTROL_NOT_STATE_CONTINUITY
+
+F05_FIX2_R_ARCHITECTURE_VERDICT: REJECT_WRITER_REQUIRES_NEW_CONTINUITY_EVIDENCE
+
+F05_FIX2_R_GATE1F_RECOMMENDATION: NOT_READY
 
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
@@ -129,3 +145,28 @@ No gameplay repair is authorized inside F05_FIX2_R. Developer-only tests/inspect
 - self-authorizing Gate 1F PASS or any follow-up fix
 
 Gate 1F remains ChatGPT/user authority. Repository source, tests, diffs, and actual simulation evidence remain the highest authority.
+
+## F05_FIX2_R completed review
+
+The review-only probe commit is `f9f108696bf2de724428d0d61a8c4ba14935e42e`.
+No production gameplay writer, dissolution threshold, succession behavior, or
+F05 pacing input was changed.
+
+Review conclusions:
+
+- the weekly writer is an `EFFECTIVE_PERMANENCE_TIMER`;
+- continuity damage is a `ONE_WAY_CONTINUITY_RATCHET` across recovery and
+  later displacement;
+- the unchanged terminal branches prove `GOVERNMENT_DEFEAT_ONLY`, not state
+  extinction;
+- the typed government-transition seam exists, but successor evidence is
+  missing;
+- the writer tracks government control rather than the repository meaning of
+  state continuity;
+- architecture verdict: `REJECT_WRITER_REQUIRES_NEW_CONTINUITY_EVIDENCE`.
+
+The smallest follow-up is a separate `REMOVE_OR_DISABLE_CONTINUITY_WRITER`
+task that removes only the weekly decrement and reruns the unchanged F05
+matrix. A replacement writer requires separately grounded continuity evidence.
+Gate 1F remains `NOT_READY`; V02 remains `NOT_STARTED`; no next task is
+authorized pending ChatGPT review.
