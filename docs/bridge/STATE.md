@@ -22,9 +22,13 @@ F05_FIX2_R_TASK_COMMIT: 8054e99ae12385bb43cd7e30bf480ff9ee930c5c
 
 F05_FIX2_R_PROBE_COMMIT: f9f108696bf2de724428d0d61a8c4ba14935e42e
 
+F05_FIX2_R_RESULT_COMMIT: 1191bd1865200f4542d571a8af493392b075c4bd
+
+F05_FIX3_TASK_COMMIT: dda5949ba70165dd65ac86c48561d82f69b3a375
+
 CURRENT_GATE: Gate 1F
 
-CURRENT_PHASE: F05_FIX2_R review complete / ChatGPT review pending
+CURRENT_PHASE: F05_FIX3 remove rejected continuity writer + exact F05 remeasurement
 
 F04: CLOSED / PASS
 
@@ -36,29 +40,11 @@ F05_FIX2: REPAIR_COMPLETE / REVIEWED
 
 F05_FIX2_IMPLEMENTATION: PASS
 
-F05_FIX2_MEASUREMENT: TRUSTWORTHY
+F05_FIX2_MEASUREMENT: TRUSTWORTHY_BUT_TERMINAL_MECHANISM_REJECTED
 
 F05_FIX2_CODEX_RECOMMENDATION: PASS_WITH_NOTES
 
-GATE1F_CHATGPT_DECISION: NOT_READY
-
-F05_FIX2_R: REVIEW_COMPLETE / AWAITING_CHATGPT_REVIEW
-
-V02: NOT STARTED
-
-POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
-
-PERSISTENCE: SerializedSimulationSnapshotV2
-
-LAST_COMPLETED_TASK_ID: F05_FIX2_R
-
-NEXT_AUTHORIZED_TASK_ID: NONE
-
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
-
-CURRENT_TASK_FILE: NONE
-
-LAST_RESULT_FILE: `docs/bridge/results/F05_FIX2_R_RESULT.md`
+F05_FIX2_R: REVIEW_COMPLETE / REVIEWED
 
 F05_FIX2_R_COUNTDOWN_CLASSIFICATION: EFFECTIVE_PERMANENCE_TIMER
 
@@ -74,99 +60,101 @@ F05_FIX2_R_ARCHITECTURE_VERDICT: REJECT_WRITER_REQUIRES_NEW_CONTINUITY_EVIDENCE
 
 F05_FIX2_R_GATE1F_RECOMMENDATION: NOT_READY
 
+GATE1F_CHATGPT_DECISION: NOT_READY
+
+F05_FIX3: AUTHORIZED / NOT STARTED
+
+V02: NOT STARTED
+
+POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
+
+PERSISTENCE: SerializedSimulationSnapshotV2
+
+LAST_COMPLETED_TASK_ID: F05_FIX2_R
+
+NEXT_AUTHORIZED_TASK_ID: F05_FIX3
+
+NEXT_TASK_STATUS: AUTHORIZED
+
+CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX3.md`
+
+LAST_RESULT_FILE: `docs/bridge/results/F05_FIX2_R_RESULT.md`
+
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
-## ChatGPT review of F05_FIX2
+## ChatGPT acceptance of F05_FIX2_R
 
-ChatGPT accepts the F05_FIX2 diagnosis and measurement as technically trustworthy but does **not** pass Gate 1F yet.
+ChatGPT accepts the F05_FIX2_R review as trustworthy and adopts its architecture verdict.
 
-Accepted results:
+The F05_FIX2 unresolved-internal-rebellion continuity writer is rejected because controlled runtime probes demonstrated all of the following:
 
-- F05_FIX1 recovery repair remains intact: recovery is `TRADEOFF` with three meaningful paid responses.
-- Political accommodation remains `CONDITIONALLY_STRONG`, not universally dominant.
-- The late steady-state diagnosis `ACTIVE_CONFLICT_STALEMATE → OUTCOME_ELIGIBILITY_STALEMATE` is useful and evidence-based.
-- The exact F05 matrix after F05_FIX2 produces readable measured arcs and six distinct trajectory signatures per representative context.
-- LandHex authority, Region.stateControl semantics, F04B recovery boundary, determinism, and T024 persistence/replay remained intact.
+- under persistent qualifying displacement it is an `EFFECTIVE_PERMANENCE_TIMER`;
+- continuity damage is a `ONE_WAY_CONTINUITY_RATCHET` across legitimate recovery and later redisplacement;
+- the terminal branches prove `GOVERNMENT_DEFEAT_ONLY`, not extinction of the state as an independent political community;
+- the existing non-terminal government-transition seam is representable, but current F05 state lacks authoritative successor-selection evidence;
+- the writer tracks incumbent-government physical control rather than the intended semantic meaning of state continuity.
 
-Open architecture blocker:
+Therefore F05_FIX2's readable pacing cannot be used as Gate 1F evidence while that writer remains authoritative.
 
-The F05_FIX2 writer decreases `Country.stateContinuity` by one on each weekly conflict boundary while the player Country has zero controlled LandHexes under qualifying internal-rebellion physical control and no recovery restored a Country Hex.
+## F05_FIX3 authorized repair
 
-This may function as an implicit fixed-duration defeat countdown / permanence timer and may create a one-way continuity ratchet. More importantly, current runtime evidence may prove displacement/defeat of the incumbent government rather than extinction of the state as an independent political community.
+F05_FIX3 is a narrow correctness rollback plus measurement task.
 
-TMR's core contract remains:
+It must:
 
-- player = historical continuity of the state, not the current government;
-- revolution, coup, government turnover, civil-war government defeat, temporary capital loss, total occupation, or zero Country Hexes alone are not automatic defeat;
-- only genuine `State Dissolution` is terminal defeat.
+1. remove only the rejected F05_FIX2 weekly continuity decrement mechanism;
+2. restore current Architecture documentation to the pre-writer continuity semantics;
+3. add focused regression proof that internal-rebellion displacement alone no longer drains continuity or causes elapsed-boundary dissolution;
+4. preserve the existing non-terminal Government transition seam without automatic successor selection;
+5. preserve F04B recovery, F05_FIX1 response coverage, LandHex authority, and T024 determinism;
+6. rerun the unchanged F05 36-branch / five-year matrix;
+7. report the truthful pacing state after writer removal;
+8. not repair any returning pacing blocker in the same task.
 
-## F05_FIX2_R authorized review
-
-`F05_FIX2_R` is a targeted architecture review, not a gameplay repair.
-
-It must determine:
-
-1. whether the weekly continuity writer is functionally a countdown/permanence timer;
-2. whether continuity damage is an irreversible ratchet across recovery and repeated displacement;
-3. whether current F05_FIX2 terminal branches prove state extinction or only incumbent-government defeat/displacement;
-4. whether the existing non-terminal `governmentTransition` seam can represent revolutionary succession, and whether sufficient successor evidence exists;
-5. the precise semantic meaning of `Country.stateContinuity` and whether the writer matches it;
-6. the smallest follow-up recommendation if the writer must be rejected.
-
-No gameplay repair is authorized inside F05_FIX2_R. Developer-only tests/inspection may be added only to prove current behavior.
+A truthful `GATE1F_RECOMMENDATION: NOT_READY` is an acceptable and likely F05_FIX3 result.
 
 ## External-reference / grounding guardrail
 
 - `docs/FUTURE_REFERENCE_GROUNDING_GATES.md` is mandatory reading.
-- Use existing repository contracts and F04C-R mechanism-first grounding first.
-- Research remains demand-driven.
-- Only if repository grounding is insufficient may the review perform narrow external research on state continuity through revolution/regime replacement, government succession vs state extinction, and evidence of actual state extinction.
-- Any new external research must separate source-supported fact, interpretation, and TMR design inference.
-- Do not broaden into War as Politics, fantasy politics, election/party systems, international-law simulation, or a generic sovereignty subsystem.
+- Use repository contracts and the F04C-R mechanism-first method first.
+- No new external research is expected merely to remove a writer already rejected by repository-grounded review.
+- Do not gather references merely to invent a replacement terminal or succession mechanic.
+- If future continuity or successor-resolution evidence is required, report the grounding gap and defer implementation.
+- War as Politics, Fantasy institutional politics, and Gate 1V visual reference work remain out of scope.
 
 ## Forbidden until later authorization
 
-- changing the F05_FIX2 continuity writer during the review
-- adding a continuity restoration formula
-- implementing revolutionary succession
+- replacement continuity decay / restoration / sovereignty meter
 - changing T023 dissolution thresholds
-- V02 / renderer / UI
-- War as Politics
-- fantasy / arcane institutions
+- automatic revolutionary succession or Government creation
+- intervention / faction / crisis / conflict rebalance
+- F05 scenario or readable-arc tuning to force a pass
+- free territory / direct crisis deletion / hidden comeback state
+- chapters / countdowns / permanence timers / filler events
+- RNG added merely to manufacture diversity
 - elections / parties / coalitions
 - full labor bargaining
 - transitional justice
 - military factions
 - local autonomy
+- War as Politics
+- fantasy / arcane institutions
+- V02 / renderer / UI
 - strategic AI / runtime LLM
-- generic political / sovereignty meters
-- story nodes / countdowns / filler events
-- RNG added merely to manufacture diversity
-- self-authorizing Gate 1F PASS or any follow-up fix
+- self-authorizing Gate 1F PASS or another task
+
+## Bridge freshness requirement
+
+Before starting F05_FIX3, Codex must explicitly run:
+
+```bash
+git status
+git fetch origin
+git rev-parse HEAD
+git rev-parse origin/master
+git pull --ff-only
+```
+
+Do not rely on a stale local `origin/master` tracking ref.
 
 Gate 1F remains ChatGPT/user authority. Repository source, tests, diffs, and actual simulation evidence remain the highest authority.
-
-## F05_FIX2_R completed review
-
-The review-only probe commit is `f9f108696bf2de724428d0d61a8c4ba14935e42e`.
-No production gameplay writer, dissolution threshold, succession behavior, or
-F05 pacing input was changed.
-
-Review conclusions:
-
-- the weekly writer is an `EFFECTIVE_PERMANENCE_TIMER`;
-- continuity damage is a `ONE_WAY_CONTINUITY_RATCHET` across recovery and
-  later displacement;
-- the unchanged terminal branches prove `GOVERNMENT_DEFEAT_ONLY`, not state
-  extinction;
-- the typed government-transition seam exists, but successor evidence is
-  missing;
-- the writer tracks government control rather than the repository meaning of
-  state continuity;
-- architecture verdict: `REJECT_WRITER_REQUIRES_NEW_CONTINUITY_EVIDENCE`.
-
-The smallest follow-up is a separate `REMOVE_OR_DISABLE_CONTINUITY_WRITER`
-task that removes only the weekly decrement and reruns the unchanged F05
-matrix. A replacement writer requires separately grounded continuity evidence.
-Gate 1F remains `NOT_READY`; V02 remains `NOT_STARTED`; no next task is
-authorized pending ChatGPT review.
