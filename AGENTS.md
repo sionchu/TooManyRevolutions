@@ -853,3 +853,35 @@ does not install an automatic router or guarantee result quality. Repository evi
 acceptance tests, inspections, and human/product judgment remain required; tests must
 not be skipped because a stronger model was used. External router references must not
 inject unrelated project context into TMR.
+
+## ChatGPT ↔ Codex GitHub Bridge
+
+Before executing a bridge task, Codex must:
+
+1. confirm the repository root and inspect `git status`;
+2. run `git pull --ff-only` without resetting or blindly stashing local changes;
+3. read `docs/bridge/STATE.md` and `docs/bridge/CURRENT_TASK.md`;
+4. verify `TASK_ID`, `BASE_BRANCH`, and `BASE_COMMIT` against the current branch
+   and HEAD;
+5. read the referenced immutable file under `docs/bridge/tasks/`;
+6. execute only the authorized scope and refuse a stale task unless it explicitly
+   permits and explains a newer fast-forward base.
+
+After completing a bridge task, Codex must:
+
+1. write `docs/bridge/results/<TASK_ID>_RESULT.md` without overwriting history;
+2. update `docs/bridge/LAST_RESULT.md` and only the completed task status in
+   `docs/bridge/STATE.md`;
+3. run the task's required verification and inspect the final diff/status;
+4. commit and push only when `COMMIT_POLICY` permits it;
+5. never self-authorize the next major task.
+
+`COMMIT_AND_PUSH_ON_PASS` permits a verified task/result commit and push.
+`LEAVE_REVIEWABLE_DIFF` requires leaving the verified changes uncommitted and
+unpushed for review. Neither policy expands scope.
+
+Codex must not change an `Fxx` phase from `READY` to `STARTED`, or declare a gate
+`PASS`, merely because implementation checks pass unless the current task
+explicitly authorizes that gate decision. ChatGPT/user review remains the gate
+authority. Bridge files are development metadata and must never become simulation
+runtime dependencies.
