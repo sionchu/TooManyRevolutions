@@ -14,15 +14,17 @@ GATE1F_REVIEW_COMMIT: 2423e629b018052d24f495793e10803cd5a0f837
 
 F05_FIX1_REPAIR_COMMIT: 60c584543f1cfaf89c2066f8060859e7a6d2f103
 
+F05_FIX2_REPAIR_COMMIT: 57bb80db449be0a29cb788e9f49b260eab290416
+
 CURRENT_GATE: Gate 1F
 
-CURRENT_PHASE: F05_FIX2 late steady-state pacing repair
+CURRENT_PHASE: F05_FIX2 complete / Gate 1F review pending
 
 F04: CLOSED / PASS
 
 F05: MEASUREMENT_COMPLETE / REVIEWED
 
-F05_RECOMMENDATION: NOT_READY
+F05_RECOMMENDATION: PASS_WITH_NOTES
 
 F05_FIX1: REPAIR_COMPLETE / REVIEWED
 
@@ -30,9 +32,13 @@ F05_FIX1_SILENCE_DIAGNOSIS: MIXED_GAP
 
 F05_FIX1_RECOMMENDATION: NOT_READY
 
-GATE1F_CHATGPT_DECISION: NOT_READY
+GATE1F_CHATGPT_DECISION: PENDING F05_FIX2 REVIEW
 
-F05_FIX2: AUTHORIZED / NOT STARTED
+F05_FIX2: REPAIR_COMPLETE / AWAITING_REVIEW
+
+F05_FIX2_LATE_STEADY_STATE_DIAGNOSIS: MIXED_CAUSE
+
+F05_FIX2_RECOMMENDATION: PASS_WITH_NOTES
 
 V02: NOT STARTED
 
@@ -40,38 +46,27 @@ POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
 
 PERSISTENCE: SerializedSimulationSnapshotV2
 
-LAST_COMPLETED_TASK_ID: F05_FIX1
+LAST_COMPLETED_TASK_ID: F05_FIX2
 
-NEXT_AUTHORIZED_TASK_ID: F05_FIX2
+NEXT_AUTHORIZED_TASK_ID: NONE
 
-NEXT_TASK_STATUS: AUTHORIZED
+NEXT_TASK_STATUS: NOT_AUTHORIZED
 
 CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX2.md`
 
-LAST_RESULT_FILE: `docs/bridge/results/F05_FIX1_RESULT.md`
+LAST_RESULT_FILE: `docs/bridge/results/F05_FIX2_RESULT.md`
 
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
-## F05_FIX1 reviewed result
+## F05_FIX2 completed result
 
-- Recovery choice coverage is repaired: material relief, political accommodation, and opposition legalization provide three distinct paid trade-off paths at the active-conflict/recovery checkpoint.
-- Recovery WAIT classification is `TRADEOFF`, not weakly dominant.
-- Political accommodation remains `CONDITIONALLY_STRONG`, not universally dominant.
-- F05_FIX1 classified the pacing problem as `MIXED_GAP`: some previously omitted Agenda/feasibility changes are real reassessment signals, but an actual late steady-state remains.
-- Early/preventive and near-crisis representative branches still contain a roughly 1,200-day late span after their last meaningful reassessment threshold.
-- The exact F05 matrix remains `NOT_READY`; V02 remains blocked.
-
-## F05_FIX2 authorized scope
-
-F05_FIX2 is authorized to address only the remaining late steady-state Gate 1F blocker.
-
-Required sequence:
-
-1. Diagnose the exact causal reason the problematic early/near-crisis branches become inert from roughly their final reassessment point through day 1,800.
-2. Choose one smallest coherent repair using existing authoritative state and existing grounded political mechanisms.
-3. Do not game the pacing metric with filler events, arbitrary sample boundaries, or raw scalar drift.
-4. Rerun the unchanged F05 36-branch / five-year matrix.
-5. Report `GATE1F_RECOMMENDATION: PASS | PASS_WITH_NOTES | NOT_READY` without self-authorizing the gate.
+- The late steady state was a `MIXED_CAUSE` dominated by active internal-conflict stalemate feeding outcome-eligibility stalemate: the Country held no Hexes and had no recovery intent, while `stateContinuity` remained 100 because the conflict domain had no writer.
+- The one selected repair completes that existing writer boundary. After weekly territorial resolution, unresolved total internal-rebellion displacement lowers the existing 0–100 continuity index by one.
+- Successful real recovery, any remaining Country Hex, foreign occupation alone, coups, and non-physical rebellion do not activate the writer.
+- T023 remains the sole terminal writer; no filler event, timer, direct crisis deletion, free territory, direct outcome script, RNG, or new generic meter was added.
+- Recovery remains `TRADEOFF` with three meaningful paid responses. Political accommodation remains `CONDITIONALLY_STRONG`.
+- The exact F05 matrix reports reassessment silence `330–408` days, six signatures per representative context, visible causality, and readable arcs in early, near-crisis, and recovery.
+- Codex recommendation is `PASS_WITH_NOTES`. ChatGPT/user has not yet made the final Gate 1F decision.
 
 ## External-reference / grounding guardrail
 
