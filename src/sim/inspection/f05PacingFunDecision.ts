@@ -12,6 +12,7 @@ import {
   createF04DValidationScenario,
   F04D_VALIDATION_INTERVENTION_IDS,
 } from "../state/gate1fValidationFixture";
+import { POLITICAL_CRISIS_FIXTURE_FACTION_IDS } from "../state/politicalCrisisFixture";
 import type { InterventionId } from "../state/ids";
 import {
   evaluateInterventionFeasibility,
@@ -19,10 +20,16 @@ import {
 } from "../state/intervention";
 import type { ScenarioDefinition } from "../state/scenario";
 import type { WorldState } from "../state/world";
+import {
+  deriveNationalAgendas,
+  type AgendaKind,
+  type AgendaSeverityBand,
+} from "../readModels/agenda";
 
 export const F05_DEFAULT_SEED = F03_DEFAULT_SEED;
 export const F05_HORIZON_YEARS = 5 as const;
 export const F05_DECISION_SAMPLE_DAYS = 90 as const;
+export const F05_AGENDA_SAMPLE_DAYS = 30 as const;
 
 export const F05_STRATEGY_IDS = {
   wait: "WAIT",
@@ -156,10 +163,38 @@ export type F05ActionStrength =
 
 export type F05Recommendation = "PASS" | "PASS_WITH_NOTES" | "NOT_READY";
 
+export type F05SilenceDiagnosis =
+  "MEASUREMENT_GAP" | "SIMULATION_GAP" | "MIXED_GAP";
+
 export interface F05DecisionSample {
   readonly relativeTick: number;
   readonly feasibleResponses: readonly F05StrategyId[];
   readonly signature: string;
+}
+
+export interface F05AgendaEntry {
+  readonly id: string;
+  readonly kind: AgendaKind;
+  readonly severity: number;
+  readonly severityBand: AgendaSeverityBand | "unknown";
+  readonly involvedFactionIds: readonly string[];
+}
+
+export interface F05AgendaSample {
+  readonly relativeTick: number;
+  readonly agendas: readonly F05AgendaEntry[];
+  readonly signature: string;
+}
+
+export interface F05ReassessmentSignal {
+  readonly relativeTick: number;
+  readonly kind: "PACING_EVENT" | "AGENDA_CHANGE" | "DECISION_CHANGE";
+  readonly detail: string;
+}
+
+export interface F05SilenceRange {
+  readonly minimumDays: number;
+  readonly maximumDays: number;
 }
 
 export interface F05EventCluster {
@@ -184,9 +219,15 @@ export interface F05BranchMeasurement {
   readonly firstCrisisRelativeTick: number | null;
   readonly lastPacingEventRelativeTick: number | null;
   readonly longestPoliticalSilenceDays: number;
+  readonly longestReassessmentSilenceDays: number;
   readonly eventClusters: readonly F05EventCluster[];
   readonly decisionSamples: readonly F05DecisionSample[];
   readonly decisionWindowChanges: number;
+  readonly agendaSamples: readonly F05AgendaSample[];
+  readonly agendaChangeTicks: readonly number[];
+  readonly firstCriticalRebellionAgendaRelativeTick: number | null;
+  readonly firstCriticalCoupAgendaRelativeTick: number | null;
+  readonly reassessmentSignals: readonly F05ReassessmentSignal[];
   readonly causedPacingEventCount: number;
   readonly causalTraceExamples: readonly string[];
   readonly finalPoliticalCompetition: string;
@@ -212,6 +253,7 @@ export interface F05ContextAssessment {
   readonly readableArc: boolean;
   readonly visibleCausality: boolean;
   readonly longestPoliticalSilenceDays: number;
+  readonly longestReassessmentSilenceDays: number;
 }
 
 export interface F05AdjacentTimingAssessment {
@@ -238,6 +280,9 @@ export interface F05PacingFunResult {
   readonly actionTradeoffsPresent: boolean;
   readonly pacingArcReadable: boolean;
   readonly causalHistoriesVisible: boolean;
+  readonly silenceDiagnosis: F05SilenceDiagnosis;
+  readonly previousMajorEventSilence: F05SilenceRange;
+  readonly repairedReassessmentSilence: F05SilenceRange;
   readonly recommendation: F05Recommendation;
   readonly findings: readonly string[];
   readonly exactFixesIfNotReady: readonly string[];
@@ -258,6 +303,8 @@ interface BranchVector {
   readonly controlledLandHexes: number;
   readonly activeConflicts: number;
   readonly crisisDelay: number;
+  readonly rebellionPressureDelay: number;
+  readonly coupPressureDelay: number;
   readonly outcomeRank: number;
 }
 
@@ -353,6 +400,119 @@ function longestSilenceDays(
   return longest;
 }
 
+function agendaSample(
+  scenario: ScenarioDefinition,
+  world: WorldState,
+  events: readonly GameEvent[],
+  relativeTick: number,
+): F05AgendaSample {
+  const agendas = deriveNationalAgendas({
+    scenario,
+    world,
+    recentEvents: events,
+  }).map((agenda): F05AgendaEntry => ({
+    id: agenda.id,
+    kind: agenda.kind,
+    severity: agenda.severity,
+    severityBand: agenda.severityBand ?? "unknown",
+    involvedFactionIds: agenda.involvedFactionIds.map(String),
+  }));
+  return {
+    relativeTick,
+    agendas,
+    // Agenda order is itself meaningful because the read model is prioritized.
+    signature:
+      agendas
+        .map((agenda) => `${agenda.id}:${agenda.severityBand}`)
+        .join(",") || "NONE",
+  };
+}
+
+function changedSampleTicks(
+  samples: readonly {
+    readonly relativeTick: number;
+    readonly signature: string;
+  }[],
+): readonly number[] {
+  return samples.flatMap((sample, index) =>
+    index > 0 && sample.signature !== samples[index - 1]!.signature
+      ? [sample.relativeTick]
+      : [],
+  );
+}
+
+function firstCriticalFactionAgendaTick(
+  samples: readonly F05AgendaSample[],
+  factionId: string,
+): number | null {
+  return (
+    samples.find((sample) =>
+      sample.agendas.some(
+        (agenda) =>
+          agenda.kind === "factionPressure" &&
+          agenda.severityBand === "critical" &&
+          agenda.involvedFactionIds.includes(factionId),
+      ),
+    )?.relativeTick ?? null
+  );
+}
+
+function buildReassessmentSignals(
+  eventClusters: readonly F05EventCluster[],
+  agendaSamples: readonly F05AgendaSample[],
+  decisionSamples: readonly F05DecisionSample[],
+): readonly F05ReassessmentSignal[] {
+  const signals: F05ReassessmentSignal[] = eventClusters.map((cluster) => ({
+    relativeTick: cluster.endRelativeTick,
+    kind: "PACING_EVENT",
+    detail: cluster.eventTypes.join(","),
+  }));
+  for (let index = 1; index < agendaSamples.length; index += 1) {
+    const current = agendaSamples[index]!;
+    const previous = agendaSamples[index - 1]!;
+    if (current.signature !== previous.signature) {
+      signals.push({
+        relativeTick: current.relativeTick,
+        kind: "AGENDA_CHANGE",
+        detail: `${previous.signature}->${current.signature}`,
+      });
+    }
+  }
+  for (let index = 1; index < decisionSamples.length; index += 1) {
+    const current = decisionSamples[index]!;
+    const previous = decisionSamples[index - 1]!;
+    if (current.signature !== previous.signature) {
+      signals.push({
+        relativeTick: current.relativeTick,
+        kind: "DECISION_CHANGE",
+        detail: `${previous.signature}->${current.signature}`,
+      });
+    }
+  }
+  return signals.sort(
+    (first, second) =>
+      first.relativeTick - second.relativeTick ||
+      first.kind.localeCompare(second.kind) ||
+      first.detail.localeCompare(second.detail),
+  );
+}
+
+function longestReassessmentSilenceDays(
+  signals: readonly F05ReassessmentSignal[],
+  executedTicks: number,
+): number {
+  const ticks = [
+    0,
+    ...new Set(signals.map((signal) => signal.relativeTick)),
+    executedTicks,
+  ].sort((first, second) => first - second);
+  let longest = 0;
+  for (let index = 1; index < ticks.length; index += 1) {
+    longest = Math.max(longest, ticks[index]! - ticks[index - 1]!);
+  }
+  return longest;
+}
+
 function outcomeRank(outcome: F03MetricSnapshot["outcome"]): number {
   switch (outcome) {
     case "orderConsolidated":
@@ -375,6 +535,11 @@ function branchVector(branch: F05BranchMeasurement): BranchVector {
     controlledLandHexes: branch.final.controlledLandHexes,
     activeConflicts: branch.final.activeConflicts,
     crisisDelay: branch.firstCrisisRelativeTick ?? branch.executedTicks + 1,
+    rebellionPressureDelay:
+      branch.firstCriticalRebellionAgendaRelativeTick ??
+      branch.executedTicks + 1,
+    coupPressureDelay:
+      branch.firstCriticalCoupAgendaRelativeTick ?? branch.executedTicks + 1,
     outcomeRank: outcomeRank(branch.final.outcome),
   };
 }
@@ -418,6 +583,16 @@ function compareVectors(
     "time before crisis",
     candidate.crisisDelay,
     reference.crisisDelay,
+  );
+  compareHigher(
+    "time before critical rebellion pressure",
+    candidate.rebellionPressureDelay,
+    reference.rebellionPressureDelay,
+  );
+  compareHigher(
+    "time before critical coup pressure",
+    candidate.coupPressureDelay,
+    reference.coupPressureDelay,
   );
   compareHigher(
     "terminal outcome",
@@ -483,6 +658,7 @@ function startFeasibility(
 function trajectorySignature(
   run: F03StrategyRunResult,
   meaningfulEvents: readonly GameEvent[],
+  agendaSamples: readonly F05AgendaSample[],
   finalPoliticalCompetition: string,
   finalPressFreedom: string,
 ): string {
@@ -492,9 +668,17 @@ function trajectorySignature(
         `${eventRelativeTick(event, run.checkpointTick)}:${event.type}`,
     )
     .join(">");
+  const agendaHistory = agendaSamples
+    .filter(
+      (sample, index) =>
+        index === 0 || sample.signature !== agendaSamples[index - 1]!.signature,
+    )
+    .map((sample) => `${sample.relativeTick}:${sample.signature}`)
+    .join(">");
   const final = run.final;
   return [
     history,
+    agendaHistory,
     final.outcome,
     final.controlledLandHexes,
     final.activeConflicts,
@@ -520,6 +704,7 @@ function runBranch(
     interventionId,
   );
   const decisionSamples: F05DecisionSample[] = [];
+  const agendaSamples: F05AgendaSample[] = [];
   const run = runF03StrategyFromRecord(
     scenario,
     context.id,
@@ -544,14 +729,20 @@ function runBranch(
         F03_DAYS_PER_YEAR * 4,
         F03_DAYS_PER_YEAR * 5,
       ],
-      onObservation: ({ relativeTick, world }) => {
-        if (relativeTick % F05_DECISION_SAMPLE_DAYS !== 0) return;
-        const feasibleResponses = responseAvailability(scenario, world);
-        decisionSamples.push({
-          relativeTick,
-          feasibleResponses,
-          signature: feasibleResponses.join(",") || "NONE",
-        });
+      onObservation: ({ relativeTick, world, events }) => {
+        if (relativeTick % F05_AGENDA_SAMPLE_DAYS === 0) {
+          agendaSamples.push(
+            agendaSample(scenario, world, events, relativeTick),
+          );
+        }
+        if (relativeTick % F05_DECISION_SAMPLE_DAYS === 0) {
+          const feasibleResponses = responseAvailability(scenario, world);
+          decisionSamples.push({
+            relativeTick,
+            feasibleResponses,
+            signature: feasibleResponses.join(",") || "NONE",
+          });
+        }
       },
     },
   );
@@ -560,6 +751,13 @@ function runBranch(
   );
   const pacingTicks = meaningfulEvents.map((event) =>
     eventRelativeTick(event, run.checkpointTick),
+  );
+  const eventClusters = buildEventClusters(run.stepEvents, run.checkpointTick);
+  const agendaChangeTicks = changedSampleTicks(agendaSamples);
+  const reassessmentSignals = buildReassessmentSignals(
+    eventClusters,
+    agendaSamples,
+    decisionSamples,
   );
   const firstCrisis = run.stepEvents.find((event) =>
     CRISIS_EVENT_TYPES.has(event.type),
@@ -592,7 +790,11 @@ function runBranch(
       run.checkpointTick,
       run.executedTicks,
     ),
-    eventClusters: buildEventClusters(run.stepEvents, run.checkpointTick),
+    longestReassessmentSilenceDays: longestReassessmentSilenceDays(
+      reassessmentSignals,
+      run.executedTicks,
+    ),
+    eventClusters,
     decisionSamples,
     decisionWindowChanges: decisionSamples.reduce(
       (changes, sample, index) =>
@@ -601,6 +803,17 @@ function runBranch(
           : changes,
       0,
     ),
+    agendaSamples,
+    agendaChangeTicks,
+    firstCriticalRebellionAgendaRelativeTick: firstCriticalFactionAgendaTick(
+      agendaSamples,
+      POLITICAL_CRISIS_FIXTURE_FACTION_IDS.rebellion,
+    ),
+    firstCriticalCoupAgendaRelativeTick: firstCriticalFactionAgendaTick(
+      agendaSamples,
+      POLITICAL_CRISIS_FIXTURE_FACTION_IDS.coup,
+    ),
+    reassessmentSignals,
     causedPacingEventCount: meaningfulEvents.filter(
       (event) =>
         event.causeIds.length > 0 ||
@@ -619,6 +832,7 @@ function runBranch(
     trajectorySignature: trajectorySignature(
       run,
       meaningfulEvents,
+      agendaSamples,
       finalPolicy.institutionalRules.politicalCompetition,
       finalPolicy.institutionalRules.pressFreedom,
     ),
@@ -698,6 +912,9 @@ function assessContext(
   const longestPoliticalSilence = Math.max(
     ...branches.map((branch) => branch.longestPoliticalSilenceDays),
   );
+  const longestReassessmentSilence = Math.max(
+    ...branches.map((branch) => branch.longestReassessmentSilenceDays),
+  );
   const boundedSingleResponseBranches = branches.filter(
     (branch) => branch.strategyId !== F05_STRATEGY_IDS.repeatedAccommodation,
   );
@@ -712,15 +929,17 @@ function assessContext(
     meaningfulResponseCount,
     choiceDrivenHistory:
       distinctHistoryCount >= 3 && activeHistoriesDifferentFromWait >= 2,
-    readableArc: boundedSingleResponseBranches.some(
+    readableArc: boundedSingleResponseBranches.every(
       (branch) =>
-        branch.eventClusters.length >= 3 &&
-        branch.longestPoliticalSilenceDays <= F03_DAYS_PER_YEAR * 2,
+        new Set(branch.reassessmentSignals.map((signal) => signal.relativeTick))
+          .size >= 3 &&
+        branch.longestReassessmentSilenceDays <= F03_DAYS_PER_YEAR * 2,
     ),
     visibleCausality:
       activeBranches.filter((branch) => branch.causedPacingEventCount > 0)
         .length >= 2,
     longestPoliticalSilenceDays: longestPoliticalSilence,
+    longestReassessmentSilenceDays: longestReassessmentSilence,
   };
 }
 
@@ -877,6 +1096,7 @@ function buildFindings(
   accommodation: F05AccommodationClassification,
 ): readonly string[] {
   const findings: string[] = [
+    "Silence diagnosis: MIXED_GAP; Agenda and response availability expose omitted reassessment points, but some early-context branches still settle into a 1,200-day span without another meaningful threshold change.",
     `Accommodation classification: ${accommodation}.`,
     `Representative WAIT classes: ${primaryContexts
       .map(
@@ -889,8 +1109,13 @@ function buildFindings(
           `${context.context.family}=${context.distinctHistoryCount}`,
       )
       .join(", ")}.`,
-    `Longest measured political silence: ${Math.max(
+    `Previous major-event-only silence: ${Math.max(
       ...primaryContexts.map((context) => context.longestPoliticalSilenceDays),
+    )} days.`,
+    `Longest repaired reassessment silence: ${Math.max(
+      ...primaryContexts.map(
+        (context) => context.longestReassessmentSilenceDays,
+      ),
     )} days.`,
     `One-day neighboring timing: ${adjacentTiming
       .map((assessment) => `${assessment.family}=${assessment.classification}`)
@@ -958,7 +1183,7 @@ function chooseRecommendation(
   const unreadable = primaryContexts.filter((context) => !context.readableArc);
   if (unreadable.length > 0) {
     fixes.push(
-      `Shorten the longest political silence or add an existing-system decision/event consequence in ${unreadable
+      `Shorten the longest reassessment silence or expose another existing-system decision/consequence in ${unreadable
         .map((context) => context.context.family)
         .join(", ")}; retain the five-year horizon.`,
     );
@@ -982,12 +1207,19 @@ function chooseRecommendation(
       (assessment) => assessment.classification !== "STABLE",
     ) ||
     primaryContexts.some(
-      (context) => context.longestPoliticalSilenceDays > F03_DAYS_PER_YEAR,
+      (context) => context.longestReassessmentSilenceDays > F03_DAYS_PER_YEAR,
     )
   ) {
     return { recommendation: "PASS_WITH_NOTES", exactFixesIfNotReady: [] };
   }
   return { recommendation: "PASS", exactFixesIfNotReady: [] };
+}
+
+function silenceRange(values: readonly number[]): F05SilenceRange {
+  return {
+    minimumDays: Math.min(...values),
+    maximumDays: Math.max(...values),
+  };
 }
 
 export function runF05PacingFunDecision(
@@ -1040,6 +1272,13 @@ export function runF05PacingFunDecision(
     actionTradeoffsPresent,
     pacingArcReadable,
     causalHistoriesVisible,
+    silenceDiagnosis: "MIXED_GAP",
+    previousMajorEventSilence: silenceRange(
+      primaryContexts.map((context) => context.longestPoliticalSilenceDays),
+    ),
+    repairedReassessmentSilence: silenceRange(
+      primaryContexts.map((context) => context.longestReassessmentSilenceDays),
+    ),
     recommendation: judgment.recommendation,
     findings: buildFindings(
       primaryContexts,
@@ -1062,28 +1301,31 @@ export function formatF05Inspection(result: F05PacingFunResult): string {
   const lines: string[] = [
     "F05 HEADLESS PACING / FUN DECISION",
     `scenario=${result.scenarioId} seed=${result.seed} horizon=${result.horizonYears}y`,
+    `silence diagnosis=${result.silenceDiagnosis}`,
+    `old major-event silence=${result.previousMajorEventSilence.minimumDays}-${result.previousMajorEventSilence.maximumDays}d`,
+    `repaired reassessment silence=${result.repairedReassessmentSilence.minimumDays}-${result.repairedReassessmentSilence.maximumDays}d`,
     "",
     "Representative context judgment",
-    "| context | start | WAIT | histories | meaningful responses | longest silence | readable arc | causal |",
-    "| --- | --- | --- | ---: | ---: | ---: | --- | --- |",
+    "| context | start | WAIT | histories | meaningful responses | old major-event silence | reassessment silence | readable arc | causal |",
+    "| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- |",
   ];
   for (const context of result.contexts.filter(
     (candidate) => candidate.context.primary,
   )) {
     lines.push(
-      `| ${context.context.id} | ${formatMetric(context.start)} | ${context.waitClassification} | ${context.distinctHistoryCount} | ${context.meaningfulResponseCount} | ${context.longestPoliticalSilenceDays}d | ${context.readableArc ? "YES" : "NO"} | ${context.visibleCausality ? "YES" : "NO"} |`,
+      `| ${context.context.id} | ${formatMetric(context.start)} | ${context.waitClassification} | ${context.distinctHistoryCount} | ${context.meaningfulResponseCount} | ${context.longestPoliticalSilenceDays}d | ${context.longestReassessmentSilenceDays}d | ${context.readableArc ? "YES" : "NO"} | ${context.visibleCausality ? "YES" : "NO"} |`,
     );
   }
   lines.push(
     "",
     "Branch evidence",
-    "| context | strategy | feasible | attempts/start/complete/reject | crisis day | clusters | silence | strength | benefits | tradeoffs | final arc |",
-    "| --- | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- | --- |",
+    "| context | strategy | feasible | attempts/start/complete/reject | crisis day | critical pressure R/C | agenda changes | old/new silence | strength | benefits | tradeoffs | final arc |",
+    "| --- | --- | --- | --- | ---: | --- | ---: | --- | --- | --- | --- | --- |",
   );
   for (const context of result.contexts) {
     for (const branch of context.branches) {
       lines.push(
-        `| ${context.context.id} | ${branch.strategyId} | ${branch.feasibleAtStart ? "YES" : `NO:${branch.startFeasibilityReasons.join(",")}`} | ${branch.actionAttempts}/${branch.actionStarts}/${branch.actionCompletions}/${branch.actionRejections} | ${branch.firstCrisisRelativeTick ?? "none"} | ${branch.eventClusters.length} | ${branch.longestPoliticalSilenceDays}d | ${branch.actionStrength} | ${branch.benefitsVersusWait.join(", ") || "none"} | ${branch.tradeoffsVersusWait.join(", ") || "none"} | ${formatMetric(branch.final)} |`,
+        `| ${context.context.id} | ${branch.strategyId} | ${branch.feasibleAtStart ? "YES" : `NO:${branch.startFeasibilityReasons.join(",")}`} | ${branch.actionAttempts}/${branch.actionStarts}/${branch.actionCompletions}/${branch.actionRejections} | ${branch.firstCrisisRelativeTick ?? "none"} | ${branch.firstCriticalRebellionAgendaRelativeTick ?? "none"}/${branch.firstCriticalCoupAgendaRelativeTick ?? "none"} | ${branch.agendaChangeTicks.length} | ${branch.longestPoliticalSilenceDays}d/${branch.longestReassessmentSilenceDays}d | ${branch.actionStrength} | ${branch.benefitsVersusWait.join(", ") || "none"} | ${branch.tradeoffsVersusWait.join(", ") || "none"} | ${formatMetric(branch.final)} |`,
       );
     }
   }
@@ -1101,20 +1343,26 @@ export function formatF05Inspection(result: F05PacingFunResult): string {
   lines.push(
     "",
     "Representative five-year arcs and causal traces",
-    "| context | strategy | yearly arc | event clusters | decision-window changes | caused events | causal trace sample |",
-    "| --- | --- | --- | --- | ---: | ---: | --- |",
+    "| context | strategy | yearly arc | event clusters | decision-window changes | Agenda band changes | reassessment trace sample | causal trace sample |",
+    "| --- | --- | --- | --- | ---: | --- | --- | --- |",
   );
   for (const context of result.contexts.filter(
     (candidate) => candidate.context.primary,
   )) {
     for (const branch of context.branches) {
       lines.push(
-        `| ${context.context.id} | ${branch.strategyId} | ${branch.yearlyArc.map(formatArcPoint).join(" → ")} | ${branch.eventClusters.map((cluster) => `${cluster.startRelativeTick}-${cluster.endRelativeTick}(${cluster.eventCount}:${cluster.eventTypes.join(",")})`).join("; ") || "none"} | ${branch.decisionWindowChanges} | ${branch.causedPacingEventCount} | ${branch.causalTraceExamples.slice(0, 4).join("; ") || "none"} |`,
+        `| ${context.context.id} | ${branch.strategyId} | ${branch.yearlyArc.map(formatArcPoint).join(" → ")} | ${branch.eventClusters.map((cluster) => `${cluster.startRelativeTick}-${cluster.endRelativeTick}(${cluster.eventCount}:${cluster.eventTypes.join(",")})`).join("; ") || "none"} | ${branch.decisionWindowChanges} | ${branch.agendaChangeTicks.join(",") || "none"} | ${
+          branch.reassessmentSignals
+            .slice(0, 6)
+            .map((signal) => `${signal.relativeTick}:${signal.kind}`)
+            .join("; ") || "none"
+        } | ${branch.causalTraceExamples.slice(0, 4).join("; ") || "none"} |`,
       );
     }
   }
   lines.push(
     "",
+    `Silence diagnosis: ${result.silenceDiagnosis}`,
     `Accommodation: ${result.accommodationClassification}`,
     `Choice-driven histories: ${result.choiceDrivenHistories ? "YES" : "NO"}`,
     `Action tradeoffs: ${result.actionTradeoffsPresent ? "YES" : "NO"}`,

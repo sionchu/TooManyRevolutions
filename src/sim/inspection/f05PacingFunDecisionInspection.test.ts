@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   F05_CONTEXTS,
+  F05_AGENDA_SAMPLE_DAYS,
   F05_HORIZON_YEARS,
   F05_STRATEGY_IDS,
   runF05Inspection,
@@ -40,8 +41,46 @@ describe("F05 headless pacing and fun decision", () => {
         expect(branch!.horizonYears).toBe(F05_HORIZON_YEARS);
         expect(branch!.yearlyArc.length).toBeGreaterThanOrEqual(2);
         expect(branch!.decisionSamples.length).toBeGreaterThanOrEqual(1);
+        expect(branch!.agendaSamples.length).toBeGreaterThanOrEqual(
+          Math.floor(branch!.executedTicks / F05_AGENDA_SAMPLE_DAYS),
+        );
       }
     }
+
+    expect(result.silenceDiagnosis).toBe("MIXED_GAP");
+    expect(result.repairedReassessmentSilence.maximumDays).toBeLessThan(
+      result.previousMajorEventSilence.maximumDays,
+    );
+
+    const recovery = result.contexts.find(
+      (context) =>
+        context.context.primary &&
+        context.context.family === "ACTIVE_CONFLICT_RECOVERY",
+    )!;
+    const recoveryWait = recovery.branches.find(
+      (branch) => branch.strategyId === F05_STRATEGY_IDS.wait,
+    )!;
+    const recoveryAccommodation = recovery.branches.find(
+      (branch) => branch.strategyId === F05_STRATEGY_IDS.politicalAccommodation,
+    )!;
+    expect(recovery.waitClassification).toBe("TRADEOFF");
+    expect(recovery.meaningfulResponseCount).toBeGreaterThanOrEqual(2);
+    expect(recoveryAccommodation.actionStrength).toBe("MEANINGFUL_TRADEOFF");
+    expect(recoveryAccommodation.benefitsVersusWait).toContain(
+      "time before critical rebellion pressure",
+    );
+    expect(recoveryAccommodation.tradeoffsVersusWait).toContain("treasury");
+    expect(
+      recoveryAccommodation.firstCriticalRebellionAgendaRelativeTick,
+    ).toBeGreaterThan(
+      recoveryWait.firstCriticalRebellionAgendaRelativeTick ?? 0,
+    );
+    expect(recoveryAccommodation.final.controlledLandHexes).toBe(
+      recoveryWait.final.controlledLandHexes,
+    );
+    expect(recoveryAccommodation.final.activeConflicts).toBe(
+      recoveryWait.final.activeConflicts,
+    );
 
     expect(report.output).toContain("F05 HEADLESS PACING / FUN DECISION");
     expect(report.output).toContain(

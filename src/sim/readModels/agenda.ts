@@ -83,8 +83,6 @@ export const AGENDA_DETECTOR_CONFIG = {
   fiscal: {
     treasuryDebtReference: 100,
     dailyDeficitReference: 10,
-    treasuryWeight: 0.55,
-    deficitWeight: 0.45,
     minimumDebt: 0.01,
     minimumDeficit: 0.01,
   },
@@ -421,8 +419,11 @@ export function detectFiscalPressureAgenda(
     deficit,
     config.dailyDeficitReference,
   );
-  const severity =
-    debtSignal * config.treasuryWeight + deficitSignal * config.deficitWeight;
+  // Stock and flow are independent fiscal-pressure routes. Weighting them
+  // together capped a severe debt-only or deficit-only crisis below its honest
+  // severity band, so use the stronger observed pressure rather than requiring
+  // both signals to be present.
+  const severity = Math.max(debtSignal, deficitSignal);
 
   if (severity < AGENDA_DETECTOR_CONFIG.minimumSeverity) {
     return null;

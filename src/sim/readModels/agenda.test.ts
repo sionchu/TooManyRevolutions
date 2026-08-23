@@ -186,6 +186,27 @@ describe("T016A pressure and agenda read model", () => {
     ).not.toBeNull();
   });
 
+  it("reports severe fiscal stock or flow pressure without requiring both", () => {
+    const report = runT016AAgendaInspection();
+    const debtOnly = withPlayerCountry(report.stepResult.nextWorld, {
+      treasury: -900,
+      dailyIncome: 10,
+      dailyExpenditure: 10,
+    });
+    const deficitOnly = withPlayerCountry(report.stepResult.nextWorld, {
+      treasury: 100,
+      dailyIncome: 0,
+      dailyExpenditure: 90,
+    });
+
+    expect(
+      detectFiscalPressureAgenda(inputFor(report, debtOnly))?.severityBand,
+    ).toBe("critical");
+    expect(
+      detectFiscalPressureAgenda(inputFor(report, deficitOnly))?.severityBand,
+    ).toBe("critical");
+  });
+
   it("does not mutate WorldState", () => {
     const report = runT016AAgendaInspection();
     const before = JSON.stringify(report.stepResult.nextWorld);
