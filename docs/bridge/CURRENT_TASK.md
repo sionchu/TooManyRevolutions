@@ -1,13 +1,15 @@
 # TMR Current Bridge Task
 
 TASK_ID: F05_FIX16
-STATUS: AUTHORIZED
+STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW
 BASE_BRANCH: master
 TASK_COMMIT: 7a75116f74fadeb1fa4cc98f91591b1607999ead
 STATE_ACTIVATION_COMMIT: 5075eca39da977d630e9359c795b057274665262
-TASK_FILE: docs/bridge/tasks/F05_FIX16.md
+TASK_FILE: NONE
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 RESULT_PATH: docs/bridge/results/F05_FIX16_RESULT.md
+TASK_RESULT_COMMIT: f096a84
+END_COMMIT: f096a84
 
 ## Mission summary
 
@@ -127,15 +129,17 @@ Report the known Vitest `onTaskUpdate` runner/IPC issue separately from assertio
 
 ## Completion
 
-On completion:
+```text
+F05_FIX16: COMPLETE / AWAITING_CHATGPT_REVIEW
+LAST_COMPLETED_TASK_ID: F05_FIX16
+NEXT_AUTHORIZED_TASK_ID: NONE
+NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
+CURRENT_TASK_FILE: NONE
+GATE1F: NOT_READY
+V02: NOT_STARTED
+F05_FIX17: NOT_AUTHORIZED
+```
 
-- `F05_FIX16: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state;
-- `LAST_COMPLETED_TASK_ID: F05_FIX16`;
-- `NEXT_AUTHORIZED_TASK_ID: NONE`;
-- `NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW`;
-- `CURRENT_TASK_FILE: NONE`;
-- Gate 1F remains `NOT_READY`;
-- V02 remains `NOT_STARTED`;
-- do not authorize F05_FIX17.
-
-Execute only `docs/bridge/tasks/F05_FIX16.md`.
+F05_FIX16 stops at grounding/design, verification, result documentation,
+commit, and push. It does not authorize F05_FIX17, Gate 1F PASS, V02, or
+production coup gameplay.
