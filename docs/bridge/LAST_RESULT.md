@@ -1,48 +1,42 @@
 # TMR Last Bridge Result
 
-TASK_ID: F05_FIX13
+TASK_ID: F05_FIX14
 STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW
 START_BRANCH: master
-START_COMMIT: 02f8a94629dd8c4607b7f21ede13cc98a680d039
-BASE_TASK_COMMIT: 005c617bd3a9c79651cc7730992e85a592134706
-TASK_RESULT_COMMIT: 69f857fdb9036725014e676c8633977c421b19df
-END_COMMIT: 69f857fdb9036725014e676c8633977c421b19df
+START_COMMIT: 212425ab87f584f1d39e18c9dcfcf9534e1abd65
+BASE_TASK_COMMIT: 462b928fd35aab7ff09a5c12ca9ecc6b78044aa9
+TASK_RESULT_COMMIT: 4345e7fa84d589576db65db1f2df43c8934a9b6f
+END_COMMIT: 4345e7fa84d589576db65db1f2df43c8934a9b6f
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 COMMIT_CREATED: YES
 PUSHED: YES
 
 ## Outcome
 
-F05_FIX13 implemented the targeted runtime commitment kernel for the
-scenario-authored `FactionFundMovementTemplate` seam. A profile-enabled
-FUND_MOVEMENT path carries the exact authored target and amount through a
-versioned ActionRecord, validates source provenance, creates an active
-actor-owned commitment, derives resource availability after active earmarks,
-blocks active same-actor/same-target duplicates, exposes exact Agenda
-evidence, and persists/replays through `SerializedSimulationSnapshotV5`.
+PRIMARY_CLASSIFICATION: FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_LATE_SILENCE_PERSISTS
+NEXT_IMPLEMENTATION_READINESS: PIVOT_FROM_FUND_MOVEMENT
 
-The no-profile legacy v1 path remains strategy-only. No resource debit/gain,
-organization/grievance/influence effect, crisis/Conflict/LandHex/continuity/
-terminal writer, chooser priority rewrite, or new LOBBY/BARGAIN/ORGANIZE
-content was added.
+Targeted schema-v2 application is now semantically atomic, and the honest
+authoritative-state lifecycle candidate is implemented as `active -> resolved`
+with `actorIntentCeased` provenance. The lifecycle reuses the unchanged chooser,
+excludes only its own active commitment from duplicate/resource projection, and
+does not use current strategy, elapsed time, timer, cooldown, or countdown.
 
-## Outcome fields
+The existing political-accommodation response resolves the rebellion commitment
+at tick 60, restores derived available resources from 0.5 to 0.8, and removes the
+active Agenda cause. A later authoritative-state change permits one new
+commitment at tick 211. The 1,200-day no-response path has no resolution, so late
+silence persists and the FUND_MOVEMENT route is not a viable Gate 1F pacing
+remedy.
 
-PRIMARY_CLASSIFICATION: TARGETED_COMMITMENT_KERNEL_IMPLEMENTED_BUT_LATE_REASSESSMENT_UNCHANGED
-NEXT_IMPLEMENTATION_READINESS: COMMITMENT_CONSEQUENCE_OR_LIFECYCLE_REVIEW
-PERSISTENCE_FORMAT: SerializedSimulationSnapshotV5 / format version 5
-LONG_HORIZON_COMMITMENTS: 2
-FIRST_COMMITMENT_TICK: 31
-DUPLICATE_COMMITMENT_SUCCESS_EVENTS: 0
-CHOOSER_FUND_MOVEMENT_AFTER_ACTIVE: 0
-AGENDA_EXPOSURE_TICKS: 1170
-RESOURCE_DEBIT_OBSERVED: NO
-FORBIDDEN_EFFECT_EVENTS: NONE
+PERSISTENCE_FORMAT: SerializedSimulationSnapshotV6 / format version 6
 HISTORICAL_F05_BASELINE: UNCHANGED
-F05_FIX9_REFERENCE: ticks 1110/1200; branches 108/108; late reassessment changed NO
+HISTORICAL_F05_FIX9_BASELINE: 1110/1200 days; 108/108 branches; late population 6
+HISTORICAL_F05_FIX13_BASELINE: UNCHANGED
+FORBIDDEN_WRITERS: 0
 GATE1F_RECOMMENDATION: NOT_READY
 V02: NOT_STARTED
-F05_FIX14: NOT_AUTHORIZED
+F05_FIX15: NOT_AUTHORIZED
 
 ## Verification
 
@@ -51,14 +45,16 @@ F05_FIX14: NOT_AUTHORIZED
 - `pnpm run typecheck` — PASS
 - `pnpm run lint` — PASS
 - `pnpm run build` — PASS
-- `pnpm run inspect:t024` — exit 0; 1/1 PASS; snapshot version 5; roundtrip/replay PASS
-- `pnpm run inspect:f05` — exit 0; `MIXED_GAP`; `F05 RECOMMENDATION: NOT_READY`
-- `pnpm run inspect:f05fix9` — exit 0; `LATE_STEADY_STATE_MIXED_CAUSE`; baseline unchanged; Gate 1F not ready; V02 not started
-- `pnpm run inspect:f05fix10` — exit 0; FUND_MOVEMENT selected 372/372; structural classification unchanged; Gate 1F not ready; V02 not started
-- `pnpm run inspect:f05fix13` — exit 0; 2 commitments; no debit; no forbidden effects; late reassessment unchanged
-- focused F05_FIX13 test — 1 file / 9 tests PASS
-- `pnpm test` — 58 files / 469 assertions PASS; exit 1 from 3 known Vitest `[vitest-worker]: Timeout calling "onTaskUpdate"` unhandled runner errors
+- focused F05_FIX14 test — 1 file / 8 tests PASS
+- focused lifecycle/persistence regression — 6 files / 103 tests PASS
+- `pnpm run inspect:t024` — exit 0; 1/1 PASS; snapshot V6; roundtrip/replay/corruption checks PASS
+- `pnpm run inspect:f05` — exit 0; `MIXED_GAP`; historical recommendation `NOT_READY`
+- `pnpm run inspect:f05fix9` — exit 0; `LATE_STEADY_STATE_MIXED_CAUSE`; baseline unchanged
+- `pnpm run inspect:f05fix10` — exit 0; FUND_MOVEMENT 372/372; historical baseline unchanged
+- `pnpm run inspect:f05fix13` — exit 0; commitments 2; first tick 31; duplicate success 0; Agenda exposure 1170
+- `pnpm run inspect:f05fix14` — exit 0 twice; identical 1,200-day classification and lifecycle observations
+- `pnpm test` — 59 files / 477 assertions PASS; process exit 1 only because of 3 known Vitest `[vitest-worker]: Timeout calling "onTaskUpdate"` unhandled runner errors
 - `git diff --check` — PASS
 
-`F05_FIX13` is complete and awaits ChatGPT review. Gate 1F remains `NOT_READY`,
-V02 remains `NOT_STARTED`, and no F05_FIX14 task is authorized.
+F05_FIX14 is complete and awaits ChatGPT review. Gate 1F remains `NOT_READY`,
+V02 remains `NOT_STARTED`, and no F05_FIX15 task is authorized.
