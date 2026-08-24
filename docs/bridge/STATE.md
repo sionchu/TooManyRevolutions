@@ -5,58 +5,38 @@ UPDATED: 2026-08-25
 REPOSITORY: sionchu/TooManyRevolutions
 BRANCH: master
 CURRENT_GATE: Gate 1F
-CURRENT_PHASE: F05_FIX13 COMPLETE / AWAITING_CHATGPT_REVIEW
+CURRENT_PHASE: F05_FIX14 FUND_MOVEMENT commitment lifecycle closure — AUTHORIZED
 
 ## Key commits
 
 F04_CLOSED_COMMIT: 2db9ccd43b09bc4f24bb6980b5bd200b5464c5fc
 F05_MEASUREMENT_COMMIT: 1866287e87072fc9b62f55a4af940f9d0e54b15b
 GATE1F_REVIEW_COMMIT: 2423e629b018052d24f495793e10803cd5a0f837
-F05_FIX1_REPAIR_COMMIT: 60c584543f1cfaf89c2066f8060859e7a6d2f103
-F05_FIX2_R_RESULT_COMMIT: 1191bd1865200f4542d571a8af493392b075c4bd
-F05_FIX3_IMPLEMENTATION_COMMIT: 49511e43d40d39408ad96e31d45109eb79afa63c
-F05_FIX4_IMPLEMENTATION_COMMIT: 557b1327d4f561a24e32aee31f2f7c3c0ad15b15
-F05_FIX5_RESULT_COMMIT: 1bf0542dcd3584ff283d92a00461fdf6f134a416
-F05_FIX6_IMPLEMENTATION_COMMIT: e8be5701fcb65e228cbff027203ccea184ea7e44
-F05_FIX7_IMPLEMENTATION_COMMIT: 60a4a1d75a631490a23c9e670d60a5dcc473bf18
 F05_FIX8_IMPLEMENTATION_COMMIT: 89f350bd67ced8e49c161f95fa5e2a1c94066d42
-F05_FIX9_TASK_COMMIT: 44ceebcd29d1374f4e9f7f74f61d99f511c4c021
 F05_FIX9_RESULT_COMMIT: c373c5ae591911d3650840ae8eac4973d63bde75
-F05_FIX9_FINAL_METADATA_COMMIT: 1f71508ac93f0cee68d8cd5d517a8ef120de8458
-F05_FIX10_TASK_COMMIT: 2789279f7ecead1852e325a5a0c19a59e3a3df74
 F05_FIX10_RESULT_COMMIT: 98985e84a5448e9d2454847f36e11a4c6cfa3732
 F05_FIX10_END_COMMIT: 5d8ae1805bff76609a9b9370cb23b52672574e47
-F05_FIX11_TASK_COMMIT: fd8dc4f98a1813a5d0f5848232fbffac3131b600
 F05_FIX11_RESULT_COMMIT: b8869813f6279572001b3bc17f800f4918c98ad8
 F05_FIX11_END_COMMIT: 534f4f2ac34a857cb2b837c1902d5fe3c80282a6
-F05_FIX12_TASK_COMMIT: 56127d84219be61996000ce03d43c31bd63abc3d
 F05_FIX12_RESULT_COMMIT: c79f71c62f6d0048a504a125b3975a446d2f4013
 F05_FIX12_END_COMMIT: 686df104814f31ef7fad70ab34cee374cc3e98cd
 F05_FIX13_TASK_COMMIT: 005c617bd3a9c79651cc7730992e85a592134706
 F05_FIX13_IMPLEMENTATION_COMMIT: 69f857fdb9036725014e676c8633977c421b19df
-F05_FIX13_END_COMMIT: 69f857fdb9036725014e676c8633977c421b19df
+F05_FIX13_RESULT_METADATA_COMMIT: 19fd7a161bb5c95021921a31d5d566ff9c6920b7
+F05_FIX14_TASK_COMMIT: 462b928fd35aab7ff09a5c12ca9ecc6b78044aa9
 
 ## Accepted gate history
 
 F04: CLOSED / PASS
 F05: MEASUREMENT_COMPLETE / REVIEWED
-
 F05_FIX1: PASS / REVIEWED
-F05_FIX2: REPAIR COMPLETE; terminal pacing writer later rejected
-F05_FIX2_R_ARCHITECTURE_VERDICT: REJECT_WRITER_REQUIRES_NEW_CONTINUITY_EVIDENCE
+F05_FIX2: terminal pacing writer rejected by continuity evidence gate
 F05_FIX3: PASS / ACCEPTED architecture restoration
-F05_FIX4: PASS / ACCEPTED; faction ActionProposal intake closed
-F05_FIX5: PASS / ACCEPTED grounding-only
-F05_FIX5_CLASSIFICATION: INSUFFICIENT_ACTION_CONSEQUENCE_GROUNDING
-F05_FIX6: PASS / ACCEPTED
-F05_FIX6_CLASSIFICATION: KERNEL_IMPLEMENTED_VERTICAL_SLICE_MEANINGFUL
-F05_FIX7: PASS / ACCEPTED
-F05_FIX7_CLASSIFICATION: PROPOSAL_RESPONSE_DOMINANCE_OR_CHURN
-F05_FIX8: PASS / ACCEPTED
-F05_FIX8_NON_ACCEPT_DIVERGENCE: ORCHESTRATION_ARTIFACT_FIXED
-F05_FIX8_RECONSIDERATION_MODEL: IMPLEMENTED_STATE_GROUNDED
-F05_FIX8_PERSISTENCE: SerializedSimulationSnapshotV4 / format version 4
-F05_FIX8_IDENTICAL_REOPEN_CHURN: CLOSED
+F05_FIX4: PASS / ACCEPTED faction ActionProposal intake
+F05_FIX5: PASS / ACCEPTED grounding-only; `INSUFFICIENT_ACTION_CONSEQUENCE_GROUNDING`
+F05_FIX6: PASS / ACCEPTED political interaction kernel
+F05_FIX7: PASS / ACCEPTED long-horizon integration
+F05_FIX8: PASS / ACCEPTED state-grounded proposal lifecycle; persistence V4
 
 ## ChatGPT acceptance of F05_FIX9
 
@@ -68,27 +48,22 @@ F05_FIX9_INTERACTION_COVERAGE_EXHAUSTED: YES
 F05_FIX9_ACTIVE_CONFLICT_EQUILIBRIUM: YES
 F05_FIX9_OUTCOME_GAP: YES
 F05_FIX9_PLAYER_RESPONSE_SET_SATURATED: NO
-F05_FIX9_IMPLEMENTATION: NONE
-F05_FIX9_HISTORICAL_F05_BASELINE: UNCHANGED
 F05_FIX9_STATE_GROUNDED_MAX_REASSESSMENT_SILENCE: 1200 days
 F05_FIX9_POST_INTERVENTION_LATE_SILENCE: 1110 days
 F05_FIX9_LATE_SILENCE_POPULATION: 6 ACCEPT branches >720 days
-F05_FIX9_NON_ACCEPT_DIVERGENCES: 0
-F05_FIX9_IDENTICAL_REOPEN_CHURN: 0
-F05_FIX9_LEGITIMATE_REOPENS: 2
 F05_FIX9_GATE1F_RECOMMENDATION: NOT_READY
 
 ## ChatGPT acceptance of F05_FIX10
 
 F05_FIX10: COMPLETE / REVIEWED / PASS / ACCEPTED
 F05_FIX10_PRIMARY_CLASSIFICATION: COVERAGE_REQUIRES_ACTION_SCHEMA_TARGETING
-F05_FIX10_SECOND_LOBBY_REACHABILITY: NOT_REACHABLE / 0 of 372
-F05_FIX10_FUND_MOVEMENT_REACHABILITY: REACHABLE / 372 of 372
-F05_FIX10_ORGANIZE_REACHABILITY: NOT_REACHABLE / 0 of 372
+F05_FIX10_FUND_MOVEMENT_REACHABILITY: 372/372 late-state faction boundaries
+F05_FIX10_LOBBY_REACHABILITY: 0/372
+F05_FIX10_ORGANIZE_REACHABILITY: 0/372
 F05_FIX10_SELECTED_ACTION: FUND_MOVEMENT
 F05_FIX10_TARGET_OBJECT_REQUIRED: YES
 F05_FIX10_ACTION_SCHEMA_CHANGE_REQUIRED: YES
-F05_FIX10_PRODUCTION_GAMEPLAY_CHANGE: NONE
+F05_FIX10_MAGNITUDE_GROUNDING_STATUS: BLOCKED_NO_AUTHORED_MAGNITUDE
 F05_FIX10_GATE1F_RECOMMENDATION: NOT_READY
 
 ## ChatGPT acceptance of F05_FIX11
@@ -101,16 +76,13 @@ F05_FIX11_COMMITMENT_SEMANTIC: EARMARK_EXISTING_FACTION_RESOURCES
 F05_FIX11_AMOUNT_SEAM: SCENARIO_AUTHORED_AMOUNT_REQUIRED
 F05_FIX11_NUMERIC_MAGNITUDE_STATUS: NOT_GROUNDED
 F05_FIX11_FIRST_CONSUMER_BOUNDARY: AGENDA_REASSESSMENT
-F05_FIX11_COMMITMENT_LIFECYCLE_STATUS: TARGET_SCHEMA_ONLY_DESIGNABLE
 F05_FIX11_REPEAT_BOUNDARY: ACTIVE_SAME_ACTOR_TARGET_BLOCKS_DUPLICATE
-F05_FIX11_PERSISTENCE_DECISION: FUTURE_VERSION_REQUIRED_FOR_AUTHORITATIVE_COMMITMENT
-F05_FIX11_PRODUCTION_GAMEPLAY_CHANGE: NONE
+F05_FIX11_NEXT_IMPLEMENTATION_READINESS: NONE
 
 ## ChatGPT acceptance of F05_FIX12
 
 F05_FIX12: COMPLETE / REVIEWED / PASS / ACCEPTED
 F05_FIX12_PRIMARY_CLASSIFICATION: FUND_MOVEMENT_AUTHORING_SEAM_IMPLEMENTED
-F05_FIX12_AUTHORING_SCOPE: STATIC_SCENARIO_ONLY
 F05_FIX12_AUTHORING_TYPE: FactionFundMovementTemplate
 F05_FIX12_SCENARIO_FIELD: factionFundMovementTemplates
 F05_FIX12_TARGET_DOMAIN: REGION_SINGLE
@@ -118,69 +90,59 @@ F05_FIX12_TARGET_INFERENCE: FORBIDDEN
 F05_FIX12_AMOUNT_OWNERSHIP: SCENARIO_AUTHORED
 F05_FIX12_AMOUNT_DEFAULT: NONE
 F05_FIX12_AMOUNT_DERIVATION: NONE
-F05_FIX12_STATIC_AMOUNT_VALIDATION: finite positive; current-resource feasibility deferred to runtime
 F05_FIX12_PROFILE_UNIQUENESS: at most one per Faction
-F05_FIX12_RUNTIME_ACTION_SCHEMA_CHANGE: NO
-F05_FIX12_AUTHORITATIVE_COMMITMENT_STATE: NO
-F05_FIX12_RUNTIME_RESOURCE_WRITER: NO
-F05_FIX12_PERSISTENCE: V4_UNCHANGED
-F05_FIX12_HISTORICAL_F05_BASELINE: UNCHANGED
-F05_FIX12_F05_FIX9_DIAGNOSIS: UNCHANGED
-F05_FIX12_F05_FIX10_REACHABILITY: UNCHANGED
-F05_FIX12_F05_FIX11_GROUNDING: UNCHANGED
 F05_FIX12_NEXT_IMPLEMENTATION_READINESS: TARGETED_COMMITMENT_VERTICAL_SLICE
-F05_FIX12_GATE1F_RECOMMENDATION: NOT_READY
-F05_FIX12_V02: NOT_STARTED
 
-Accepted interpretation:
+## ChatGPT acceptance of F05_FIX13
 
-- the open-ended grounding/authoring stage for FUND_MOVEMENT is closed;
-- a scenario can now explicitly author one Faction, one Region target, and one positive resource amount;
-- target and amount are never inferred at runtime;
-- static validation intentionally does not compare authored amount to mutable current Faction.resources;
-- existing scenarios without profiles remain unchanged;
-- no runtime action payload, commitment state, resource writer, Agenda reader, crisis/conflict effect, territory, continuity, terminal, or persistence change was introduced;
-- the next permitted direction is a targeted commitment runtime vertical slice.
-
-## F05_FIX13 authorization
-
-F05_FIX13: AUTHORIZED
-F05_FIX13_TASK_FILE: `docs/bridge/tasks/F05_FIX13.md`
-F05_FIX13_DIRECTION: consume scenario-authored FUND_MOVEMENT target+amount through a versioned targeted ActionRecord path into an authoritative actor-owned active commitment, current-resource feasibility, duplicate/resource-availability guard, Agenda visibility, and strict persistence/replay.
-
-Required core chain:
-
-```text
-FactionFundMovementTemplate
--> existing chooser selects FUND_MOVEMENT
--> targeted/versioned ActionProposal
--> accepted ActionRecord
--> exact profile-match validation
--> active Faction FUND_MOVEMENT commitment
--> derived available resources
--> active same-actor/target duplicate guard
--> Agenda evidence without severity bonus
--> strict next-version persistence/replay
-```
-
-F05_FIX13 may add the commitment kernel but may not add resource debit/gain, organization/grievance/influence effects, direct T018/T021 effects, Conflict/LandHex/continuity/outcome shortcuts, arbitrary lifecycle timers, new LOBBY/BARGAIN/ORGANIZE content, War-as-Politics, or V02.
-
-A developer-only profile-enabled long-horizon diagnostic is required, but official/historical F05 measurement semantics remain unchanged in this task. Repeated Agenda derivation is never pacing.
-
-## F05_FIX13 execution status
-
-F05_FIX13: COMPLETE / AWAITING_CHATGPT_REVIEW
+F05_FIX13: COMPLETE / REVIEWED / PASS / ACCEPTED
 F05_FIX13_PRIMARY_CLASSIFICATION: TARGETED_COMMITMENT_KERNEL_IMPLEMENTED_BUT_LATE_REASSESSMENT_UNCHANGED
 F05_FIX13_NEXT_IMPLEMENTATION_READINESS: COMMITMENT_CONSEQUENCE_OR_LIFECYCLE_REVIEW
-F05_FIX13_PERSISTENCE: SerializedSimulationSnapshotV5 / format version 5
-F05_FIX13_HISTORICAL_F05_BASELINE: UNCHANGED
-F05_FIX13_LONG_HORIZON: 2 commitments; first tick 31; duplicate success events 0; Agenda exposure 1170 ticks; F05_FIX9 reference branches 108/108
-F05_FIX13_RESOURCE_DEBIT: NOT OBSERVED
+F05_FIX13_ACTION_SCHEMA: targeted FUND_MOVEMENT schema version 2; legacy v1 preserved
+F05_FIX13_COMMITMENT: authoritative active actor-owned earmark with ActionId/FactionId/RegionId/authored amount provenance
+F05_FIX13_AVAILABLE_RESOURCES: derived stock minus active earmarks; no direct Faction.resources debit
+F05_FIX13_DUPLICATE_GUARD: active same actor/target blocks second commitment
+F05_FIX13_AGENDA: active target/amount visible without severity bonus
+F05_FIX13_PERSISTENCE: SerializedSimulationSnapshotV5 / format version 5; V4 rejected
+F05_FIX13_LONG_HORIZON: 2 commitments; first tick 31; duplicate success events 0; Agenda exposure 1170 ticks
+F05_FIX13_RESOURCE_DEBIT: NONE
 F05_FIX13_FORBIDDEN_EFFECT_EVENTS: NONE
 F05_FIX13_LATE_REASSESSMENT_CHANGED: NO
 F05_FIX13_GATE1F_RECOMMENDATION: NOT_READY
-F05_FIX13_V02: NOT_STARTED
-F05_FIX13_NEXT_AUTHORIZED_TASK: NONE
+
+Accepted review note:
+
+- targeted schema-v2 business-invalid inputs currently cannot create a commitment, but application order can allow `currentStrategy = fundMovement` before commitment business validation; F05_FIX14 must harden targeted-v2 semantic atomicity without changing legacy v1 behavior.
+
+## F05_FIX14 authorization
+
+F05_FIX14: AUTHORIZED
+F05_FIX14_TASK_FILE: `docs/bridge/tasks/F05_FIX14.md`
+F05_FIX14_DIRECTION: close the FUND_MOVEMENT lifecycle question and decide whether this route remains a viable Gate 1F pacing remedy.
+
+Mandatory obligations:
+
+1. Harden targeted schema-v2 application so profile/current-state business-invalid inputs cannot partially mutate strategy while failing commitment creation.
+2. Audit the only authorized lifecycle candidate: at the monthly faction political boundary, ask whether the same actor would still choose FUND_MOVEMENT under current authoritative state if only its own active duplicate block were excluded.
+3. If that candidate is honest, implement only `active -> resolved` with explicit state-grounded provenance, no timer/payoff/new meter, and strict persistence/replay.
+4. If it is not honest, do not invent another lifecycle.
+5. Run no-response and existing-response counterfactuals.
+6. End with either a profile-enabled F05 remeasurement readiness or a pivot away from FUND_MOVEMENT. Do not continue an open-ended FUND_MOVEMENT fix chain.
+
+Exact allowed classifications:
+
+```text
+FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_REASSESSMENT_IMPROVED
+FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_LATE_SILENCE_PERSISTS
+FUND_MOVEMENT_ROUTE_EXHAUSTED_NO_HONEST_LIFECYCLE
+```
+
+Readiness:
+
+```text
+PROFILE_ENABLED_F05_REMEASUREMENT
+PIVOT_FROM_FUND_MOVEMENT
+```
 
 ## Current architecture constraints
 
@@ -190,11 +152,10 @@ F05_FIX13_NEXT_AUTHORIZED_TASK: NONE
 - Region.stateControl is not territorial ownership;
 - fronts remain derived;
 - no direct crisis scheduling/deletion by interactions;
-- no generic politicalPower/reformPoint/stability/mobilization mana;
+- no generic politicalPower/reformPoint/stability/mobilization/effort mana;
 - LLM never directly mutates authoritative state;
-- proposal/action target/amount content must be explicit, never inferred from labels/interests/ideology;
+- proposal/action target and amount content must be explicit, never inferred from labels/interests/ideology;
 - no hidden synthetic START_INTERVENTION or FUND_MOVEMENT ActionRecord;
-- rejected-demand reconsideration remains state-grounded lifecycle semantics;
 - no continuity damage/restoration from occupation/government defeat;
 - no direct terminal shortcut;
 - War-as-Politics implementation remains blocked by `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`;
@@ -205,28 +166,31 @@ F05_FIX13_NEXT_AUTHORIZED_TASK: NONE
 GATE1F_CHATGPT_DECISION: NOT_READY
 V02: NOT STARTED
 POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
-CURRENT_PERSISTENCE_BEFORE_F05_FIX13: SerializedSimulationSnapshotV4 / format version 4
-CURRENT_PERSISTENCE_AFTER_F05_FIX13: SerializedSimulationSnapshotV5 / format version 5
+PERSISTENCE: SerializedSimulationSnapshotV5 / format version 5
 
 LAST_COMPLETED_TASK_ID: F05_FIX13
-NEXT_AUTHORIZED_TASK_ID: NONE
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
-CURRENT_TASK_FILE: NONE
+NEXT_AUTHORIZED_TASK_ID: F05_FIX14
+NEXT_TASK_STATUS: AUTHORIZED
+CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX14.md`
 LAST_RESULT_FILE: `docs/bridge/results/F05_FIX13_RESULT.md`
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
-## Repository-root / freshness guard
+## Repository-root / Codex Desktop freshness guard
 
 The real repository is the nested `TooManyRevolutions` directory.
 
-For Codex Desktop isolated worktrees, use this order:
+The existing Codex Desktop thread may be reused. A new thread is not required.
+
+Preferred order:
 
 ```text
 1. externally synchronize the real nested repository
-2. verify exact current master SHA
-3. start a fresh Codex thread/worktree
-4. verify fresh HEAD/origin-master
+2. verify master/origin-master
+3. in the existing Codex thread/worktree, verify working tree clean
+4. fast-forward only if needed
 5. execute only CURRENT_TASK
 ```
 
-If parent `Game-TMR` shows `TooManyRevolutions/` as untracked, `cd TooManyRevolutions` first and never modify the parent empty repository.
+If the parent `Game-TMR` shows `TooManyRevolutions/` as untracked, `cd TooManyRevolutions` first and never modify/reset/configure the parent empty repository.
+
+If `master` and `origin/master` are current but the clean Codex worktree HEAD is behind, `git merge --ff-only origin/master` is permitted. Do not reset/rebase/force merely to bypass freshness.
