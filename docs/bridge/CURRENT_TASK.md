@@ -1,127 +1,93 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX13
-STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW
+TASK_ID: F05_FIX14
+STATUS: AUTHORIZED
 BASE_BRANCH: master
-TASK_COMMIT: 005c617bd3a9c79651cc7730992e85a592134706
-STATE_ACTIVATION_COMMIT: 67fcc82418471f7af4037024d0d56f61b1405441
-TASK_FILE: docs/bridge/tasks/F05_FIX13.md
+TASK_COMMIT: 462b928fd35aab7ff09a5c12ca9ecc6b78044aa9
+STATE_ACTIVATION_COMMIT: f0b8086cea58200458e3d1e9336b0782b51e1277
+TASK_FILE: docs/bridge/tasks/F05_FIX14.md
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
-RESULT_PATH: docs/bridge/results/F05_FIX13_RESULT.md
-TASK_RESULT_COMMIT: 69f857fdb9036725014e676c8633977c421b19df
-END_COMMIT: 69f857fdb9036725014e676c8633977c421b19df
-NEXT_AUTHORIZED_TASK_ID: NONE
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
-CURRENT_TASK_FILE: NONE
+RESULT_PATH: docs/bridge/results/F05_FIX14_RESULT.md
 
 ## Mission summary
 
-F05_FIX12 is reviewed/accepted as `FUND_MOVEMENT_AUTHORING_SEAM_IMPLEMENTED`.
-
-F05_FIX13 is the first actual runtime targeted-commitment slice:
+F05_FIX13 is reviewed/accepted as:
 
 ```text
-scenario-authored FactionFundMovementTemplate
--> existing chooser selects FUND_MOVEMENT
--> targeted/versioned faction ActionProposal
--> accepted ActionRecord
--> exact authored target/amount match
--> authoritative active actor-owned commitment
--> current available-resource feasibility
--> active same-actor/target duplicate guard
--> Agenda visibility
--> strict next-version persistence/replay
+TARGETED_COMMITMENT_KERNEL_IMPLEMENTED_BUT_LATE_REASSESSMENT_UNCHANGED
 ```
 
-The commitment is an earmark of existing `Faction.resources`; it is not a debit or a new resource meter.
+F05_FIX14 closes the FUND_MOVEMENT lifecycle question and prevents an endless FUND_MOVEMENT fix chain.
 
-## Required preservation
+Required work:
 
-- Scenarios with no `factionFundMovementTemplates` keep the existing v1 faction-action behavior and create no commitment.
-- Historical 36-branch F05 and existing F05_FIX7/F05_FIX8 108-branch populations remain unchanged.
-- Existing chooser priority/threshold order is unchanged.
-- Target and amount are never inferred.
+1. **Targeted-v2 semantic atomicity hardening** — a business-invalid targeted FUND_MOVEMENT input must not mutate `currentStrategy` while failing commitment creation. Legacy v1 behavior is unchanged.
+2. Audit the only authorized lifecycle candidate: while a commitment is active, evaluate whether the actor would still choose FUND_MOVEMENT under current authoritative state if only its own duplicate block were excluded.
+3. If that lifecycle is honest, implement only a state-grounded `active -> resolved` transition with explicit provenance, no timer/cooldown/payoff/new meter.
+4. If it is not honest, do not invent another lifecycle; classify the FUND_MOVEMENT route as exhausted for the current Gate 1F remedy.
+5. Run no-response and existing-response counterfactuals and determine whether late reassessment actually improves.
 
-## Allowed implementation
+## Exact primary classifications
 
-- dedicated versioned targeted FUND_MOVEMENT payload/decoder path;
-- authoritative FUND_MOVEMENT commitment state with source ActionId, FactionId, RegionId, authored amount, creation tick, active status;
-- derived available faction resources = stock minus active earmarks;
-- runtime profile-match/resource feasibility;
-- active same-actor/target duplicate blocking;
-- profile-enabled `availableActions.FUND_MOVEMENT` feasibility integration without priority rewrite;
-- one state-grounded commitment-created event with provenance;
-- existing faction-pressure Agenda evidence of active target/amount without severity bonus;
-- explicit next snapshot format version with strict persistence/replay;
-- developer-only profile-enabled fixture and long-horizon diagnostic.
-
-## Forbidden implementation
-
-- no default/inferred Region target or amount;
-- no direct `Faction.resources` debit/gain;
-- no organization/grievance/influence scalar effect;
-- no generic mobilization/political/effort meter;
-- no direct crisis creation/deletion;
-- no direct T021 combat bonus or intent shortcut;
-- no Conflict resolution shortcut;
-- no LandHex mutation/hidden comeback;
-- no continuity writer or terminal shortcut;
-- no new LOBBY/BARGAIN/ORGANIZE content;
-- no chooser priority/threshold rewrite;
-- no arbitrary cooldown/countdown/expiry;
-- no repeated lifecycle/Agenda display counted as pacing;
-- no War-as-Politics, V02/UI, runtime LLM/solver;
-- no Gate 1F PASS or F05_FIX14 self-authorization.
-
-## Required classification
-
-Exactly one:
+Select exactly one:
 
 ```text
-TARGETED_COMMITMENT_VERTICAL_SLICE_MEANINGFUL
-TARGETED_COMMITMENT_KERNEL_IMPLEMENTED_BUT_LATE_REASSESSMENT_UNCHANGED
-TARGETED_COMMITMENT_KERNEL_BLOCKED
+FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_REASSESSMENT_IMPROVED
+FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_LATE_SILENCE_PERSISTS
+FUND_MOVEMENT_ROUTE_EXHAUSTED_NO_HONEST_LIFECYCLE
 ```
 
 Required readiness:
 
 ```text
 NEXT_IMPLEMENTATION_READINESS:
-  COMMITMENT_CONSEQUENCE_OR_LIFECYCLE_REVIEW
-  NONE
+  PROFILE_ENABLED_F05_REMEASUREMENT
+  PIVOT_FROM_FUND_MOVEMENT
 ```
+
+Choose `PROFILE_ENABLED_F05_REMEASUREMENT` only if late reassessment materially improves. Otherwise choose `PIVOT_FROM_FUND_MOVEMENT`.
+
+## Key constraints
+
+- no new FUND_MOVEMENT numeric payoff;
+- no direct Faction.resources debit/gain;
+- no direct organization/grievance/influence delta from FUND_MOVEMENT lifecycle;
+- no new political/mobilization/effort meter;
+- no direct crisis creation/deletion;
+- no T021 combat bonus/intent shortcut;
+- no Conflict/LandHex/continuity/terminal shortcut;
+- no chooser threshold/priority rewrite;
+- no default/inferred target or amount;
+- no arbitrary duration/cooldown/countdown;
+- no lifecycle/Agenda spam counted as pacing;
+- no new LOBBY/BARGAIN/ORGANIZE content;
+- no War-as-Politics, V02/UI, runtime LLM solver;
+- no Gate 1F PASS or F05_FIX15 self-authorization.
+
+If authoritative lifecycle state changes, persistence must move to the next explicit strict snapshot version. If lifecycle is rejected and only targeted-v2 atomicity is hardened, do not bump persistence unnecessarily.
 
 ## Repository-root / Codex Desktop freshness guard
 
 The real repository is the nested `TooManyRevolutions` directory.
 
-Use this order:
+**The existing Codex Desktop thread may be reused. A new thread is not required.**
 
-```text
-1. externally synchronize the real nested repo
-2. verify exact master SHA
-3. start a fresh Codex Desktop thread/worktree
-4. verify fresh HEAD and origin/master
-5. execute F05_FIX13 only
-```
-
-If parent `Game-TMR` shows `TooManyRevolutions/` as untracked:
-
-```bash
-cd TooManyRevolutions
-```
-
-Never modify/reset/configure the parent empty repository.
-
-Before execution:
+First externally synchronize the real nested repository. Then in the existing Codex thread/worktree run:
 
 ```bash
 git status
 git rev-parse HEAD
+git rev-parse master
 git rev-parse origin/master
 ```
 
-Proceed only when working tree is clean and both SHAs equal the exact current GitHub master activation SHA supplied by ChatGPT/user.
+If the worktree is clean, `master` and `origin/master` are already current, and only the existing worktree HEAD is behind, `git merge --ff-only origin/master` is permitted.
+
+Do not reset, rebase, force-update, or create a new branch merely to bypass freshness.
+
+Proceed only when working tree is clean and `HEAD == origin/master ==` the exact current GitHub master activation SHA supplied by ChatGPT/user.
+
+If parent `Game-TMR` shows `TooManyRevolutions/` as untracked, `cd TooManyRevolutions` first. Never modify/configure/reset the parent empty repository.
 
 ## Verification
 
@@ -137,24 +103,25 @@ pnpm run inspect:t024
 pnpm run inspect:f05
 pnpm run inspect:f05fix9
 pnpm run inspect:f05fix10
-# focused F05_FIX13 inspection/tests
+pnpm run inspect:f05fix13
+# focused F05_FIX14 inspection/tests
 pnpm test
 git diff --check
 ```
 
-Report known Vitest `onTaskUpdate` runner/IPC errors separately from assertion status.
+Report the known Vitest `onTaskUpdate` runner/IPC issue separately from assertion status if it reproduces.
 
 ## Completion
 
 On completion:
 
-- `F05_FIX13: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state;
-- `LAST_COMPLETED_TASK_ID: F05_FIX13`;
+- `F05_FIX14: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state;
+- `LAST_COMPLETED_TASK_ID: F05_FIX14`;
 - `NEXT_AUTHORIZED_TASK_ID: NONE`;
 - `NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW`;
 - `CURRENT_TASK_FILE: NONE`;
-- keep Gate 1F `NOT_READY`;
-- keep V02 `NOT STARTED`;
-- do not authorize F05_FIX14.
+- Gate 1F remains `NOT_READY`;
+- V02 remains `NOT STARTED`;
+- do not authorize F05_FIX15.
 
-Execute only `docs/bridge/tasks/F05_FIX13.md`.
+Execute only `docs/bridge/tasks/F05_FIX14.md`.
