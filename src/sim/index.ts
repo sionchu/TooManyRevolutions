@@ -14,6 +14,7 @@ export * from "./state/contactFixture";
 export * from "./state/conflictFixture";
 export * from "./state/country";
 export * from "./state/faction";
+export * from "./state/factionFundMovement";
 export * from "./state/foreignIdeologicalThreatFixture";
 export * from "./state/government";
 export * from "./state/ideology";

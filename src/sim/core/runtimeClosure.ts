@@ -1,6 +1,7 @@
 import {
   createDeterministicActionId,
   decodeFactionAction,
+  decodeTargetedFactionFundMovementAction,
   decodeRespondPoliticalProposalAction,
   decodeStartInterventionAction,
   RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE,
@@ -14,6 +15,10 @@ import {
   assertScenarioInterventionCatalog,
 } from "../state/intervention";
 import { asContactEdgeId, asGovernmentId, type CountryId } from "../state/ids";
+import {
+  createDeterministicFactionFundMovementCommitmentId,
+  type FactionFundMovementCommitment,
+} from "../state/factionFundMovement";
 import type { PolicyState } from "../state/policy";
 import type { InterventionCommitment } from "../state/intervention";
 import {
@@ -427,6 +432,60 @@ function assertActionCommitmentProvenance(
   }
 }
 
+function assertFactionFundMovementCommitmentProvenance(
+  scenario: ScenarioDefinition,
+  world: WorldState,
+  commitments: readonly FactionFundMovementCommitment[] = Object.values(
+    world.factionFundMovementCommitments,
+  ),
+): void {
+  const actionsById = new Map<string, ActionRecord>();
+  for (const action of world.run.actionLog) {
+    actionsById.set(action.id, action);
+  }
+
+  for (const commitment of commitments) {
+    const sourceAction = actionsById.get(commitment.sourceActionId);
+    const template = scenario.factionFundMovementTemplates?.find(
+      (candidate) => candidate.factionId === commitment.factionId,
+    );
+    const payload =
+      sourceAction?.validationOutcome.kind === "accepted" &&
+      sourceAction.actionType === "FUND_MOVEMENT"
+        ? decodeTargetedFactionFundMovementAction(
+            sourceAction as ValidatedActionRecord,
+          )
+        : null;
+    const faction = world.factions[commitment.factionId];
+    const region = world.regions[commitment.targetRegionId];
+
+    if (
+      commitment.id !==
+        createDeterministicFactionFundMovementCommitmentId(
+          commitment.sourceActionId,
+        ) ||
+      sourceAction === undefined ||
+      sourceAction.validationOutcome.kind !== "accepted" ||
+      sourceAction.actionType !== "FUND_MOVEMENT" ||
+      payload === null ||
+      template === undefined ||
+      faction === undefined ||
+      region === undefined ||
+      faction.countryId !== region.ownerCountryId ||
+      payload.factionId !== commitment.factionId ||
+      payload.targetRegionId !== commitment.targetRegionId ||
+      payload.resourceAmount !== commitment.resourceAmount ||
+      template.targetRegionId !== commitment.targetRegionId ||
+      template.resourceAmount !== commitment.resourceAmount ||
+      sourceAction.tick !== commitment.createdAtTick
+    ) {
+      throw new Error(
+        `FUND_MOVEMENT commitment ${commitment.id} has invalid source provenance.`,
+      );
+    }
+  }
+}
+
 function assertPoliticalProposalProvenance(
   scenario: ScenarioDefinition,
   world: WorldState,
@@ -628,6 +687,29 @@ export function assertInterventionCommitmentDelta(
   }
 }
 
+/** Validate provenance only for newly created or changed FUND_MOVEMENT commitments. */
+export function assertFactionFundMovementCommitmentDelta(
+  scenario: ScenarioDefinition,
+  previousWorld: WorldState,
+  nextWorld: WorldState,
+): void {
+  const changedCommitments = Object.values(
+    nextWorld.factionFundMovementCommitments,
+  ).filter(
+    (commitment) =>
+      previousWorld.factionFundMovementCommitments[commitment.id] !==
+      commitment,
+  );
+
+  if (changedCommitments.length > 0) {
+    assertFactionFundMovementCommitmentProvenance(
+      scenario,
+      nextWorld,
+      changedCommitments,
+    );
+  }
+}
+
 /**
  * Validate the complete V1 ScenarioDefinition/WorldState runtime closure.
  * V1 has no runtime Country/Region/Faction identity lifecycle, while
@@ -672,6 +754,10 @@ export function assertScenarioRuntimeClosure(
     world.interventionCommitments,
   );
   assertRecordIdentityKeys(
+    "WorldState.factionFundMovementCommitments",
+    world.factionFundMovementCommitments,
+  );
+  assertRecordIdentityKeys(
     "WorldState.politicalProposals",
     world.politicalProposals ?? {},
   );
@@ -691,6 +777,7 @@ export function assertScenarioRuntimeClosure(
 
   assertLandHexRuntimeStateInvariants(scenario, world);
   assertActionCommitmentProvenance(scenario, world);
+  assertFactionFundMovementCommitmentProvenance(scenario, world);
   assertPoliticalProposalProvenance(scenario, world);
   assertConflictOutcomeReferences(world);
 }
@@ -736,6 +823,10 @@ export function assertScenarioRuntimeClosureIncremental(
     nextWorld.interventionCommitments,
   );
   assertRecordIdentityKeys(
+    "WorldState.factionFundMovementCommitments",
+    nextWorld.factionFundMovementCommitments,
+  );
+  assertRecordIdentityKeys(
     "WorldState.politicalProposals",
     nextWorld.politicalProposals ?? {},
   );
@@ -756,6 +847,7 @@ export function assertScenarioRuntimeClosureIncremental(
   assertLandHexRuntimeStateInvariants(scenario, nextWorld);
   assertActionRecordDelta(previousWorld, nextWorld);
   assertInterventionCommitmentDelta(scenario, previousWorld, nextWorld);
+  assertFactionFundMovementCommitmentDelta(scenario, previousWorld, nextWorld);
   assertPoliticalProposalProvenance(scenario, nextWorld);
   assertConflictOutcomeReferences(nextWorld);
 }

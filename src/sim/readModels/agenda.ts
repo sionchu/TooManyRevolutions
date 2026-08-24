@@ -7,6 +7,7 @@ import {
 } from "../systems/factionPressure";
 import { getEffectiveContactStrength } from "../systems/contactGraph";
 import type { Faction } from "../state/faction";
+import { deriveActiveFactionFundMovementCommitments } from "../state/factionFundMovement";
 import type {
   ContactEdgeId,
   CountryId,
@@ -483,6 +484,13 @@ function factionEvidence(
     }
 
     if (
+      event.type === "FACTION_FUND_MOVEMENT_COMMITTED" &&
+      event.actorId === faction.id
+    ) {
+      return true;
+    }
+
+    if (
       event.type === "TREASURY_CHANGED" &&
       eventCountryId(event) === faction.countryId
     ) {
@@ -502,8 +510,9 @@ function factionEvidence(
 
 function factionRelevantRegionIds(
   observation: FactionObservation,
+  commitmentRegionIds: readonly RegionId[] = [],
 ): readonly RegionId[] {
-  return sortedIds(observation.regional.regionIds);
+  return sortedIds([...observation.regional.regionIds, ...commitmentRegionIds]);
 }
 
 /** Detect faction pressure from T016's actual observation projection. */
@@ -565,6 +574,10 @@ export function detectFactionPressureAgendas(
     }
 
     const evidence = factionEvidence(events, faction, observation);
+    const commitments = deriveActiveFactionFundMovementCommitments(
+      input.world,
+      faction.id,
+    );
     const keyCauses: AgendaCause[] = [
       {
         key: "factionGrievance",
@@ -596,12 +609,24 @@ export function detectFactionPressureAgendas(
       });
     }
 
+    for (const commitment of commitments) {
+      keyCauses.push({
+        key: `factionFundMovementCommitment:${commitment.id}`,
+        label: `FUND_MOVEMENT 대상 ${commitment.targetRegionId}에 ${commitment.resourceAmount} 자원 예약`,
+        value: commitment.resourceAmount,
+        unit: "currency",
+      });
+    }
+
     agendas.push(
       candidate({
         id: `agenda:faction:${faction.id}`,
         kind: "factionPressure",
         title: `${faction.name}의 정치 압력`,
-        affectedRegionIds: factionRelevantRegionIds(observation),
+        affectedRegionIds: factionRelevantRegionIds(
+          observation,
+          commitments.map((commitment) => commitment.targetRegionId),
+        ),
         severity,
         trend: deriveTrend(evidence.map(pressureDirection)),
         keyCauses,

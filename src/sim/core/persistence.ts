@@ -32,6 +32,10 @@ import type { Government } from "../state/government";
 import type { IdeologyState } from "../state/ideology";
 import type { InterventionCommitment } from "../state/intervention";
 import {
+  FACTION_FUND_MOVEMENT_COMMITMENT_STATUSES,
+  type FactionFundMovementCommitment,
+} from "../state/factionFundMovement";
+import {
   POLITICAL_PROPOSAL_FAILURE_KINDS,
   POLITICAL_PROPOSAL_PREREQUISITE_KINDS,
   politicalProposalReconsiderationBasisToJson,
@@ -49,6 +53,7 @@ import {
   asConflictId,
   asCountryId,
   asEventId,
+  asFactionFundMovementCommitmentId,
   asFactionId,
   asGovernmentId,
   asInterventionCommitmentId,
@@ -92,7 +97,7 @@ import {
 import { freezeCanonicalGraph } from "./canonicalFreeze";
 import { claimCanonicalSimulationStepResult } from "./tick";
 
-export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 4 as const;
+export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 5 as const;
 
 const canonicalRunRecords = new WeakMap<RunRecord, ScenarioDefinition>();
 
@@ -113,7 +118,7 @@ function registerCanonicalRunRecord<T extends RunRecord>(
   return record;
 }
 
-export interface SerializedWorldStateV4 {
+export interface SerializedWorldStateV5 {
   readonly tick: number;
   readonly date: SimDate;
   readonly countries: Readonly<Record<string, Country>>;
@@ -124,6 +129,9 @@ export interface SerializedWorldStateV4 {
   readonly conflicts: Readonly<Record<string, Conflict>>;
   readonly interventionCommitments: Readonly<
     Record<string, InterventionCommitment>
+  >;
+  readonly factionFundMovementCommitments: Readonly<
+    Record<string, FactionFundMovementCommitment>
   >;
   readonly politicalProposals: Readonly<Record<string, PoliticalProposal>>;
   readonly contactEdgeStates: Readonly<Record<string, ContactEdgeRuntimeState>>;
@@ -137,11 +145,11 @@ export interface SerializedEventStoreV2 {
 }
 
 /** Versioned runtime snapshot. Static ScenarioDefinition content is excluded. */
-export interface SerializedSimulationSnapshotV4 {
+export interface SerializedSimulationSnapshotV5 {
   readonly formatVersion: typeof SIMULATION_SNAPSHOT_FORMAT_VERSION;
   readonly scenarioId: string;
   readonly scenarioVersion: number;
-  readonly world: SerializedWorldStateV4;
+  readonly world: SerializedWorldStateV5;
   readonly eventStore: SerializedEventStoreV2;
 }
 
@@ -335,6 +343,12 @@ function cloneInterventionCommitment(
   return { ...commitment };
 }
 
+function cloneFactionFundMovementCommitment(
+  commitment: FactionFundMovementCommitment,
+): FactionFundMovementCommitment {
+  return { ...commitment };
+}
+
 function clonePoliticalProposal(
   proposal: PoliticalProposal,
 ): PoliticalProposal {
@@ -427,7 +441,7 @@ function cloneEvent(event: GameEvent): GameEvent {
   };
 }
 
-function cloneWorldState(world: WorldState): SerializedWorldStateV4 {
+function cloneWorldState(world: WorldState): SerializedWorldStateV5 {
   return {
     tick: world.tick,
     date: { ...world.date },
@@ -442,6 +456,10 @@ function cloneWorldState(world: WorldState): SerializedWorldStateV4 {
     interventionCommitments: cloneRecord(
       world.interventionCommitments,
       cloneInterventionCommitment,
+    ),
+    factionFundMovementCommitments: cloneRecord(
+      world.factionFundMovementCommitments,
+      cloneFactionFundMovementCommitment,
     ),
     politicalProposals: cloneRecord(
       world.politicalProposals ?? {},
@@ -1325,6 +1343,63 @@ function decodeInterventionCommitment(
   };
 }
 
+function decodeFactionFundMovementCommitment(
+  value: unknown,
+  label: string,
+): FactionFundMovementCommitment {
+  const record = expectRecord(value, label);
+  assertKnownKeys(
+    record,
+    [
+      "id",
+      "sourceActionId",
+      "factionId",
+      "targetRegionId",
+      "resourceAmount",
+      "createdAtTick",
+      "status",
+    ],
+    label,
+  );
+
+  return {
+    id: asFactionFundMovementCommitmentId(
+      expectNonEmptyString(required(record, "id", label), `${label}.id`),
+    ),
+    sourceActionId: asActionId(
+      expectNonEmptyString(
+        required(record, "sourceActionId", label),
+        `${label}.sourceActionId`,
+      ),
+    ),
+    factionId: asFactionId(
+      expectNonEmptyString(
+        required(record, "factionId", label),
+        `${label}.factionId`,
+      ),
+    ),
+    targetRegionId: asRegionId(
+      expectNonEmptyString(
+        required(record, "targetRegionId", label),
+        `${label}.targetRegionId`,
+      ),
+    ),
+    resourceAmount: expectFiniteNumber(
+      required(record, "resourceAmount", label),
+      `${label}.resourceAmount`,
+    ),
+    createdAtTick: expectNonNegativeInteger(
+      required(record, "createdAtTick", label),
+      `${label}.createdAtTick`,
+    ),
+    status: expectEnum(
+      required(record, "status", label),
+      FACTION_FUND_MOVEMENT_COMMITMENT_STATUSES,
+      `${label}.status`,
+    ),
+  };
+}
+
 function politicalProposalFailureClassKey(
   failure: PoliticalProposalFailureClass,
 ): string {
@@ -1979,6 +2054,7 @@ function decodeWorldState(value: unknown, label: string): WorldState {
       "factions",
       "conflicts",
       "interventionCommitments",
+      "factionFundMovementCommitments",
       "politicalProposals",
       "contactEdgeStates",
       "policies",
@@ -2031,6 +2107,11 @@ function decodeWorldState(value: unknown, label: string): WorldState {
       required(record, "interventionCommitments", label),
       `${label}.interventionCommitments`,
       decodeInterventionCommitment,
+    ),
+    factionFundMovementCommitments: decodeEntityRecord(
+      required(record, "factionFundMovementCommitments", label),
+      `${label}.factionFundMovementCommitments`,
+      decodeFactionFundMovementCommitment,
     ),
     politicalProposals: decodeEntityRecord(
       required(record, "politicalProposals", label),
@@ -2253,6 +2334,59 @@ function assertPoliticalProposalEventProvenance(
   }
 }
 
+function assertFactionFundMovementEventProvenance(
+  world: WorldState,
+  eventStore: EventStore,
+): void {
+  const commitmentEvents = eventStore.events.filter(
+    (event) => event.type === "FACTION_FUND_MOVEMENT_COMMITTED",
+  );
+
+  for (const commitment of Object.values(
+    world.factionFundMovementCommitments,
+  )) {
+    const matchingEvents = commitmentEvents.filter(
+      (event) => eventPayloadValue(event, "commitmentId") === commitment.id,
+    );
+    if (matchingEvents.length !== 1) {
+      throw new Error(
+        `FUND_MOVEMENT commitment ${commitment.id} must have exactly one creation event.`,
+      );
+    }
+
+    const event = matchingEvents[0]!;
+    if (
+      event.tick !== commitment.createdAtTick ||
+      event.actorId !== commitment.factionId ||
+      event.targetId !== commitment.targetRegionId ||
+      eventPayloadValue(event, "factionId") !== commitment.factionId ||
+      eventPayloadValue(event, "targetRegionId") !==
+        commitment.targetRegionId ||
+      eventPayloadValue(event, "resourceAmount") !==
+        commitment.resourceAmount ||
+      eventPayloadValue(event, "createdAtTick") !== commitment.createdAtTick
+    ) {
+      throw new Error(
+        `FUND_MOVEMENT commitment ${commitment.id} creation event does not match state.`,
+      );
+    }
+  }
+
+  for (const event of commitmentEvents) {
+    const commitmentId = eventPayloadValue(event, "commitmentId");
+    if (
+      typeof commitmentId !== "string" ||
+      world.factionFundMovementCommitments[
+        asFactionFundMovementCommitmentId(commitmentId)
+      ] === undefined
+    ) {
+      throw new Error(
+        `FUND_MOVEMENT creation event ${event.id} references an unknown commitment.`,
+      );
+    }
+  }
+}
+
 function assertEventStoreMatchesWorld(
   world: WorldState,
   eventStore: EventStore,
@@ -2272,6 +2406,7 @@ function assertEventStoreMatchesWorld(
   }
 
   assertPoliticalProposalEventProvenance(world, eventStore);
+  assertFactionFundMovementEventProvenance(world, eventStore);
 
   const outcome = world.run.outcome;
   if (outcome.status === "active") {
@@ -2312,7 +2447,7 @@ function assertRunRecordForPersistence(
 export function serializeSimulationSnapshot(
   scenario: ScenarioDefinition,
   record: RunRecord,
-): SerializedSimulationSnapshotV4 {
+): SerializedSimulationSnapshotV5 {
   assertRunRecordForPersistence(scenario, record);
 
   return {

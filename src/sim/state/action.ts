@@ -6,6 +6,7 @@ import {
   asInterventionId,
   asPolicyId,
   asPoliticalProposalId,
+  asRegionId,
   type ActionId,
   type CountryId,
   type FactionId,
@@ -13,6 +14,7 @@ import {
   type PolicyId,
   type PoliticalProposalId,
 } from "./ids";
+import type { TargetedFactionFundMovementActionPayload } from "./factionFundMovement";
 
 export type ActionSource = "player" | "heuristic" | "llm";
 
@@ -64,6 +66,9 @@ export const FACTION_ACTION_TYPES = [
 export type FactionActionType = (typeof FACTION_ACTION_TYPES)[number];
 
 export const FACTION_ACTION_SCHEMA_VERSION = 1 as const;
+
+/** Versioned targeted payload used only when a scenario authors a FUND_MOVEMENT profile. */
+export const TARGETED_FUND_MOVEMENT_ACTION_SCHEMA_VERSION = 2 as const;
 
 export interface FactionActionPayload {
   readonly factionId: FactionId;
@@ -355,6 +360,50 @@ export function decodeFactionAction(
   }
 
   return { factionId: asFactionId(factionId) };
+}
+
+/** Decode the explicit target and authored magnitude for a FUND_MOVEMENT action. */
+export function decodeTargetedFactionFundMovementAction(
+  action: ValidatedActionRecord,
+): TargetedFactionFundMovementActionPayload | null {
+  if (
+    action.actionType !== "FUND_MOVEMENT" ||
+    action.schemaVersion !== TARGETED_FUND_MOVEMENT_ACTION_SCHEMA_VERSION ||
+    !isJsonObject(action.payload)
+  ) {
+    return null;
+  }
+
+  const keys = Object.keys(action.payload).sort();
+  if (
+    keys.length !== 3 ||
+    keys[0] !== "factionId" ||
+    keys[1] !== "resourceAmount" ||
+    keys[2] !== "targetRegionId"
+  ) {
+    return null;
+  }
+
+  const factionId = action.payload.factionId;
+  const targetRegionId = action.payload.targetRegionId;
+  const resourceAmount = action.payload.resourceAmount;
+  if (
+    typeof factionId !== "string" ||
+    factionId.length === 0 ||
+    typeof targetRegionId !== "string" ||
+    targetRegionId.length === 0 ||
+    typeof resourceAmount !== "number" ||
+    !Number.isFinite(resourceAmount) ||
+    resourceAmount <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    factionId: asFactionId(factionId),
+    targetRegionId: asRegionId(targetRegionId),
+    resourceAmount,
+  };
 }
 
 function isDiplomacyActionType(value: string): value is DiplomacyActionType {

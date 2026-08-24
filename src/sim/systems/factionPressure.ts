@@ -12,15 +12,27 @@ import type {
 import {
   acceptActionProposal,
   decodeFactionAction,
+  decodeTargetedFactionFundMovementAction,
   FACTION_ACTION_SCHEMA_VERSION,
   FACTION_ACTION_TYPES,
+  TARGETED_FUND_MOVEMENT_ACTION_SCHEMA_VERSION,
 } from "../state/action";
 import { createGameEvent, type GameEvent } from "../events/event";
 import type { InstitutionalRuleState } from "../state/policy";
 import type { Faction, FactionStrategy } from "../state/faction";
 import type { CountryId, FactionId, IdeologyId, RegionId } from "../state/ids";
 import type { Region } from "../state/region";
-import type { ScenarioDefinition } from "../state/scenario";
+import type {
+  FactionFundMovementTemplate,
+  ScenarioDefinition,
+} from "../state/scenario";
+import {
+  createDeterministicFactionFundMovementCommitmentId,
+  deriveFactionAvailableResources,
+  hasActiveFactionFundMovementCommitment,
+  type FactionFundMovementCommitment,
+  type TargetedFactionFundMovementActionPayload,
+} from "../state/factionFundMovement";
 import { getRegionFactionIds } from "../state/territorialControl";
 import type {
   SimulationPhaseContext,
@@ -129,8 +141,11 @@ export interface FactionActionProposal {
   readonly factionId: FactionId;
   readonly decisionTick: number;
   readonly actionType: FactionActionType;
-  readonly payload: FactionActionPayload;
-  readonly schemaVersion: typeof FACTION_ACTION_SCHEMA_VERSION;
+  readonly payload:
+    FactionActionPayload | TargetedFactionFundMovementActionPayload;
+  readonly schemaVersion:
+    | typeof FACTION_ACTION_SCHEMA_VERSION
+    | typeof TARGETED_FUND_MOVEMENT_ACTION_SCHEMA_VERSION;
 }
 
 export interface FactionPressureConfig {
@@ -312,6 +327,15 @@ function deriveRegionalObservation(
   };
 }
 
+function factionFundMovementTemplate(
+  scenario: ScenarioDefinition | undefined,
+  factionId: FactionId,
+): FactionFundMovementTemplate | undefined {
+  return scenario?.factionFundMovementTemplates?.find(
+    (template) => template.factionId === factionId,
+  );
+}
+
 function deriveStrongestForeignLink(faction: Faction): number {
   return Object.values(faction.foreignLinks).reduce(
     (strongest, value) => Math.max(strongest, value),
@@ -320,9 +344,23 @@ function deriveStrongestForeignLink(faction: Faction): number {
 }
 
 function deriveAvailableActions(
+  world: WorldState,
   faction: Faction,
   institutionalRules: InstitutionalRuleState | null,
+  scenario?: ScenarioDefinition,
 ): Readonly<Record<FactionActionType, boolean>> {
+  const fundTemplate = factionFundMovementTemplate(scenario, faction.id);
+  const fundMovementAvailable =
+    fundTemplate === undefined
+      ? faction.resources >= FACTION_HEURISTIC_THRESHOLDS.minimumFundResources
+      : deriveFactionAvailableResources(world, faction.id) >=
+          fundTemplate.resourceAmount &&
+        !hasActiveFactionFundMovementCommitment(
+          world,
+          faction.id,
+          fundTemplate.targetRegionId,
+        );
+
   return {
     LOBBY:
       institutionalRules === null ||
@@ -333,8 +371,7 @@ function deriveAvailableActions(
     ORGANIZE:
       institutionalRules === null ||
       institutionalRules.laborOrganization !== "illegal",
-    FUND_MOVEMENT:
-      faction.resources >= FACTION_HEURISTIC_THRESHOLDS.minimumFundResources,
+    FUND_MOVEMENT: fundMovementAvailable,
     ACCEPT: true,
     WAIT: true,
   };
@@ -400,7 +437,12 @@ export function deriveFactionObservation(
       country.stateCapacity,
       country.instability,
     ),
-    availableActions: deriveAvailableActions(faction, institutionalRules),
+    availableActions: deriveAvailableActions(
+      world,
+      faction,
+      institutionalRules,
+      scenario,
+    ),
   };
 }
 
@@ -601,6 +643,21 @@ export function chooseFactionActionProposal(
 
   const observation = deriveFactionObservation(world, factionId, scenario);
   const actionType = chooseFactionActionType(observation);
+  const fundTemplate = factionFundMovementTemplate(scenario, factionId);
+
+  if (actionType === "FUND_MOVEMENT" && fundTemplate !== undefined) {
+    return {
+      factionId,
+      decisionTick,
+      actionType,
+      payload: {
+        factionId,
+        targetRegionId: fundTemplate.targetRegionId,
+        resourceAmount: fundTemplate.resourceAmount,
+      },
+      schemaVersion: TARGETED_FUND_MOVEMENT_ACTION_SCHEMA_VERSION,
+    };
+  }
 
   return {
     factionId,
@@ -713,7 +770,7 @@ export function toFactionActionProposal(
     tick: targetTick,
     source: "heuristic",
     actionType: proposal.actionType,
-    payload: { factionId: proposal.payload.factionId },
+    payload: { ...proposal.payload },
     schemaVersion: proposal.schemaVersion,
   };
 }
@@ -744,6 +801,83 @@ const FACTION_ACTION_ACTION_TYPES_SET = new Set<FactionActionType>(
   FACTION_ACTION_ORDER,
 );
 
+function applyTargetedFundMovementCommitment(
+  context: SimulationPhaseContext,
+  world: WorldState,
+  action: ValidatedActionRecord,
+  payload: TargetedFactionFundMovementActionPayload,
+  nextEventSequence: number,
+): {
+  readonly world: WorldState;
+  readonly event: GameEvent | null;
+  readonly nextEventSequence: number;
+} {
+  const scenario = context.scenario;
+  const template = factionFundMovementTemplate(scenario, payload.factionId);
+  if (template === undefined || world.run.outcome.status !== "active") {
+    return { world, event: null, nextEventSequence };
+  }
+
+  const faction = world.factions[payload.factionId];
+  const targetRegion = world.regions[payload.targetRegionId];
+  if (
+    faction === undefined ||
+    targetRegion === undefined ||
+    faction.countryId !== targetRegion.ownerCountryId ||
+    template.targetRegionId !== payload.targetRegionId ||
+    template.resourceAmount !== payload.resourceAmount ||
+    action.tick !== context.nextTick ||
+    deriveFactionAvailableResources(world, faction.id) <
+      payload.resourceAmount ||
+    hasActiveFactionFundMovementCommitment(world, faction.id, targetRegion.id)
+  ) {
+    return { world, event: null, nextEventSequence };
+  }
+
+  const commitment: FactionFundMovementCommitment = {
+    id: createDeterministicFactionFundMovementCommitmentId(action.id),
+    sourceActionId: action.id,
+    factionId: faction.id,
+    targetRegionId: targetRegion.id,
+    resourceAmount: payload.resourceAmount,
+    createdAtTick: action.tick,
+    status: "active",
+  };
+  if (world.factionFundMovementCommitments[commitment.id] !== undefined) {
+    return { world, event: null, nextEventSequence };
+  }
+
+  const event = createGameEvent({
+    tick: context.nextTick,
+    sequence: nextEventSequence,
+    type: "FACTION_FUND_MOVEMENT_COMMITTED",
+    actorId: faction.id,
+    targetId: targetRegion.id,
+    causeIds: [],
+    payload: {
+      actionId: action.id,
+      commitmentId: commitment.id,
+      factionId: commitment.factionId,
+      targetRegionId: commitment.targetRegionId,
+      resourceAmount: commitment.resourceAmount,
+      createdAtTick: commitment.createdAtTick,
+    },
+    visibility: "world",
+  });
+
+  return {
+    world: {
+      ...world,
+      factionFundMovementCommitments: {
+        ...world.factionFundMovementCommitments,
+        [commitment.id]: commitment,
+      },
+    },
+    event,
+    nextEventSequence: nextEventSequence + 1,
+  };
+}
+
 function applyAcceptedFactionActions(context: SimulationPhaseContext): {
   readonly world: WorldState;
   readonly emittedEvents: readonly GameEvent[];
@@ -758,7 +892,8 @@ function applyAcceptedFactionActions(context: SimulationPhaseContext): {
       continue;
     }
 
-    const payload = decodeFactionAction(action);
+    const targetedPayload = decodeTargetedFactionFundMovementAction(action);
+    const payload = targetedPayload ?? decodeFactionAction(action);
     if (payload === null) {
       continue;
     }
@@ -799,6 +934,21 @@ function applyAcceptedFactionActions(context: SimulationPhaseContext): {
           },
         },
       };
+    }
+
+    if (targetedPayload !== null) {
+      const committed = applyTargetedFundMovementCommitment(
+        context,
+        currentWorld,
+        action,
+        targetedPayload,
+        nextEventSequence,
+      );
+      currentWorld = committed.world;
+      if (committed.event !== null) {
+        emittedEvents.push(committed.event);
+      }
+      nextEventSequence = committed.nextEventSequence;
     }
 
     const opening = openFactionLobbyProposal(

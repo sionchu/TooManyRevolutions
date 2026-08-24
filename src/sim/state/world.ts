@@ -4,6 +4,7 @@ import type { Conflict } from "./conflict";
 import type { ContactEdgeRuntimeStateMap } from "./contact";
 import type { Country } from "./country";
 import type { Faction } from "./faction";
+import type { FactionFundMovementCommitment } from "./factionFundMovement";
 import type { Government } from "./government";
 import {
   assertScenarioInterventionCatalog,
@@ -22,6 +23,7 @@ import {
 import type {
   ConflictId,
   CountryId,
+  FactionFundMovementCommitmentId,
   FactionId,
   GovernmentId,
   InterventionCommitmentId,
@@ -43,6 +45,9 @@ export interface WorldState {
   readonly conflicts: Readonly<Record<ConflictId, Conflict>>;
   readonly interventionCommitments: Readonly<
     Record<InterventionCommitmentId, InterventionCommitment>
+  >;
+  readonly factionFundMovementCommitments: Readonly<
+    Record<FactionFundMovementCommitmentId, FactionFundMovementCommitment>
   >;
   /** Authoritative proposal lifecycle; absent only on hand-authored legacy test worlds. */
   readonly politicalProposals?: Readonly<
@@ -248,6 +253,7 @@ export function createInitialWorldState(
     factions: indexFactions(scenario.initialFactions),
     conflicts: indexConflicts(scenario.initialConflicts),
     interventionCommitments: {},
+    factionFundMovementCommitments: {},
     politicalProposals: {},
     contactEdgeStates: {},
     policies: copyPolicyStates(scenario.initialCountryPolicies),

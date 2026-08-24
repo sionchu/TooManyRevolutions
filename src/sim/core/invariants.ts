@@ -1,4 +1,9 @@
 import { createDeterministicActionId } from "../state/action";
+import {
+  createDeterministicFactionFundMovementCommitmentId,
+  FACTION_FUND_MOVEMENT_COMMITMENT_STATUSES,
+  type FactionFundMovementCommitment,
+} from "../state/factionFundMovement";
 import type { CountryId } from "../state/ids";
 import {
   INSTITUTIONAL_RULE_KEYS,
@@ -407,6 +412,86 @@ function assertInterventionCommitments(world: WorldState): void {
   }
 }
 
+function assertFactionFundMovementCommitments(world: WorldState): void {
+  const activeActorTargets = new Set<string>();
+
+  for (const [commitmentId, commitment] of Object.entries(
+    world.factionFundMovementCommitments,
+  )) {
+    const typedCommitment = commitment as FactionFundMovementCommitment;
+    if (commitmentId !== typedCommitment.id) {
+      throw new Error(
+        `FUND_MOVEMENT commitment key ${commitmentId} does not match ${typedCommitment.id}.`,
+      );
+    }
+
+    if (
+      typedCommitment.id !==
+      createDeterministicFactionFundMovementCommitmentId(
+        typedCommitment.sourceActionId,
+      )
+    ) {
+      throw new Error(
+        `FUND_MOVEMENT commitment ${typedCommitment.id} does not match its source action.`,
+      );
+    }
+
+    if (world.factions[typedCommitment.factionId] === undefined) {
+      throw new Error(
+        `FUND_MOVEMENT commitment ${typedCommitment.id} references a missing faction.`,
+      );
+    }
+
+    const targetRegion = world.regions[typedCommitment.targetRegionId];
+    const faction = world.factions[typedCommitment.factionId];
+    if (targetRegion === undefined || faction === undefined) {
+      throw new Error(
+        `FUND_MOVEMENT commitment ${typedCommitment.id} references a missing target.`,
+      );
+    }
+    if (targetRegion.ownerCountryId !== faction.countryId) {
+      throw new Error(
+        `FUND_MOVEMENT commitment ${typedCommitment.id} crosses its faction country boundary.`,
+      );
+    }
+
+    assertStringEnum(
+      typedCommitment.status,
+      FACTION_FUND_MOVEMENT_COMMITMENT_STATUSES,
+      `${typedCommitment.id}.status`,
+    );
+    assertNonNegative(
+      typedCommitment.resourceAmount,
+      `${typedCommitment.id}.resourceAmount`,
+    );
+    if (typedCommitment.resourceAmount <= 0) {
+      throw new Error(
+        `FUND_MOVEMENT commitment ${typedCommitment.id}.resourceAmount must be positive.`,
+      );
+    }
+    if (
+      typedCommitment.sourceActionId.length === 0 ||
+      !Number.isInteger(typedCommitment.createdAtTick) ||
+      typedCommitment.createdAtTick < 0 ||
+      typedCommitment.createdAtTick > world.tick
+    ) {
+      throw new Error(
+        `FUND_MOVEMENT commitment ${typedCommitment.id} has invalid creation provenance.`,
+      );
+    }
+
+    if (typedCommitment.status === "active") {
+      const actorTarget = `${typedCommitment.factionId}:${typedCommitment.targetRegionId}`;
+      if (activeActorTargets.has(actorTarget)) {
+        throw new Error(
+          `FUND_MOVEMENT commitment ${typedCommitment.id} duplicates an active actor/target pair.`,
+        );
+      }
+      activeActorTargets.add(actorTarget);
+    }
+  }
+}
+
 function assertPoliticalProposals(world: WorldState): void {
   for (const [proposalId, proposal] of Object.entries(
     world.politicalProposals ?? {},
@@ -712,6 +797,7 @@ export function assertWorldStateInvariants(
   }
 
   assertInterventionCommitments(world);
+  assertFactionFundMovementCommitments(world);
   assertPoliticalProposals(world);
 
   for (const government of Object.values(world.governments)) {

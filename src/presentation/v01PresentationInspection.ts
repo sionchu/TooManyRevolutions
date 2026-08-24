@@ -41,6 +41,9 @@ function reverseWorldRecords(world: WorldState): WorldState {
     factions: reverseRecord(world.factions),
     conflicts: reverseRecord(world.conflicts),
     interventionCommitments: reverseRecord(world.interventionCommitments),
+    factionFundMovementCommitments: reverseRecord(
+      world.factionFundMovementCommitments,
+    ),
     contactEdgeStates: reverseRecord(world.contactEdgeStates),
     policies: reverseRecord(world.policies),
   };
