@@ -1,62 +1,90 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX10
+TASK_ID: F05_FIX11
 STATUS: AUTHORIZED
 BASE_BRANCH: master
-TASK_COMMIT: 2789279f7ecead1852e325a5a0c19a59e3a3df74
-STATE_ACTIVATION_COMMIT: 1e68f9fc9389348c97780e36dbfabd28c0dad7a2
-TASK_FILE: docs/bridge/tasks/F05_FIX10.md
+TASK_COMMIT: fd8dc4f98a1813a5d0f5848232fbffac3131b600
+STATE_ACTIVATION_COMMIT: 6374b1afbd42aae22c0c13722a15842c7c72450c
+TASK_FILE: docs/bridge/tasks/F05_FIX11.md
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
-RESULT_PATH: docs/bridge/results/F05_FIX10_RESULT.md
+RESULT_PATH: docs/bridge/results/F05_FIX11_RESULT.md
 
 ## Mission summary
 
-F05_FIX9 is reviewed/accepted as `LATE_STEADY_STATE_MIXED_CAUSE` with no production bug repair. F05_FIX10 must select the next interaction-coverage slice without changing War/outcome semantics or inventing scalar consequences.
+F05_FIX10 is reviewed/accepted as `COVERAGE_REQUIRES_ACTION_SCHEMA_TARGETING`. The exact six late branches produced 372/372 `FUND_MOVEMENT` selections, with LOBBY and ORGANIZE at 0/372. F05_FIX11 must ground the smallest honest target + actor-owned commitment contract before any production schema/effect implementation.
+
+The task is **grounding/design only**.
 
 Required order:
 
-1. classify ACTIVE_CONFLICT_EQUILIBRIUM as currently implementable or deferred by the War-as-Politics grounding gate;
-2. classify OUTCOME_ELIGIBILITY_STALEMATE against F05_FIX2_R continuity evidence;
-3. audit actual late-state action reachability;
-4. measure whether a second LOBBY demand would ever be naturally selected;
-5. audit `FUND_MOVEMENT` first and `ORGANIZE` second for an explicit internal commitment grammar;
-6. select exactly one next-slice classification or truthful NONE/grounding block;
-7. do not implement the selected production consequence in F05_FIX10.
+1. read the immutable F05_FIX11 task and its fixed six-source external grounding pack;
+2. reconcile the source claims with F05_FIX5, F05_FIX9, F05_FIX10 and current source code;
+3. define the exact semantic meaning of `FUND_MOVEMENT` rather than relying on the label;
+4. evaluate target domains (`RegionId`, explicit Region set, Country-wide, another existing object, or none);
+5. decide whether existing `Faction.resources` can be reserved/spent/earmarked honestly, or whether the mechanism would require a forbidden/new effort domain;
+6. classify the amount-authoring seam without selecting a number;
+7. identify the first legitimate non-war/non-terminal consumer boundary;
+8. determine whether a state-grounded lifecycle/repeat boundary is designable without cooldown/countdown;
+9. specify persistence/replay implications without changing V4;
+10. select exactly one F05_FIX11 primary classification and implementation-readiness value;
+11. do not implement the direction in this task.
 
-The immutable task file contains the full authorized/forbidden scope and is authoritative for execution.
+## Fixed external source pack
+
+The immutable task contains conservative claim boundaries for:
+
+- McCarthy & Zald (1977), DOI `10.1086/226464`;
+- Jenkins (1983), DOI `10.1146/annurev.so.09.080183.002523`;
+- McCarthy & Wolfson (1996), DOI `10.2307/2096309`;
+- Hunter & Staggenborg (1986), DOI `10.1016/0362-3319(86)90033-9`;
+- Cress & Snow (1996), DOI `10.2307/2096310`;
+- Ganz (2000), DOI `10.1086/210398`.
+
+Codex does not need internet access to use these authorized claim boundaries. If internet is unavailable, do not fabricate additional source claims.
 
 ## Key constraints
 
-- No production consequence for `FUND_MOVEMENT` or `ORGANIZE`.
-- No new numeric cost/effect/duration/conversion ratio.
-- No heuristic threshold/action-priority rewrite to force LOBBY.
-- Do not filter unimplemented actions merely to force the chooser down to LOBBY.
-- No second LOBBY proposal template in this task.
-- No BARGAIN/counteroffer/settlement implementation.
-- No new proposal subject.
-- No direct faction scalar effect from an action label.
-- No crisis/territory/continuity/terminal shortcut.
-- No War-as-Politics implementation.
-- No V02/UI.
-- No self-authorized Gate 1F PASS or follow-up task.
+- No production `FactionActionPayload` change.
+- Do not add `targetRegionId` or another runtime target field yet.
+- `RegionId` is a candidate, not a pre-decided answer.
+- Never use LandHex as the default political-mobilization target.
+- Do not infer target from highest unrest/radicalism/organization, sort order, faction name, ideology label, conflict front, or fixture layout.
+- No authoritative commitment record/resolver.
+- No resource debit/reservation/earmark writer.
+- No numeric cost/effect/duration/conversion ratio.
+- No state-derived amount formula for convenience.
+- No combat-strength bonus, crisis writer, conflict resolution, LandHex change, continuity writer, terminal shortcut, or hidden recovery.
+- No second LOBBY template, BARGAIN, ORGANIZE consequence, chooser rewrite, generic mobilization/political mana, cooldown/countdown, War-as-Politics implementation, V02/UI, or runtime LLM solver.
+- Do not self-authorize Gate 1F PASS or F05_FIX12.
 
 ## Required primary classification
 
 Exactly one:
 
 ```text
-COVERAGE_NEXT_SLICE_FUND_MOVEMENT_INTERNAL_COMMITMENT
-COVERAGE_NEXT_SLICE_ORGANIZE_INTERNAL_COMMITMENT
-SECOND_LOBBY_REACHABLE_AND_SUFFICIENT
-COVERAGE_REQUIRES_ACTION_SCHEMA_TARGETING
-COVERAGE_INSUFFICIENT_GROUNDING
+FUND_MOVEMENT_TARGET_AND_COMMITMENT_GROUNDED
+FUND_MOVEMENT_TARGET_SCHEMA_ONLY_GROUNDED
+FUND_MOVEMENT_TARGET_GROUNDED_COMMITMENT_BLOCKED
+FUND_MOVEMENT_REQUIRES_NEW_AUTHORING_SEAM
+FUND_MOVEMENT_GROUNDING_INSUFFICIENT
 ```
+
+Required readiness:
+
+```text
+NEXT_IMPLEMENTATION_READINESS:
+  TARGET_SCHEMA_ONLY
+  TARGET_PLUS_COMMITMENT_LIFECYCLE
+  NONE
+```
+
+The classification is not authorization to implement it.
 
 ## Required documents
 
-- `docs/F05_FIX10_STRUCTURAL_REMEDY_SELECTION.md`
-- `docs/FACTION_INTERNAL_COMMITMENT_KERNEL.md` only if an internal-action slice is selected/designable
-- `docs/bridge/results/F05_FIX10_RESULT.md`
+- `docs/F05_FIX11_FUND_MOVEMENT_GROUNDING.md`
+- `docs/bridge/results/F05_FIX11_RESULT.md`
+- update `docs/FACTION_INTERNAL_COMMITMENT_KERNEL.md` only if `TARGET_PLUS_COMMITMENT_LIFECYCLE` is genuinely grounded; keep it design-only.
 
 ## Repository-root guard
 
@@ -68,7 +96,7 @@ If Codex starts in parent `Game-TMR` and `TooManyRevolutions/` appears untracked
 cd TooManyRevolutions
 ```
 
-before any Git or task work. Never commit/reset/configure the parent empty repository.
+before any Git/task work. Never commit/reset/configure the parent empty repository.
 
 ## Freshness
 
@@ -82,15 +110,15 @@ git rev-parse origin/master
 git pull --ff-only
 ```
 
-If outbound HTTPS is unavailable in Codex, do not create a branch/reset/rebase to bypass it. The task may proceed only after the user/ChatGPT externally synchronizes the real nested repository and confirms the current GitHub `master` SHA, with:
+If outbound HTTPS is unavailable inside Codex, do not create a branch/reset/rebase to bypass it. Proceed only after the user/ChatGPT externally synchronizes the real nested repository and confirms the current GitHub master SHA, with:
 
 ```text
 working tree clean
 HEAD == origin/master == confirmed GitHub master
-CURRENT_TASK = F05_FIX10
+CURRENT_TASK = F05_FIX11
 ```
 
-If those conditions are not all true, stop and report freshness failure.
+If not, stop and report freshness failure.
 
 ## Verification
 
@@ -103,28 +131,27 @@ pnpm run typecheck
 pnpm run lint
 pnpm run build
 pnpm run inspect:f05
-pnpm run inspect:f05fix8lifecycle
-pnpm run inspect:f05fix8audit
 pnpm run inspect:f05fix9
-# focused F05_FIX10 inspection/test if added
+pnpm run inspect:f05fix10
+# focused F05_FIX11 inspection/test only if developer-only code was added
 pnpm test
 git diff --check
 ```
 
-If the known Vitest `[vitest-worker]: Timeout calling "onTaskUpdate"` runner/IPC error reproduces after all assertions pass, report runner status separately. Do not modify gameplay to address it.
+If the known Vitest `[vitest-worker]: Timeout calling "onTaskUpdate"` runner/IPC error reproduces after assertions pass, report assertion and runner status separately. Do not modify gameplay to address it.
 
 ## Completion
 
 On completion:
 
-- `F05_FIX10: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked result;
-- `LAST_COMPLETED_TASK_ID: F05_FIX10`;
+- `F05_FIX11: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state;
+- `LAST_COMPLETED_TASK_ID: F05_FIX11`;
 - `NEXT_AUTHORIZED_TASK_ID: NONE`;
 - `NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW`;
 - `CURRENT_TASK_FILE: NONE`;
 - `GATE1F_CHATGPT_DECISION: NOT_READY`;
 - `V02: NOT STARTED`;
-- do not implement the selected next slice;
-- do not authorize F05_FIX11.
+- no production implementation of the selected direction;
+- do not authorize F05_FIX12.
 
-Execute only `docs/bridge/tasks/F05_FIX10.md`.
+Execute only `docs/bridge/tasks/F05_FIX11.md`.
