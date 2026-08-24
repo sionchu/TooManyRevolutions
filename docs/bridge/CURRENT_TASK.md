@@ -1,57 +1,69 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX3
+TASK_ID: F05_FIX4
 
 STATUS: AUTHORIZED
 
 BASE_BRANCH: master
 
-BASE_COMMIT: dda5949ba70165dd65ac86c48561d82f69b3a375
+BASE_COMMIT: 406d6dd21561911d1a0c201b13d445d58623bee2
 
-BASE_COMMIT_NOTE: This commit added the immutable `docs/bridge/tasks/F05_FIX3.md` task. A newer HEAD is allowed only when commits after this base are ChatGPT-authored Bridge authorization updates to `docs/bridge/STATE.md` and/or this `CURRENT_TASK.md`. Before execution, run `git fetch origin`, verify the diff contains no gameplay/source change, and then `git pull --ff-only`.
+BASE_COMMIT_NOTE: This commit added the immutable `docs/bridge/tasks/F05_FIX4.md` task. A newer HEAD is allowed only when commits after this base are ChatGPT-authored Bridge authorization updates to `docs/bridge/STATE.md` and/or this `CURRENT_TASK.md`. Before execution, run `git fetch origin`, verify the diff contains no gameplay/source changes, and then `git pull --ff-only`.
 
-TASK_FILE: docs/bridge/tasks/F05_FIX3.md
+TASK_FILE: docs/bridge/tasks/F05_FIX4.md
 
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 
-COMMIT_POLICY_NOTE: PASS means the rejected continuity writer was removed correctly, verification passed, and the exact F05 remeasurement is truthful. It does NOT mean Gate 1F passed or V02 may start. A truthful `GATE1F_RECOMMENDATION: NOT_READY` is fully acceptable.
+COMMIT_POLICY_NOTE: PASS means the reference grounding, proposal-loop diagnosis, deterministic faction proposal intake integration, tests, and truthful F05 rerun completed correctly. It does NOT mean Gate 1F passed. A truthful `ACTOR_ACTION_CONSUMER_GAP / GATE1F_RECOMMENDATION: NOT_READY` is an acceptable successful task result.
 
 AUTHORIZED_SCOPE:
 
-- remove only the F05_FIX2 unresolved-internal-rebellion weekly `stateContinuity` decrement writer
-- remove/retire its config/function/conflict-phase invocation and tests that require the rejected behavior
-- correct current Architecture prose so internal rebellion displacement alone does not drain state continuity
-- preserve historical F05_FIX2 and F05_FIX2_R result/review artifacts
-- add focused regression tests proving no elapsed-week continuity decay / dissolution from internal rebellion displacement alone
-- preserve typed non-terminal `governmentTransition` semantics without automatic successor selection
-- preserve F04B strength-qualified recovery and LandHex authority
-- rerun the unchanged F05 36-branch / five-year matrix
-- compare F05_FIX1 vs rejected-writer F05_FIX2 vs post-removal F05_FIX3
-- report any returning late steady state honestly; do not repair it in this task
-- create `docs/F05_GATE1F_REPAIR3_REMOVE_CONTINUITY_WRITER.md`
-- write `docs/bridge/results/F05_FIX3_RESULT.md`
-- update `docs/bridge/LAST_RESULT.md` and completion state
+- read the required repository contracts and F05 history
+- create `docs/F05_FIX4_ACTOR_ADAPTATION_REFERENCE_GROUNDING.md`
+- ground the design against OpenSpiel/best-response dynamics, Utility AI implementation patterns, Gambit/Nashpy non-fit, QRE defer, and MCP tool-boundary examples exactly as specified in the immutable task
+- prove whether current T016 faction heuristic proposals are generated but dropped by the current F03/F05 headless orchestration
+- inventory production consumers of `Faction.currentStrategy`, faction action types, and `FACTION_STRATEGY_CHANGED`
+- classify the existing downstream coverage before implementation
+- add the smallest reusable external/orchestration seam that carries existing T016 faction heuristic proposals into the common next-tick action intake
+- keep proposals transient/non-authoritative and accepted ActionRecords authoritative
+- preserve exactly-once target-tick execution and deterministic faction ordering
+- explicitly define same-tick player/faction action sequence ordering without hidden gameplay priority
+- preserve historical F03/F04 behavior by using an explicit actor-loop mode unless actual source proves otherwise
+- enable faction autonomous intake for the official post-FIX4 F05 rerun
+- run actor-loop OFF vs ON counterfactuals in early/near/recovery contexts
+- do not count causally inert strategy-change events as meaningful pacing
+- rerun the unchanged 36-branch / five-year F05 matrix
+- write `docs/F05_GATE1F_REPAIR4_ACTOR_LOOP.md`
+- write `docs/bridge/results/F05_FIX4_RESULT.md`
+- update Bridge completion state
 
 EXTERNAL_REFERENCE_GUARDRAIL:
 
-- REQUIRED: read `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
-- REQUIRED: use repository contracts and F04C-R mechanism-first grounding first
-- no new external research is expected merely to remove a writer already rejected by repository-grounded review
-- do not gather references to invent a replacement mechanic
-- if future continuity or successor-resolution evidence is missing, report and defer it
-- War as Politics, Fantasy institutional politics, and Gate 1V visual reference work remain out of scope
+- REQUIRED: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
+- REQUIRED: F04C-R mechanism-first separation of source fact / interpretation / TMR inference
+- OpenSpiel and best-response dynamics are conceptual references only; no dependency
+- Utility AI is an implementation-pattern reference only; do not add arbitrary utility weights in this task
+- Gambit/Nashpy equilibrium solving is explicitly not a runtime solution here
+- QRE/stochastic response is deferred; no RNG for behavioral variety
+- MCP examples are tool/API-boundary references only; no MCP or LLM runtime NPC dependency
+- no new external service is authorized
 
 FORBIDDEN_SCOPE:
 
-- replacement continuity decay or restoration
-- generic sovereignty/continuity meter
-- T023 threshold changes
+- new state-continuity decay/restoration, sovereignty meter, or T023 threshold changes
 - automatic revolutionary succession / Government creation
-- intervention, faction, crisis, or conflict rebalance
-- F05 scenario changes or readable-arc threshold tuning to force a pass
-- free LandHex transfer / direct crisis deletion / hidden comeback state / direct outcome scripting
-- chapters / revolution phases / countdowns / permanence timers / filler events
-- RNG added merely to manufacture diversity
+- arbitrary faction action resource/grievance/organization effects
+- strategy-specific scalar bonuses not already grounded
+- generic hidden utility/political score
+- Nash equilibrium / Gambit / Nashpy / OpenSpiel runtime dependency
+- CFR / regret matching / fictitious play / PSRO / MCTS / RL
+- QRE/logit randomness or RNG merely for diversity
+- MCP server/runtime dependency for NPC decisions
+- runtime LLM faction decisions
+- direct crisis deletion / free LandHex / hidden comeback / direct outcome scripting
+- intervention/faction/conflict rebalance unrelated to proposal intake
+- adding `FACTION_STRATEGY_CHANGED` to F05 pacing solely to reduce measured silence
+- chapters / revolution phases / countdowns / filler events
 - elections / parties / coalitions
 - full labor bargaining
 - transitional justice
@@ -60,23 +72,26 @@ FORBIDDEN_SCOPE:
 - War as Politics
 - fantasy / arcane institutions
 - V02 / renderer / UI
-- strategic AI / MCTS / runtime LLM
-- self-authorizing Gate 1F PASS, Gate 1V, V02, or another follow-up task
+- self-authorizing Gate 1F PASS or any follow-up task
 
 EXPECTED_OUTPUT:
 
-- rejected writer fully removed with no replacement shortcut
-- current Architecture matches state-continuity contract
-- focused regression evidence for no displacement-only continuity decay
-- exact unchanged F05 matrix rerun
-- WAIT / accommodation / meaningful-response classifications
-- trajectory diversity and causal readability
-- old/new major-event and reassessment silence
-- readable-arc status by context
-- terminal/consolidation outcome comparison
-- explicit remaining blocker classification
+- external/game-AI reference grounding artifact
+- source/runtime proof of proposal generation vs pre-FIX4 acceptance
+- currentStrategy consumer inventory
+- deterministic faction heuristic intake seam
+- exactly-once and insertion-order-safe tests
+- same-tick player/faction sequencing test
+- persistence/replay verification
+- actor-loop OFF-vs-ON counterfactual
+- exact F05 matrix rerun with actor loop ON
+- one of:
+  - `INTAKE_FIX_CREATES_MEANINGFUL_EXISTING_CONSEQUENCE`
+  - `INTAKE_FIX_CHANGES_PRECRISIS_ONLY`
+  - `INTAKE_FIX_STRATEGY_ONLY`
+  - `INTAKE_FIX_NO_EFFECT`
+- if active-conflict consumer is missing, explicit `ACTOR_ACTION_CONSUMER_GAP`
 - `GATE1F_RECOMMENDATION: PASS | PASS_WITH_NOTES | NOT_READY`
-- one narrow next recommendation at most, without implementation
 
 STARTUP / FRESHNESS CHECK:
 
@@ -92,7 +107,7 @@ Do not treat an unfetched local `origin/master` as current GitHub state.
 
 VERIFICATION:
 
-- preferred Node 24.19.0 / pnpm 11.19.0; if Node 24 is unavailable, record exact runtime and still run full verification
+- preferred Node 24.19.0 / pnpm 11.19.0; if unavailable record exact runtime
 - `pnpm install --frozen-lockfile`
 - `pnpm run format`
 - `pnpm run typecheck`
@@ -103,21 +118,20 @@ VERIFICATION:
 - `pnpm run inspect:f04b`
 - `pnpm run inspect:f04d`
 - `pnpm run inspect:f05`
-- focused tests for rejected-writer absence/current semantics
+- focused actor-loop tests
 - `pnpm test`
 - `git diff --check`
 
-RESULT_PATH: docs/bridge/results/F05_FIX3_RESULT.md
+RESULT_PATH: docs/bridge/results/F05_FIX4_RESULT.md
 
 ON_COMPLETION:
 
-- update Bridge to `F05_FIX3: REPAIR_COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state
+- update Bridge to `F05_FIX4: REPAIR_COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state
 - set `NEXT_AUTHORIZED_TASK_ID: NONE`
 - set `NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW`
 - set `CURRENT_TASK_FILE: NONE`
 - keep `V02: NOT STARTED`
-- commit/push if the task itself is correct and verification passes
-- do not implement the next pacing/continuity/succession fix
+- do not implement the next faction-action consumer/payoff task
 - do not declare Gate 1F passed
 
 Execute only the immutable task file referenced above.
