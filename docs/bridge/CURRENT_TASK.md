@@ -1,75 +1,89 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX14
-STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW
+TASK_ID: F05_FIX15
+STATUS: AUTHORIZED
 BASE_BRANCH: master
-TASK_COMMIT: 462b928fd35aab7ff09a5c12ca9ecc6b78044aa9
-STATE_ACTIVATION_COMMIT: f0b8086cea58200458e3d1e9336b0782b51e1277
-TASK_FILE: docs/bridge/tasks/F05_FIX14.md
+TASK_COMMIT: 8fd27058c95c75f55efda8612bd40a0befe81d67
+STATE_ACTIVATION_COMMIT: 9e287e3a38fa6596b75bcb9f793ddabc90d811e0
+TASK_FILE: docs/bridge/tasks/F05_FIX15.md
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
-RESULT_PATH: docs/bridge/results/F05_FIX14_RESULT.md
-TASK_RESULT_COMMIT: 4345e7fa84d589576db65db1f2df43c8934a9b6f
-END_COMMIT: 4345e7fa84d589576db65db1f2df43c8934a9b6f
-NEXT_AUTHORIZED_TASK_ID: NONE
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
-CURRENT_TASK_FILE: NONE
+RESULT_PATH: docs/bridge/results/F05_FIX15_RESULT.md
 
 ## Mission summary
 
-F05_FIX13 is reviewed/accepted as:
+F05_FIX14 is reviewed/accepted as:
 
 ```text
-TARGETED_COMMITMENT_KERNEL_IMPLEMENTED_BUT_LATE_REASSESSMENT_UNCHANGED
+FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_LATE_SILENCE_PERSISTS
+NEXT_IMPLEMENTATION_READINESS: PIVOT_FROM_FUND_MOVEMENT
 ```
 
-F05_FIX14 closes the FUND_MOVEMENT lifecycle question and prevents an endless FUND_MOVEMENT fix chain.
+The FUND_MOVEMENT path is closed for the current Gate 1F pacing remedy.
+
+F05_FIX15 pivots to F05_FIX9's `ACTIVE_CONFLICT_EQUILIBRIUM` and satisfies the repository's War-as-Politics grounding gate before any new conflict implementation is authorized.
+
+Exact late-state basis:
+
+```text
+Country physical LandHexes = 0
+active conflicts = 2
+rebellion T021 = NO_ACTIVE_FRONT_EDGE
+coup T021 = COUP_HAS_NO_TERRITORIAL_WRITER
+Government remains valid
+run outcome remains active
+T022 consolidation blocked
+T023 dissolution not proven by occupation/Government defeat alone
+```
 
 Required work:
 
-1. **Targeted-v2 semantic atomicity hardening** — a business-invalid targeted FUND_MOVEMENT input must not mutate `currentStrategy` while failing commitment creation. Legacy v1 behavior is unchanged.
-2. Audit the only authorized lifecycle candidate: while a commitment is active, evaluate whether the actor would still choose FUND_MOVEMENT under current authoritative state if only its own duplicate block were excluded.
-3. If that lifecycle is honest, implement only a state-grounded `active -> resolved` transition with explicit provenance, no timer/cooldown/payoff/new meter.
-4. If it is not honest, do not invent another lifecycle; classify the FUND_MOVEMENT route as exhausted for the current Gate 1F remedy.
-5. Run no-response and existing-response counterfactuals and determine whether late reassessment actually improves.
+1. read the immutable F05_FIX15 task and its fixed external grounding pack;
+2. reconcile war/coup/rebellion/settlement mechanisms with the exact current TMR state and consumers;
+3. keep coup coordination distinct from territorial warfare;
+4. keep rebellion persistence distinct from a missing front edge;
+5. audit war mobilization/finance, occupation/collaboration, displacement, settlement/demobilization, and post-conflict political participation without creating unsupported domains;
+6. replay representative F05_FIX9 late freezes for reachability/consumer evidence if useful;
+7. choose exactly one smallest next repair seam or explicitly classify that a new authoritative domain is required;
+8. make no production gameplay implementation.
 
-## Exact primary classifications
+## Exact classifications
 
 Select exactly one:
 
 ```text
-FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_REASSESSMENT_IMPROVED
-FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_LATE_SILENCE_PERSISTS
-FUND_MOVEMENT_ROUTE_EXHAUSTED_NO_HONEST_LIFECYCLE
+WAR_POLITICS_GROUNDED_COUP_RESOLUTION_SLICE
+WAR_POLITICS_GROUNDED_REBELLION_TERMINATION_SLICE
+WAR_POLITICS_GROUNDED_CONFLICT_OBJECTIVE_SCHEMA
+WAR_POLITICS_REQUIRES_NEW_AUTHORITATIVE_DOMAIN
+WAR_POLITICS_GROUNDING_INSUFFICIENT
 ```
 
 Required readiness:
 
 ```text
-NEXT_IMPLEMENTATION_READINESS:
-  PROFILE_ENABLED_F05_REMEASUREMENT
-  PIVOT_FROM_FUND_MOVEMENT
+COUP_POLITICAL_RESOLUTION_VERTICAL_SLICE
+REBELLION_TERMINATION_VERTICAL_SLICE
+CONFLICT_OBJECTIVE_SCHEMA_ONLY
+NEW_DOMAIN_GROUNDING_REQUIRED
+NONE
 ```
-
-Choose `PROFILE_ENABLED_F05_REMEASUREMENT` only if late reassessment materially improves. Otherwise choose `PIVOT_FROM_FUND_MOVEMENT`.
 
 ## Key constraints
 
-- no new FUND_MOVEMENT numeric payoff;
-- no direct Faction.resources debit/gain;
-- no direct organization/grievance/influence delta from FUND_MOVEMENT lifecycle;
-- no new political/mobilization/effort meter;
-- no direct crisis creation/deletion;
-- no T021 combat bonus/intent shortcut;
-- no Conflict/LandHex/continuity/terminal shortcut;
-- no chooser threshold/priority rewrite;
-- no default/inferred target or amount;
-- no arbitrary duration/cooldown/countdown;
-- no lifecycle/Agenda spam counted as pacing;
+- no `0 LandHex -> defeat/dissolution`;
+- no Government defeat -> continuity damage;
+- no fake coup LandHex front/writer;
+- no `no front -> peace`;
+- no generic war exhaustion/support/morale/manpower/officer-loyalty/command-cohesion/refugee/occupation/peace-score meter;
+- no hidden coup coordination score inferred from existing labels or scalars;
+- no FUND_MOVEMENT extension;
+- no direct T021/T022/T023 production change;
+- no Conflict/WorldState/persistence schema change;
 - no new LOBBY/BARGAIN/ORGANIZE content;
-- no War-as-Politics, V02/UI, runtime LLM solver;
-- no Gate 1F PASS or F05_FIX15 self-authorization.
+- no V02/UI/runtime LLM solver;
+- no Gate 1F PASS or F05_FIX16 self-authorization.
 
-If authoritative lifecycle state changes, persistence must move to the next explicit strict snapshot version. If lifecycle is rejected and only targeted-v2 atomicity is hardened, do not bump persistence unnecessarily.
+Persistence remains `SerializedSimulationSnapshotV6`.
 
 ## Repository-root / Codex Desktop freshness guard
 
@@ -107,9 +121,8 @@ pnpm run build
 pnpm run inspect:t024
 pnpm run inspect:f05
 pnpm run inspect:f05fix9
-pnpm run inspect:f05fix10
-pnpm run inspect:f05fix13
-# focused F05_FIX14 inspection/tests
+pnpm run inspect:f05fix14
+# focused F05_FIX15 inspection/test only if developer-only code was added
 pnpm test
 git diff --check
 ```
@@ -120,13 +133,13 @@ Report the known Vitest `onTaskUpdate` runner/IPC issue separately from assertio
 
 On completion:
 
-- `F05_FIX14: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state;
-- `LAST_COMPLETED_TASK_ID: F05_FIX14`;
+- `F05_FIX15: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state;
+- `LAST_COMPLETED_TASK_ID: F05_FIX15`;
 - `NEXT_AUTHORIZED_TASK_ID: NONE`;
 - `NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW`;
 - `CURRENT_TASK_FILE: NONE`;
 - Gate 1F remains `NOT_READY`;
-- V02 remains `NOT STARTED`;
-- do not authorize F05_FIX15.
+- V02 remains `NOT_STARTED`;
+- do not authorize F05_FIX16.
 
-Execute only `docs/bridge/tasks/F05_FIX14.md`.
+Execute only `docs/bridge/tasks/F05_FIX15.md`.
