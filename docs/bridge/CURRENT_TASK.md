@@ -1,69 +1,63 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX4
+TASK_ID: F05_FIX5
 
 STATUS: AUTHORIZED
 
 BASE_BRANCH: master
 
-BASE_COMMIT: 406d6dd21561911d1a0c201b13d445d58623bee2
+BASE_COMMIT: f09aa6ce62dadba29427e2139772846d3d98be4e
 
-BASE_COMMIT_NOTE: This commit added the immutable `docs/bridge/tasks/F05_FIX4.md` task. A newer HEAD is allowed only when commits after this base are ChatGPT-authored Bridge authorization updates to `docs/bridge/STATE.md` and/or this `CURRENT_TASK.md`. Before execution, run `git fetch origin`, verify the diff contains no gameplay/source changes, and then `git pull --ff-only`.
+BASE_COMMIT_NOTE: This commit added the immutable `docs/bridge/tasks/F05_FIX5.md` task. A newer HEAD is allowed only when commits after this base are ChatGPT-authored Bridge authorization updates under `docs/bridge/STATE.md` and/or this `CURRENT_TASK.md`. Before execution, run `git fetch origin`, verify that post-base changes are Bridge authorization-only, and then `git pull --ff-only`.
 
-TASK_FILE: docs/bridge/tasks/F05_FIX4.md
+TASK_FILE: docs/bridge/tasks/F05_FIX5.md
 
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 
-COMMIT_POLICY_NOTE: PASS means the reference grounding, proposal-loop diagnosis, deterministic faction proposal intake integration, tests, and truthful F05 rerun completed correctly. It does NOT mean Gate 1F passed. A truthful `ACTOR_ACTION_CONSUMER_GAP / GATE1F_RECOMMENDATION: NOT_READY` is an acceptable successful task result.
+COMMIT_POLICY_NOTE: PASS means the action-consequence grounding is complete, candidate selection is evidence-based, any implementation stays within the one-action scope, verification passes, and the F05 report is truthful. It does NOT mean Gate 1F passed. A grounding-only `INSUFFICIENT_ACTION_CONSEQUENCE_GROUNDING / NOT_READY` is an acceptable successful result.
 
 AUTHORIZED_SCOPE:
 
-- read the required repository contracts and F05 history
-- create `docs/F05_FIX4_ACTOR_ADAPTATION_REFERENCE_GROUNDING.md`
-- ground the design against OpenSpiel/best-response dynamics, Utility AI implementation patterns, Gambit/Nashpy non-fit, QRE defer, and MCP tool-boundary examples exactly as specified in the immutable task
-- prove whether current T016 faction heuristic proposals are generated but dropped by the current F03/F05 headless orchestration
-- inventory production consumers of `Faction.currentStrategy`, faction action types, and `FACTION_STRATEGY_CHANGED`
-- classify the existing downstream coverage before implementation
-- add the smallest reusable external/orchestration seam that carries existing T016 faction heuristic proposals into the common next-tick action intake
-- keep proposals transient/non-authoritative and accepted ActionRecords authoritative
-- preserve exactly-once target-tick execution and deterministic faction ordering
-- explicitly define same-tick player/faction action sequence ordering without hidden gameplay priority
-- preserve historical F03/F04 behavior by using an explicit actor-loop mode unless actual source proves otherwise
-- enable faction autonomous intake for the official post-FIX4 F05 rerun
-- run actor-loop OFF vs ON counterfactuals in early/near/recovery contexts
-- do not count causally inert strategy-change events as meaningful pacing
-- rerun the unchanged 36-branch / five-year F05 matrix
-- write `docs/F05_GATE1F_REPAIR4_ACTOR_LOOP.md`
-- write `docs/bridge/results/F05_FIX4_RESULT.md`
+- read repository contracts, F05 history, F05_FIX4 grounding/result, and relevant faction/crisis/conflict consumers
+- create `docs/F05_FIX5_FACTION_ACTION_CONSEQUENCE_GROUNDING.md`
+- verify and use resource-mobilization / advocacy / lobbying references with F04C-R source-fact → interpretation → TMR-inference separation
+- audit all current faction action types: `FUND_MOVEMENT`, `ORGANIZE`, `LOBBY`, `BARGAIN`, `ACCEPT`
+- map each action to cost/commitment, existing authoritative state candidates, existing consumers, active-conflict relevance, player reassessment pathway, failure modes, and IMPLEMENT/DEFER/REJECT verdict
+- treat `LOBBY` as access/information/coalition behavior, not automatic policy success or generic influence gain
+- treat `BARGAIN` as requiring a represented offer/counterpart/acceptance; `politicalCompetition=plural` only enables legality
+- treat `ACCEPT` as requiring a represented accepted object; do not magically reduce grievance
+- prefer `ORGANIZE` or `FUND_MOVEMENT` only if their resource/organization/local-mobilization chain to existing T018/T021 consumers is grounded
+- select and implement at most one action consequence only if every candidate-selection gate in the immutable task passes
+- otherwise stop with `INSUFFICIENT_ACTION_CONSEQUENCE_GROUNDING`
+- if implementing: use accepted ActionRecord authority, bounded/self-limiting state effects, deterministic ordering, and existing consumers; no direct terminal/territory/crisis resolution
+- run required single-action, repeated-action, and player-interaction counterfactuals
+- rerun the exact unchanged 36-branch / five-year F05 matrix only if an authoritative consequence is implemented
+- create `docs/F05_GATE1F_REPAIR5_FACTION_CONSEQUENCE.md` only if implementation is justified
+- write `docs/bridge/results/F05_FIX5_RESULT.md`
 - update Bridge completion state
 
 EXTERNAL_REFERENCE_GUARDRAIL:
 
 - REQUIRED: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
-- REQUIRED: F04C-R mechanism-first separation of source fact / interpretation / TMR inference
-- OpenSpiel and best-response dynamics are conceptual references only; no dependency
-- Utility AI is an implementation-pattern reference only; do not add arbitrary utility weights in this task
-- Gambit/Nashpy equilibrium solving is explicitly not a runtime solution here
-- QRE/stochastic response is deferred; no RNG for behavioral variety
-- MCP examples are tool/API-boundary references only; no MCP or LLM runtime NPC dependency
-- no new external service is authorized
+- REQUIRED: F04C-R mechanism-first method
+- verify McCarthy & Zald 1977 resource mobilization and Jenkins 1983 review before using them
+- advocacy/lobbying references may support access/information/coalition mechanisms but must not be generalized into universal scalar bonuses
+- F05_FIX4 best-response/Utility-AI work is conceptual only; payoff-aware chooser changes are deferred until consequence semantics exist
+- no broad War as Politics or state-extinction/succession research
 
 FORBIDDEN_SCOPE:
 
-- new state-continuity decay/restoration, sovereignty meter, or T023 threshold changes
+- more than one implemented faction action consequence
+- continuity decay/restoration / sovereignty meter / T023 threshold changes
 - automatic revolutionary succession / Government creation
-- arbitrary faction action resource/grievance/organization effects
-- strategy-specific scalar bonuses not already grounded
-- generic hidden utility/political score
-- Nash equilibrium / Gambit / Nashpy / OpenSpiel runtime dependency
-- CFR / regret matching / fictitious play / PSRO / MCTS / RL
-- QRE/logit randomness or RNG merely for diversity
-- MCP server/runtime dependency for NPC decisions
-- runtime LLM faction decisions
-- direct crisis deletion / free LandHex / hidden comeback / direct outcome scripting
-- intervention/faction/conflict rebalance unrelated to proposal intake
-- adding `FACTION_STRATEGY_CHANGED` to F05 pacing solely to reduce measured silence
-- chapters / revolution phases / countdowns / filler events
+- direct conflict resolution / crisis deletion / free LandHex / hidden comeback / direct terminal scripting
+- generic hidden utility/political-power/stability score
+- arbitrary `currentStrategy` combat multiplier
+- arbitrary `grievance +/- X` from action names alone
+- numeric tuning selected merely to improve F05 silence
+- Nash/CFR/fictitious-play/PSRO/MCTS/RL runtime systems
+- QRE/logit randomness or RNG for diversity
+- MCP/LLM runtime NPC decisions
 - elections / parties / coalitions
 - full labor bargaining
 - transitional justice
@@ -72,25 +66,22 @@ FORBIDDEN_SCOPE:
 - War as Politics
 - fantasy / arcane institutions
 - V02 / renderer / UI
+- story nodes / countdowns / filler events
 - self-authorizing Gate 1F PASS or any follow-up task
 
 EXPECTED_OUTPUT:
 
-- external/game-AI reference grounding artifact
-- source/runtime proof of proposal generation vs pre-FIX4 acceptance
-- currentStrategy consumer inventory
-- deterministic faction heuristic intake seam
-- exactly-once and insertion-order-safe tests
-- same-tick player/faction sequencing test
-- persistence/replay verification
-- actor-loop OFF-vs-ON counterfactual
-- exact F05 matrix rerun with actor loop ON
-- one of:
-  - `INTAKE_FIX_CREATES_MEANINGFUL_EXISTING_CONSEQUENCE`
-  - `INTAKE_FIX_CHANGES_PRECRISIS_ONLY`
-  - `INTAKE_FIX_STRATEGY_ONLY`
-  - `INTAKE_FIX_NO_EFFECT`
-- if active-conflict consumer is missing, explicit `ACTOR_ACTION_CONSUMER_GAP`
+- complete five-action grounding/audit matrix
+- exactly one consequence classification:
+  - `CONSEQUENCE_IMPLEMENTED_MEANINGFUL`
+  - `CONSEQUENCE_IMPLEMENTED_BUT_PACING_INSUFFICIENT`
+  - `CONSEQUENCE_REJECTED_RATCHET_OR_DOMINANCE`
+  - `INSUFFICIENT_ACTION_CONSEQUENCE_GROUNDING`
+- `SELECTED_ACTION: <action | NONE>`
+- `ACTIVE_CONFLICT_CONSUMER: <consumer | NONE>`
+- cost/commitment and boundedness evidence
+- player↔faction interaction evidence if implementation occurs
+- exact F05 rerun and pacing/agency comparison if implementation occurs
 - `GATE1F_RECOMMENDATION: PASS | PASS_WITH_NOTES | NOT_READY`
 
 STARTUP / FRESHNESS CHECK:
@@ -118,20 +109,20 @@ VERIFICATION:
 - `pnpm run inspect:f04b`
 - `pnpm run inspect:f04d`
 - `pnpm run inspect:f05`
-- focused actor-loop tests
+- focused action/consequence/consumer tests if implementation occurs
 - `pnpm test`
 - `git diff --check`
 
-RESULT_PATH: docs/bridge/results/F05_FIX4_RESULT.md
+RESULT_PATH: docs/bridge/results/F05_FIX5_RESULT.md
 
 ON_COMPLETION:
 
-- update Bridge to `F05_FIX4: REPAIR_COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state
+- update Bridge to `F05_FIX5: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state
 - set `NEXT_AUTHORIZED_TASK_ID: NONE`
 - set `NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW`
 - set `CURRENT_TASK_FILE: NONE`
 - keep `V02: NOT STARTED`
-- do not implement the next faction-action consumer/payoff task
+- do not implement a second action consequence or next task
 - do not declare Gate 1F passed
 
 Execute only the immutable task file referenced above.
