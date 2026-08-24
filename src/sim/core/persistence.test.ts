@@ -340,6 +340,12 @@ describe("T024 persistence and replay", () => {
       "Unsupported simulation snapshot version 1",
     );
 
+    const rejectedV3 = JSON.parse(json) as MutableSnapshot;
+    rejectedV3.formatVersion = 3;
+    expect(() => deserializeSimulationSnapshot(scenario, rejectedV3)).toThrow(
+      "Unsupported simulation snapshot version 3",
+    );
+
     const missing = JSON.parse(json) as MutableSnapshot;
     const missingRules = missing.world.policies[countryId]?.institutionalRules;
     if (typeof missingRules !== "object" || missingRules === null) {

@@ -6,8 +6,11 @@ import {
 } from "../state/action";
 import {
   createDeterministicPoliticalProposalId,
+  createPoliticalProposalReconsiderationBasis,
+  politicalProposalReconsiderationBasisEqual,
   type PoliticalProposal,
 } from "../state/politicalProposal";
+import { evaluateInterventionFeasibility } from "../state/intervention";
 import type { ScenarioDefinition } from "../state/scenario";
 import type { WorldState } from "../state/world";
 
@@ -32,11 +35,7 @@ function hasMatchingOpenProposal(
   world: WorldState,
   proposal: Pick<
     PoliticalProposal,
-    | "proposerFactionId"
-    | "countryId"
-    | "targetGovernmentId"
-    | "subjectKind"
-    | "interventionId"
+    "proposerFactionId" | "countryId" | "subjectKind" | "interventionId"
   >,
 ): boolean {
   return Object.values(world.politicalProposals ?? {}).some(
@@ -44,10 +43,55 @@ function hasMatchingOpenProposal(
       candidate.status === "open" &&
       candidate.proposerFactionId === proposal.proposerFactionId &&
       candidate.countryId === proposal.countryId &&
-      candidate.targetGovernmentId === proposal.targetGovernmentId &&
       candidate.subjectKind === proposal.subjectKind &&
       candidate.interventionId === proposal.interventionId,
   );
+}
+
+function sameDemandIdentity(
+  first: Pick<
+    PoliticalProposal,
+    "proposerFactionId" | "countryId" | "subjectKind" | "interventionId"
+  >,
+  second: Pick<
+    PoliticalProposal,
+    "proposerFactionId" | "countryId" | "subjectKind" | "interventionId"
+  >,
+): boolean {
+  return (
+    first.proposerFactionId === second.proposerFactionId &&
+    first.countryId === second.countryId &&
+    first.subjectKind === second.subjectKind &&
+    first.interventionId === second.interventionId
+  );
+}
+
+function compareProposalEpisodes(
+  first: PoliticalProposal,
+  second: PoliticalProposal,
+): number {
+  const firstTick = first.resolvedAtTick ?? first.createdAtTick;
+  const secondTick = second.resolvedAtTick ?? second.createdAtTick;
+  if (firstTick !== secondTick) return firstTick - secondTick;
+  return String(first.id).localeCompare(String(second.id));
+}
+
+function latestExplicitRejection(
+  world: WorldState,
+  demand: Pick<
+    PoliticalProposal,
+    "proposerFactionId" | "countryId" | "subjectKind" | "interventionId"
+  >,
+): PoliticalProposal | undefined {
+  return Object.values(world.politicalProposals ?? {})
+    .filter(
+      (candidate) =>
+        candidate.status === "rejected" &&
+        candidate.resolutionReason === "explicitReject" &&
+        sameDemandIdentity(candidate, demand),
+    )
+    .sort(compareProposalEpisodes)
+    .at(-1);
 }
 
 /** Open only an explicitly authored LOBBY proposal; labels alone do nothing. */
@@ -102,6 +146,27 @@ export function openFactionLobbyProposal(
     interventionId: template.interventionId,
   };
   if (hasMatchingOpenProposal(world, proposalShape)) {
+    return { world, event: null, nextEventSequence };
+  }
+
+  const currentFeasibility = evaluateInterventionFeasibility({
+    scenario: context.scenario,
+    world,
+    interventionId: template.interventionId,
+    countryId: country.id,
+  });
+  const currentBasis = createPoliticalProposalReconsiderationBasis(
+    targetGovernment.id,
+    currentFeasibility,
+  );
+  const latestRejection = latestExplicitRejection(world, proposalShape);
+  if (
+    latestRejection !== undefined &&
+    politicalProposalReconsiderationBasisEqual(
+      latestRejection.reconsiderationBasis,
+      currentBasis,
+    )
+  ) {
     return { world, event: null, nextEventSequence };
   }
 

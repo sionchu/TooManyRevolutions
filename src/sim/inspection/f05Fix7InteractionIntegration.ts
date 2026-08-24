@@ -27,6 +27,10 @@ import {
   type F05StrategyId,
 } from "./f05PacingFunDecision";
 import { F04D_VALIDATION_INTERVENTION_IDS } from "../state/gate1fValidationFixture";
+import {
+  politicalProposalReconsiderationBasisEqual,
+  type PoliticalProposal,
+} from "../state/politicalProposal";
 
 export const F05_FIX7_DEFAULT_SEED = 40103 as const;
 export const F05_FIX7_HORIZON_DAYS = 1_800 as const;
@@ -74,14 +78,6 @@ const ALL_STRATEGIES = Object.values(
   F05_STRATEGY_IDS,
 ) as readonly F05StrategyId[];
 
-interface ProposalShapeKey {
-  readonly proposerFactionId: string;
-  readonly countryId: string;
-  readonly targetGovernmentId: string;
-  readonly subjectKind: string;
-  readonly interventionId: string;
-}
-
 interface ProposalLifecycleTelemetry {
   readonly opened: number;
   readonly accepted: number;
@@ -94,6 +90,8 @@ interface ProposalLifecycleTelemetry {
   readonly firstOpenedRelativeTick: number | null;
   readonly lastDecisionRelativeTick: number | null;
   readonly reopenedIdenticalProposalCount: number;
+  readonly legitimateReopenCount: number;
+  readonly legitimateReopenBasisTransitions: readonly string[];
   readonly maximumConcurrentOpenMatchingProposals: number;
   readonly requestedInterventionsStarted: number;
   readonly requestedInterventionsCompleted: number;
@@ -135,6 +133,8 @@ export interface F05Fix7BranchSummary {
   readonly responseActionCount: number;
   readonly responseFeasibilityChanges: number;
   readonly reopenedIdenticalProposalCount: number;
+  readonly legitimateReopenCount: number;
+  readonly legitimateReopenBasisTransitions: readonly string[];
   readonly maximumConcurrentOpenMatchingProposals: number;
   readonly requestedInterventionsStarted: number;
   readonly requestedInterventionsCompleted: number;
@@ -174,6 +174,8 @@ export interface F05Fix7InteractionIntegrationResult {
   readonly stateGroundedMaxReassessmentSilenceDays: number;
   readonly proposalDecisionMaxSilenceDays: number;
   readonly postInterventionLateSilenceMaximumDays: number | null;
+  readonly legitimateReopenCount: number;
+  readonly legitimateReopenBasisTransitions: readonly string[];
   readonly proposalResponseModeEffect: Readonly<
     Record<F05Fix7ProposalMode, number>
   >;
@@ -197,7 +199,9 @@ interface ObservationAccumulator {
     readonly tick: number;
     readonly signature: string;
   }[];
-  readonly stateEventTicks: number[];
+  readonly pacingEventTicks: number[];
+  readonly agendaChangeTicks: number[];
+  readonly decisionChangeTicks: number[];
   readonly proposalDecisionTicks: number[];
   readonly proposalFeasibilitySignatures: string[];
   readonly proposalFeasibilityTicks: number[];
@@ -233,38 +237,6 @@ function payloadString(
 ): string | null {
   const value = asPayload(event)[key];
   return typeof value === "string" ? value : null;
-}
-
-function proposalShapeKey(proposal: {
-  readonly proposerFactionId: unknown;
-  readonly countryId: unknown;
-  readonly targetGovernmentId: unknown;
-  readonly subjectKind: unknown;
-  readonly interventionId: unknown;
-}): string {
-  return [
-    proposal.proposerFactionId,
-    proposal.countryId,
-    proposal.targetGovernmentId,
-    proposal.subjectKind,
-    proposal.interventionId,
-  ]
-    .map(String)
-    .join("|");
-}
-
-function proposalShapeFromEvent(event: GameEvent): string | null {
-  const payload = asPayload(event);
-  if (
-    typeof payload.proposerFactionId !== "string" ||
-    typeof payload.countryId !== "string" ||
-    typeof payload.targetGovernmentId !== "string" ||
-    typeof payload.subjectKind !== "string" ||
-    typeof payload.interventionId !== "string"
-  ) {
-    return null;
-  }
-  return proposalShapeKey(payload as ProposalShapeKey);
 }
 
 function proposalOpenSignature(world: WorldState): string {
@@ -344,6 +316,31 @@ function longestSilence(
     longest = Math.max(longest, sorted[index]! - sorted[index - 1]!);
   }
   return longest;
+}
+
+/** Match the official F05 reassessment contract: pacing events within 30 days
+ * form one readable cluster, while Agenda/decision signature changes remain
+ * individual state-grounded signals. Proposal lifecycle events are excluded. */
+function stateGroundedReassessmentTicks(
+  accumulator: ObservationAccumulator,
+): readonly number[] {
+  const pacingTicks = [...new Set(accumulator.pacingEventTicks)].sort(
+    (first, second) => first - second,
+  );
+  const clusterEnds: number[] = [];
+  for (const tick of pacingTicks) {
+    const previous = clusterEnds.at(-1);
+    if (previous === undefined || tick - previous > 30) {
+      clusterEnds.push(tick);
+    } else {
+      clusterEnds[clusterEnds.length - 1] = tick;
+    }
+  }
+  return [
+    ...clusterEnds,
+    ...accumulator.agendaChangeTicks,
+    ...accumulator.decisionChangeTicks,
+  ];
 }
 
 function longestSilenceAfter(
@@ -496,7 +493,7 @@ function collectObservation(
 ): void {
   for (const event of events) {
     if (F05_PACING_EVENT_TYPES.has(event.type)) {
-      accumulator.stateEventTicks.push(
+      accumulator.pacingEventTicks.push(
         event.tick - (world.tick - relativeTick),
       );
     }
@@ -548,7 +545,7 @@ function collectObservation(
       accumulator.agendaSamples.length > 1 &&
       accumulator.agendaSamples.at(-2)!.signature !== signature
     ) {
-      accumulator.stateEventTicks.push(relativeTick);
+      accumulator.agendaChangeTicks.push(relativeTick);
     }
   }
 
@@ -559,7 +556,7 @@ function collectObservation(
       accumulator.decisionSamples.length > 1 &&
       accumulator.decisionSamples.at(-2)!.signature !== signature
     ) {
-      accumulator.stateEventTicks.push(relativeTick);
+      accumulator.decisionChangeTicks.push(relativeTick);
     }
   }
 }
@@ -579,37 +576,82 @@ function actionSequenceExamples(run: F03StrategyRunResult): readonly string[] {
     );
 }
 
+function proposalDemandKey(proposal: {
+  readonly proposerFactionId: unknown;
+  readonly countryId: unknown;
+  readonly subjectKind: unknown;
+  readonly interventionId: unknown;
+}): string {
+  return [
+    proposal.proposerFactionId,
+    proposal.countryId,
+    proposal.subjectKind,
+    proposal.interventionId,
+  ]
+    .map(String)
+    .join("|");
+}
+
+function basisLabel(basis: {
+  readonly targetGovernmentId: unknown;
+  readonly feasible: boolean;
+  readonly failureClasses: readonly unknown[];
+}): string {
+  return `${String(basis.targetGovernmentId)}:${basis.feasible ? "feasible" : "blocked"}:${basis.failureClasses
+    .map((failure) => JSON.stringify(failure))
+    .join(",")}`;
+}
+
 function proposalTelemetry(
   run: F03StrategyRunResult,
   startTick: number,
   accumulator: ObservationAccumulator,
 ): ProposalLifecycleTelemetry {
   const events = run.stepEvents;
-  const proposalKeyById = new Map<string, string>();
-  const resolvedKeys = new Set<string>();
+  const episodesByDemand = new Map<string, PoliticalProposal[]>();
+  for (const proposal of Object.values(
+    run.finalRecord.world.politicalProposals ?? {},
+  )) {
+    const demandKey = proposalDemandKey(proposal);
+    const episodes = episodesByDemand.get(demandKey) ?? [];
+    episodes.push(proposal);
+    episodesByDemand.set(demandKey, episodes);
+  }
   let reopenedIdenticalProposalCount = 0;
-
-  for (const event of events) {
-    const proposalId =
-      payloadString(event, "proposalId") ??
-      (event.type === "POLITICAL_PROPOSAL_OPENED"
-        ? String(event.targetId ?? "")
-        : null);
-    if (event.type === "POLITICAL_PROPOSAL_OPENED") {
-      const shape = proposalShapeFromEvent(event);
-      if (shape !== null && resolvedKeys.has(shape)) {
-        reopenedIdenticalProposalCount += 1;
+  let legitimateReopenCount = 0;
+  const legitimateReopenBasisTransitions: string[] = [];
+  for (const episodes of episodesByDemand.values()) {
+    episodes.sort(
+      (first, second) =>
+        first.createdAtTick - second.createdAtTick ||
+        String(first.id).localeCompare(String(second.id)),
+    );
+    for (let index = 1; index < episodes.length; index += 1) {
+      const previous = episodes[index - 1]!;
+      const current = episodes[index]!;
+      if (
+        previous.status !== "rejected" ||
+        previous.resolutionReason !== "explicitReject" ||
+        current.status !== "rejected" ||
+        current.resolutionReason !== "explicitReject" ||
+        previous.reconsiderationBasis === undefined ||
+        current.reconsiderationBasis === undefined
+      ) {
+        continue;
       }
-      if (proposalId !== null && shape !== null)
-        proposalKeyById.set(proposalId, shape);
-    }
-    if (
-      event.type === "POLITICAL_PROPOSAL_ACCEPTED" ||
-      event.type === "POLITICAL_PROPOSAL_REJECTED"
-    ) {
-      const shape =
-        proposalId === null ? null : proposalKeyById.get(proposalId);
-      if (shape !== undefined && shape !== null) resolvedKeys.add(shape);
+      if (
+        politicalProposalReconsiderationBasisEqual(
+          previous.reconsiderationBasis,
+          current.reconsiderationBasis,
+        )
+      ) {
+        reopenedIdenticalProposalCount += 1;
+      } else {
+        legitimateReopenCount += 1;
+        legitimateReopenBasisTransitions.push(
+          `${String(previous.id)} -> ${String(current.id)}: ${basisLabel(previous.reconsiderationBasis)} => ${basisLabel(current.reconsiderationBasis)}`,
+        );
+      }
     }
   }
 
@@ -683,6 +725,8 @@ function proposalTelemetry(
         ? null
         : Math.max(...relativeProposalTicks.concat(responseActionTicks)),
     reopenedIdenticalProposalCount,
+    legitimateReopenCount,
+    legitimateReopenBasisTransitions,
     maximumConcurrentOpenMatchingProposals:
       accumulator.maximumConcurrentOpenMatchingProposals,
     requestedInterventionsStarted: startedThroughResponse.length,
@@ -760,7 +804,9 @@ function runProposalBranch(
   const accumulator: ObservationAccumulator = {
     agendaSamples: [],
     decisionSamples: [],
-    stateEventTicks: [],
+    pacingEventTicks: [],
+    agendaChangeTicks: [],
+    decisionChangeTicks: [],
     proposalDecisionTicks: [],
     proposalFeasibilitySignatures: [],
     proposalFeasibilityTicks: [],
@@ -791,8 +837,9 @@ function runProposalBranch(
     },
   );
   const telemetry = proposalTelemetry(run, run.checkpointTick, accumulator);
+  const stateGroundedTicks = stateGroundedReassessmentTicks(accumulator);
   const stateGroundedLongestReassessmentSilenceDays = longestSilence(
-    accumulator.stateEventTicks,
+    stateGroundedTicks,
     run.executedTicks,
   );
   const completionTick =
@@ -801,7 +848,7 @@ function runProposalBranch(
     completionTick === null
       ? null
       : longestSilenceAfter(
-          accumulator.stateEventTicks,
+          stateGroundedTicks,
           completionTick,
           run.executedTicks,
         );
@@ -850,6 +897,9 @@ function runProposalBranch(
     responseActionCount: telemetry.responseActionCount,
     responseFeasibilityChanges: telemetry.responseFeasibilityChanges,
     reopenedIdenticalProposalCount: telemetry.reopenedIdenticalProposalCount,
+    legitimateReopenCount: telemetry.legitimateReopenCount,
+    legitimateReopenBasisTransitions:
+      telemetry.legitimateReopenBasisTransitions,
     maximumConcurrentOpenMatchingProposals:
       telemetry.maximumConcurrentOpenMatchingProposals,
     requestedInterventionsStarted: telemetry.requestedInterventionsStarted,
@@ -913,6 +963,8 @@ function historicalControlBranch(
     responseActionCount: 0,
     responseFeasibilityChanges: 0,
     reopenedIdenticalProposalCount: 0,
+    legitimateReopenCount: 0,
+    legitimateReopenBasisTransitions: [],
     maximumConcurrentOpenMatchingProposals: 0,
     requestedInterventionsStarted: 0,
     requestedInterventionsCompleted: 0,
@@ -1171,6 +1223,13 @@ export function runF05Fix7InteractionIntegration(
       ? null
       : Math.max(...postCompletionValues);
   const proposalResponseModeEffect = modeEffectCounts(branches);
+  const legitimateReopenCount = proposalBranches.reduce(
+    (sum, branch) => sum + branch.legitimateReopenCount,
+    0,
+  );
+  const legitimateReopenBasisTransitions = proposalBranches.flatMap(
+    (branch) => branch.legitimateReopenBasisTransitions,
+  );
   const reopenChurn = proposalBranches.some(
     (branch) => branch.reopenedIdenticalProposalCount > 0,
   )
@@ -1215,6 +1274,8 @@ export function runF05Fix7InteractionIntegration(
     stateGroundedMaxReassessmentSilenceDays,
     proposalDecisionMaxSilenceDays,
     postInterventionLateSilenceMaximumDays,
+    legitimateReopenCount,
+    legitimateReopenBasisTransitions,
     proposalResponseModeEffect,
     reopenChurn,
     responseDominance,
@@ -1261,6 +1322,7 @@ export function formatF05Fix7InteractionIntegration(
     `post-intervention late state-grounded silence=${result.postInterventionLateSilenceMaximumDays ?? "none"}d`,
     `proposal mode effect count IGNORE=${result.proposalResponseModeEffect.PROPOSAL_IGNORE} REJECT=${result.proposalResponseModeEffect.PROPOSAL_REJECT} ACCEPT=${result.proposalResponseModeEffect.PROPOSAL_ACCEPT_IF_FEASIBLE}`,
     `reopen churn=${result.reopenChurn} response dominance=${result.responseDominance}`,
+    `legitimate reopens=${result.legitimateReopenCount}`,
     `classification=${result.primaryClassification}`,
     `V1_TRIGGER_CONTRACT=${result.v1TriggerContract} READY_FOR_F05_PROMOTION=${result.readyForF05Promotion} GATE1F_RECOMMENDATION=${result.gate1fRecommendation} V02=${result.v02}`,
     "Representative WAIT / authored coercive-restriction proposal comparison",
@@ -1297,6 +1359,10 @@ export function formatF05Fix7InteractionIntegration(
       (sum, branch) => sum + branch.reopenedIdenticalProposalCount,
       0,
     );
+    const legitimateReopened = modeBranches.reduce(
+      (sum, branch) => sum + branch.legitimateReopenCount,
+      0,
+    );
     const responses = modeBranches.reduce(
       (sum, branch) => sum + branch.responseActionCount,
       0,
@@ -1314,8 +1380,11 @@ export function formatF05Fix7InteractionIntegration(
       0,
     );
     lines.push(
-      `${mode}: branches=${modeBranches.length} opened=${opened} accepted=${accepted} rejected=${rejected} responses=${responses} feasibilityChanges=${feasibilityChanges} requestedStart/complete=${requestedStarted}/${requestedCompleted} reopened=${reopened}`,
+      `${mode}: branches=${modeBranches.length} opened=${opened} accepted=${accepted} rejected=${rejected} responses=${responses} feasibilityChanges=${feasibilityChanges} requestedStart/complete=${requestedStarted}/${requestedCompleted} reopened=${reopened} legitimateReopened=${legitimateReopened}`,
     );
+  }
+  for (const transition of result.legitimateReopenBasisTransitions) {
+    lines.push(`legitimate transition ${transition}`);
   }
   lines.push(`F05_FIX7 INSPECTION: ${result.pass ? "PASS" : "FAIL"}`);
   return lines.join("\n");

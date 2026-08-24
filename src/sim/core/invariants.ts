@@ -6,6 +6,8 @@ import {
 } from "../state/policy";
 import { RESOURCE_TYPES } from "../state/region";
 import {
+  POLITICAL_PROPOSAL_FAILURE_KINDS,
+  POLITICAL_PROPOSAL_PREREQUISITE_KINDS,
   POLITICAL_PROPOSAL_RESOLUTION_REASONS,
   POLITICAL_PROPOSAL_STATUSES,
   POLITICAL_PROPOSAL_SUBJECT_KINDS,
@@ -51,6 +53,117 @@ function assertStringEnum(
 ): void {
   if (typeof value !== "string" || !allowed.includes(value)) {
     throw new Error(`${label} has an invalid value.`);
+  }
+}
+
+function assertPoliticalProposalReconsiderationBasis(
+  value: unknown,
+  label: string,
+  targetGovernmentId: string,
+): void {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error(`${label} must be an object.`);
+  }
+  const basis = value as Readonly<Record<string, unknown>>;
+  const keys = Object.keys(basis).sort();
+  if (keys.join(",") !== "failureClasses,feasible,targetGovernmentId") {
+    throw new Error(`${label} has non-canonical fields.`);
+  }
+  if (basis.targetGovernmentId !== targetGovernmentId) {
+    throw new Error(`${label}.targetGovernmentId does not match proposal.`);
+  }
+  if (typeof basis.feasible !== "boolean") {
+    throw new Error(`${label}.feasible must be boolean.`);
+  }
+  if (!Array.isArray(basis.failureClasses)) {
+    throw new Error(`${label}.failureClasses must be an array.`);
+  }
+
+  const classKeys: string[] = [];
+  for (const [index, entry] of basis.failureClasses.entries()) {
+    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+      throw new Error(`${label}.failureClasses[${index}] must be an object.`);
+    }
+    const failure = entry as Readonly<Record<string, unknown>>;
+    assertStringEnum(
+      failure.kind,
+      POLITICAL_PROPOSAL_FAILURE_KINDS,
+      `${label}.failureClasses[${index}].kind`,
+    );
+    if (failure.kind === "PREREQUISITE_NOT_MET") {
+      const prerequisiteKeys = Object.keys(failure).sort();
+      assertStringEnum(
+        failure.prerequisiteKind,
+        POLITICAL_PROPOSAL_PREREQUISITE_KINDS,
+        `${label}.failureClasses[${index}].prerequisiteKind`,
+      );
+      if (
+        !Number.isInteger(failure.prerequisiteIndex) ||
+        (failure.prerequisiteIndex as number) < 0
+      ) {
+        throw new Error(
+          `${label}.failureClasses[${index}].prerequisiteIndex is invalid.`,
+        );
+      }
+      const policyPrerequisite =
+        failure.prerequisiteKind === "policyActive" ||
+        failure.prerequisiteKind === "policyInactive";
+      const expectedKeys = policyPrerequisite
+        ? "kind,policyId,prerequisiteIndex,prerequisiteKind"
+        : "kind,prerequisiteIndex,prerequisiteKind,rule";
+      if (prerequisiteKeys.join(",") !== expectedKeys) {
+        throw new Error(
+          `${label}.failureClasses[${index}] has non-canonical prerequisite fields.`,
+        );
+      }
+      if (policyPrerequisite) {
+        if (
+          typeof failure.policyId !== "string" ||
+          failure.policyId.length === 0
+        ) {
+          throw new Error(
+            `${label}.failureClasses[${index}].policyId is invalid.`,
+          );
+        }
+      } else {
+        assertStringEnum(
+          failure.rule,
+          INSTITUTIONAL_RULE_KEYS,
+          `${label}.failureClasses[${index}].rule`,
+        );
+      }
+      classKeys.push(
+        [
+          failure.kind,
+          failure.prerequisiteIndex,
+          failure.prerequisiteKind,
+          policyPrerequisite ? failure.policyId : failure.rule,
+        ].join(":"),
+      );
+      continue;
+    }
+    if (Object.keys(failure).join(",") !== "kind") {
+      throw new Error(
+        `${label}.failureClasses[${index}] has non-canonical fields.`,
+      );
+    }
+    classKeys.push(String(failure.kind));
+  }
+
+  if (basis.feasible && basis.failureClasses.length !== 0) {
+    throw new Error(`${label}.feasible cannot retain failure classes.`);
+  }
+  if (!basis.feasible && basis.failureClasses.length === 0) {
+    throw new Error(`${label}.infeasible basis needs a failure class.`);
+  }
+  if (
+    classKeys.some(
+      (key, index) =>
+        (index > 0 && key <= classKeys[index - 1]!) ||
+        classKeys.indexOf(key) !== index,
+    )
+  ) {
+    throw new Error(`${label}.failureClasses must be sorted and unique.`);
   }
 }
 
@@ -360,7 +473,8 @@ function assertPoliticalProposals(world: WorldState): void {
       if (
         proposal.resolvedAtTick !== undefined ||
         proposal.responseActionId !== undefined ||
-        proposal.resolutionReason !== undefined
+        proposal.resolutionReason !== undefined ||
+        proposal.reconsiderationBasis !== undefined
       ) {
         throw new Error(`${proposal.id} open status has resolution data.`);
       }
@@ -391,6 +505,33 @@ function assertPoliticalProposals(world: WorldState): void {
       proposal.resolutionReason === "accepted"
     ) {
       throw new Error(`${proposal.id} rejected status has an accepted reason.`);
+    }
+    if (
+      proposal.status === "accepted" &&
+      proposal.reconsiderationBasis !== undefined
+    ) {
+      throw new Error(
+        `${proposal.id} accepted status has a reconsideration basis.`,
+      );
+    }
+    if (
+      proposal.status === "rejected" &&
+      proposal.resolutionReason === "explicitReject"
+    ) {
+      if (proposal.reconsiderationBasis === undefined) {
+        throw new Error(
+          `${proposal.id} explicit rejection needs a reconsideration basis.`,
+        );
+      }
+      assertPoliticalProposalReconsiderationBasis(
+        proposal.reconsiderationBasis,
+        `${proposal.id}.reconsiderationBasis`,
+        proposal.targetGovernmentId,
+      );
+    } else if (proposal.reconsiderationBasis !== undefined) {
+      throw new Error(
+        `${proposal.id} non-explicit resolution cannot have a reconsideration basis.`,
+      );
     }
   }
 }

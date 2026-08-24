@@ -482,6 +482,25 @@ function assertPoliticalProposalProvenance(
       continue;
     }
 
+    if (
+      proposal.resolutionReason === "explicitReject" &&
+      (proposal.reconsiderationBasis === undefined ||
+        proposal.reconsiderationBasis.targetGovernmentId !==
+          proposal.targetGovernmentId)
+    ) {
+      throw new Error(
+        `Political proposal ${proposal.id} explicit rejection basis is incomplete.`,
+      );
+    }
+    if (
+      proposal.resolutionReason !== "explicitReject" &&
+      proposal.reconsiderationBasis !== undefined
+    ) {
+      throw new Error(
+        `Political proposal ${proposal.id} has a basis on a non-explicit resolution.`,
+      );
+    }
+
     const responseAction =
       proposal.responseActionId === undefined
         ? undefined

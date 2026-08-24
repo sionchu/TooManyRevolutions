@@ -2252,7 +2252,7 @@ No core control may require experimental APIs.
 
 T024는 authoritative runtime과 이미 커밋된 causal history를 함께 보존하는
 versioned in-memory snapshot boundary를 구현했다. 현재 public contract는
-`SerializedSimulationSnapshotV3`, `serializeSimulationSnapshot()`/
+`SerializedSimulationSnapshotV4`, `serializeSimulationSnapshot()`/
 `serializeSimulationSnapshotJson()`, `deserializeSimulationSnapshot()`,
 `commitSimulationStep()`, `cloneRunRecordViaSnapshot()`이다. 브라우저 파일,
 `localStorage`/IndexedDB, cloud save slot은 이 경계의 책임이 아니다.
@@ -2274,7 +2274,7 @@ consolidation/dissolution eligibility, UI/presentation state도 저장하지 않
 
 ```text
 static ScenarioDefinition (별도 로드)
-  + SerializedSimulationSnapshotV3
+  + SerializedSimulationSnapshotV4
   -> validated WorldState + EventStore
   -> derived selectors/read models
 ```
@@ -2284,7 +2284,7 @@ static ScenarioDefinition (별도 로드)
 deserialize는 외부/저장 데이터를 `WorldState`로 직접 cast하지 않는다. JSON
 primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unknown key,
 잘못된 format version, 필수 필드 누락, 잘못된 reference를 거부한다. decode 뒤에는
-`assertScenarioRuntimeClosure(scenario, world)`가 현재 V3 시나리오와 runtime 전체가
+`assertScenarioRuntimeClosure(scenario, world)`가 현재 V4 시나리오와 runtime 전체가
 닫혀 있는지 검증한다.
 
 - snapshot top-level identity와 `WorldState.run.scenarioId/version`이 전달된
@@ -2298,7 +2298,7 @@ primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unk
   않는다. 이 static identity/membership/topology는 scenario에서만 읽는다.
 - Region에 `controller`를 만들지 않으며, physical territory authority는 계속
   `WorldState.landHexStates[*].controller` 하나다.
-- V3에는 Country/Region/Faction/PolicyState의 runtime lifecycle이 없으므로
+- V4에는 Country/Region/Faction/PolicyState의 runtime lifecycle이 없으므로
   `initialCountries`, `initialRegions`, `initialFactions`,
   `initialCountryPolicies`와 각각의 runtime identity set이 정확히 일치해야
   한다. 후속 state successor나 동적 actor 생성을 도입할 때는 별도 lifecycle
@@ -2314,12 +2314,22 @@ primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unk
   commitment는 `sourceActionId`, accepted `START_INTERVENTION` payload, 시작
   tick/country/intervention, deterministic commitment ID가 서로 일치해야 한다.
 
-현재 format은 `version: 3`만 지원한다. F05_FIX6의 political proposal과 F04D의 required
-`politicalCompetition`을 누락한 version 1/2와 unknown version은 명확히
-reject한다. migration framework나 과거 format chain은 만들지 않았다. 별도 content hash는
+현재 format은 `version: 4`만 지원한다. F05_FIX8의 explicit-reject
+reconsideration basis를 누락한 V3와 F05_FIX6/F04D 필드를 누락한 version 1/2,
+unknown version은 명확히 reject한다. migration framework나 과거 format chain은
+만들지 않았다. 별도 content hash는
 아직 도입하지 않으며, 정적 ScenarioDefinition 호환성은 `scenarioId`와
 `scenarioVersion`으로 관리한다. 호환되지 않는 content 변경은 version bump를
 요구한다.
+
+명시적 `REJECT` proposal episode만 현재 Government와 요청된
+InterventionDefinition의 feasibility boolean/이산 failure class를
+`reconsiderationBasis`로 보존한다. 이 basis는 raw treasury/headroom 값이나
+Agenda/read-model 결과를 저장하지 않으며, V4 decoder와 runtime closure가
+Government provenance, canonical class ordering, feasible/failed 조합을
+검증한다. 같은 stable demand는 basis가 바뀌기 전에는 다시 열리지 않고,
+Government 또는 named feasibility basis가 바뀐 경우에만 새 episode가 될 수
+있다.
 
 ## 17.2 Replay and EventStore contract
 

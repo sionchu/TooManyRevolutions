@@ -36,7 +36,7 @@ function acceptedLobby(
 }
 
 describe("F05_FIX7 political interaction integration", () => {
-  it("covers the historical 36 branches plus the 108 proposal branches and diagnoses churn", () => {
+  it("covers the historical 36 branches plus the 108 proposal branches and diagnoses reconsideration", () => {
     const result = runF05Fix7InteractionIntegration();
 
     expect(F05_FIX7_RESPONSE_MODES).toEqual([
@@ -50,7 +50,8 @@ describe("F05_FIX7 political interaction integration", () => {
     expect(result.branches).toHaveLength(144);
     expect(result.historicalF05BaselineRegression).toBe(true);
     expect(result.v1TriggerContract).toBe("CLOSED");
-    expect(result.reopenChurn).toBe("PRESENT");
+    expect(result.reopenChurn).toBe("NONE");
+    expect(result.legitimateReopenCount).toBe(2);
     expect(result.responseDominance).toBe("MIXED");
     expect(result.primaryClassification).toBe(
       "PROPOSAL_RESPONSE_DOMINANCE_OR_CHURN",

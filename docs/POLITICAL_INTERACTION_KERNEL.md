@@ -1,6 +1,6 @@
 # Political Interaction Kernel
 
-**Scope:** F05_FIX6, one developer-only Gate 1F vertical slice
+**Scope:** F05_FIX6/F05_FIX8, one developer-only Gate 1F vertical slice
 **Status:** Implemented for the explicit fixture template; Gate 1F remains `NOT_READY`.
 
 ## Decision
@@ -82,17 +82,29 @@ interface PoliticalProposal {
   resolvedAtTick?: number;
   responseActionId?: ActionId;
   resolutionReason?: "accepted" | "explicitReject" | "staleTargetGovernment";
+  reconsiderationBasis?: {
+    targetGovernmentId: GovernmentId;
+    feasible: boolean;
+    failureClasses: readonly PoliticalProposalFailureClass[];
+  };
 }
 ```
 
 Rules:
 
 1. Opening requires an accepted faction `LOBBY`, a valid current Government, and one matching authored template.
-2. The proposal ID is deterministic from the opening ActionRecord. A matching open proposal is not duplicated.
+2. The proposal ID is deterministic from the opening ActionRecord. A matching
+   open stable demand is not duplicated, even if the current Government has
+   changed.
 3. Opening changes only proposal state and its event. It does not change treasury, administrative load, policy rules, faction values, conflict, LandHex control, consolidation, or terminal outcome.
 4. A response is valid only on a later authoritative tick. `REJECT` closes the proposal with `explicitReject` and leaves the requested intervention unused.
 5. `ACCEPT` re-checks the captured Government relation and normal intervention feasibility. A stale Government closes the proposal as `staleTargetGovernment` without retargeting. An infeasible response emits `POLITICAL_PROPOSAL_RESPONSE_REJECTED` and leaves the proposal open.
 6. A feasible `ACCEPT` closes the proposal and starts the existing `InterventionDefinition` with the response ActionRecord as its source. No hidden synthetic `START_INTERVENTION` action is created.
+7. `REJECT` stores the captured Government plus the requested intervention's
+   feasibility boolean and discrete failure classes. A later `LOBBY` can open a
+   new episode only after that Government or named feasibility basis changes;
+   time, new ActionRecord IDs, Agenda output, and unrelated scalar drift do not
+   reopen the demand.
 
 The causal chain is inspectable:
 
@@ -107,7 +119,12 @@ LOBBY ActionRecord
 
 ## Persistence and replay
 
-Adding authoritative proposals raises the snapshot format from V2 to `SerializedSimulationSnapshotV3`. V3 strictly decodes proposal identity, lifecycle status, Government target, intervention subject, and action/event provenance. V2 and malformed/missing proposal data are rejected; no hidden migration or default demand is provided.
+Adding authoritative proposals initially raised the snapshot format to V3.
+F05_FIX8 adds authoritative explicit-rejection reconsideration basis, so the
+current contract is `SerializedSimulationSnapshotV4` / format version `4`.
+V4 strictly decodes proposal identity, lifecycle status, Government target,
+discrete basis classes, and action/event provenance. V3 is explicitly rejected;
+there is no hidden migration or default basis.
 
 The persistence boundary verifies proposal and Government/Country/Faction/intervention references, open versus resolved tick/reason consistency, opening ActionRecord and event provenance, accepted response provenance and commitment source, deterministic JSON after save/load, replay, and proposal object insertion-order changes.
 
@@ -119,7 +136,8 @@ The persistence boundary verifies proposal and Government/Country/Faction/interv
 
 - State/action/events: `src/sim/state/politicalProposal.ts`, `src/sim/state/action.ts`, `src/sim/events/event.ts`.
 - Shared intervention path: `src/sim/systems/intervention.ts`.
-- Focused lifecycle/persistence tests: `src/sim/systems/politicalProposal.test.ts`.
+- Focused lifecycle/persistence tests: `src/sim/systems/politicalProposal.test.ts`,
+  `src/sim/inspection/f05Fix8ProposalLifecycle.ts`.
 - Controlled same-seed branches: `src/sim/inspection/f05Fix6PoliticalInteraction.ts`.
 
 ## F05_FIX7 orchestration boundary
@@ -158,3 +176,17 @@ load, while Agenda, intervention, crisis, conflict, territory, and other
 state-grounded signals remain the Gate-relevant pacing metric. The full
 five-year comparison and churn diagnosis are recorded in
 `docs/F05_GATE1F_REPAIR7_INTERACTION_INTEGRATION.md`.
+
+## F05_FIX8 lifecycle and audit boundary
+
+The eight pre-fix IGNORE/REJECT control differences were measurement-signature
+artifacts: the developer observer counted individual pacing events instead of
+the official 30-day event clusters. The seam was aligned in the FIX7 observer;
+the post-fix audit reports zero non-accept divergences while the historical
+36-branch baseline remains unchanged. The branch evidence is recorded in
+`docs/F05_FIX8_NON_ACCEPT_DIVERGENCE_AUDIT.md`.
+
+The state-grounded rejected-demand contract and V4 persistence amendment are
+recorded in `docs/F05_FIX8_PROPOSAL_LIFECYCLE_SEMANTICS.md`. The implementation
+does not add a cooldown, expiry timer, proposal pacing event, new subject, or
+new authored template.

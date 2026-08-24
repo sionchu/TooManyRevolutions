@@ -31,7 +31,14 @@ import type {
 import type { Government } from "../state/government";
 import type { IdeologyState } from "../state/ideology";
 import type { InterventionCommitment } from "../state/intervention";
-import type { PoliticalProposal } from "../state/politicalProposal";
+import {
+  POLITICAL_PROPOSAL_FAILURE_KINDS,
+  POLITICAL_PROPOSAL_PREREQUISITE_KINDS,
+  politicalProposalReconsiderationBasisToJson,
+  type PoliticalProposal,
+  type PoliticalProposalFailureClass,
+  type PoliticalProposalReconsiderationBasis,
+} from "../state/politicalProposal";
 import {
   POLITICAL_PROPOSAL_RESOLUTION_REASONS,
   POLITICAL_PROPOSAL_STATUSES,
@@ -55,6 +62,7 @@ import {
   type LandHexId,
 } from "../state/ids";
 import {
+  INSTITUTIONAL_RULE_KEYS,
   POLITICAL_COMPETITIONS,
   type InstitutionalRuleState,
   type PolicyState,
@@ -84,7 +92,7 @@ import {
 import { freezeCanonicalGraph } from "./canonicalFreeze";
 import { claimCanonicalSimulationStepResult } from "./tick";
 
-export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 3 as const;
+export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 4 as const;
 
 const canonicalRunRecords = new WeakMap<RunRecord, ScenarioDefinition>();
 
@@ -105,7 +113,7 @@ function registerCanonicalRunRecord<T extends RunRecord>(
   return record;
 }
 
-export interface SerializedWorldStateV3 {
+export interface SerializedWorldStateV4 {
   readonly tick: number;
   readonly date: SimDate;
   readonly countries: Readonly<Record<string, Country>>;
@@ -129,11 +137,11 @@ export interface SerializedEventStoreV2 {
 }
 
 /** Versioned runtime snapshot. Static ScenarioDefinition content is excluded. */
-export interface SerializedSimulationSnapshotV3 {
+export interface SerializedSimulationSnapshotV4 {
   readonly formatVersion: typeof SIMULATION_SNAPSHOT_FORMAT_VERSION;
   readonly scenarioId: string;
   readonly scenarioVersion: number;
-  readonly world: SerializedWorldStateV3;
+  readonly world: SerializedWorldStateV4;
   readonly eventStore: SerializedEventStoreV2;
 }
 
@@ -330,7 +338,21 @@ function cloneInterventionCommitment(
 function clonePoliticalProposal(
   proposal: PoliticalProposal,
 ): PoliticalProposal {
-  return { ...proposal };
+  return {
+    ...proposal,
+    ...(proposal.reconsiderationBasis === undefined
+      ? {}
+      : {
+          reconsiderationBasis: {
+            targetGovernmentId:
+              proposal.reconsiderationBasis.targetGovernmentId,
+            feasible: proposal.reconsiderationBasis.feasible,
+            failureClasses: proposal.reconsiderationBasis.failureClasses.map(
+              (failure) => ({ ...failure }),
+            ),
+          },
+        }),
+  };
 }
 
 function cloneContactEdgeRuntimeState(
@@ -405,7 +427,7 @@ function cloneEvent(event: GameEvent): GameEvent {
   };
 }
 
-function cloneWorldState(world: WorldState): SerializedWorldStateV3 {
+function cloneWorldState(world: WorldState): SerializedWorldStateV4 {
   return {
     tick: world.tick,
     date: { ...world.date },
@@ -1303,6 +1325,129 @@ function decodeInterventionCommitment(
   };
 }
 
+function politicalProposalFailureClassKey(
+  failure: PoliticalProposalFailureClass,
+): string {
+  if (failure.kind !== "PREREQUISITE_NOT_MET") return failure.kind;
+  return [
+    failure.kind,
+    failure.prerequisiteIndex,
+    failure.prerequisiteKind,
+    "policyId" in failure ? failure.policyId : failure.rule,
+  ].join(":");
+}
+
+function decodePoliticalProposalFailureClass(
+  value: unknown,
+  label: string,
+): PoliticalProposalFailureClass {
+  const record = expectRecord(value, label);
+  const kind = expectEnum(
+    required(record, "kind", label),
+    POLITICAL_PROPOSAL_FAILURE_KINDS,
+    `${label}.kind`,
+  );
+  if (kind !== "PREREQUISITE_NOT_MET") {
+    assertKnownKeys(record, ["kind"], label);
+    return { kind } as PoliticalProposalFailureClass;
+  }
+
+  assertKnownKeys(
+    record,
+    ["kind", "prerequisiteIndex", "prerequisiteKind", "policyId", "rule"],
+    label,
+  );
+  const prerequisiteIndex = expectNonNegativeInteger(
+    required(record, "prerequisiteIndex", label),
+    `${label}.prerequisiteIndex`,
+  );
+  const prerequisiteKind = expectEnum(
+    required(record, "prerequisiteKind", label),
+    POLITICAL_PROPOSAL_PREREQUISITE_KINDS,
+    `${label}.prerequisiteKind`,
+  );
+  if (
+    prerequisiteKind === "policyActive" ||
+    prerequisiteKind === "policyInactive"
+  ) {
+    const policyId = optional(record, "policyId", label);
+    if (
+      optional(record, "rule", label) !== undefined ||
+      policyId === undefined
+    ) {
+      throw new Error(`${label} has invalid policy prerequisite fields.`);
+    }
+    return {
+      kind,
+      prerequisiteIndex,
+      prerequisiteKind,
+      policyId: asPolicyId(expectNonEmptyString(policyId, `${label}.policyId`)),
+    };
+  }
+
+  const rule = optional(record, "rule", label);
+  if (optional(record, "policyId", label) !== undefined || rule === undefined) {
+    throw new Error(`${label} has invalid rule prerequisite fields.`);
+  }
+  return {
+    kind,
+    prerequisiteIndex,
+    prerequisiteKind,
+    rule: expectEnum(rule, INSTITUTIONAL_RULE_KEYS, `${label}.rule`),
+  } as PoliticalProposalFailureClass;
+}
+
+function decodePoliticalProposalReconsiderationBasis(
+  value: unknown,
+  label: string,
+): PoliticalProposalReconsiderationBasis {
+  const record = expectRecord(value, label);
+  assertKnownKeys(
+    record,
+    ["targetGovernmentId", "feasible", "failureClasses"],
+    label,
+  );
+  const failureClasses = expectArray(
+    required(record, "failureClasses", label),
+    `${label}.failureClasses`,
+  ).map((entry, index) =>
+    decodePoliticalProposalFailureClass(
+      entry,
+      `${label}.failureClasses[${index}]`,
+    ),
+  );
+  const classKeys = failureClasses.map(politicalProposalFailureClassKey);
+  if (
+    classKeys.some(
+      (key, index) =>
+        (index > 0 && key <= classKeys[index - 1]!) ||
+        classKeys.indexOf(key) !== index,
+    )
+  ) {
+    throw new Error(`${label}.failureClasses must be sorted and unique.`);
+  }
+  const feasible = expectBoolean(
+    required(record, "feasible", label),
+    `${label}.feasible`,
+  );
+  if (
+    (feasible && failureClasses.length !== 0) ||
+    (!feasible && failureClasses.length === 0)
+  ) {
+    throw new Error(`${label} feasibility and failure classes do not agree.`);
+  }
+  return {
+    targetGovernmentId: asGovernmentId(
+      expectNonEmptyString(
+        required(record, "targetGovernmentId", label),
+        `${label}.targetGovernmentId`,
+      ),
+    ),
+    feasible,
+    failureClasses,
+  };
+}
+
 function decodePoliticalProposal(
   value: unknown,
   label: string,
@@ -1324,12 +1469,14 @@ function decodePoliticalProposal(
       "resolvedAtTick",
       "responseActionId",
       "resolutionReason",
+      "reconsiderationBasis",
     ],
     label,
   );
   const resolvedAtTick = optional(record, "resolvedAtTick", label);
   const responseActionId = optional(record, "responseActionId", label);
   const resolutionReason = optional(record, "resolutionReason", label);
+  const reconsiderationBasis = optional(record, "reconsiderationBasis", label);
 
   return {
     id: asPoliticalProposalId(
@@ -1407,6 +1554,14 @@ function decodePoliticalProposal(
             resolutionReason,
             POLITICAL_PROPOSAL_RESOLUTION_REASONS,
             `${label}.resolutionReason`,
+          ),
+        }),
+    ...(reconsiderationBasis === undefined
+      ? {}
+      : {
+          reconsiderationBasis: decodePoliticalProposalReconsiderationBasis(
+            reconsiderationBasis,
+            `${label}.reconsiderationBasis`,
           ),
         }),
   };
@@ -2007,6 +2162,24 @@ function eventPayloadValue(event: GameEvent, key: string): unknown {
   return (event.payload as Readonly<Record<string, unknown>>)[key];
 }
 
+function canonicalUnknownJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(canonicalUnknownJson).join(",")}]`;
+  }
+  if (typeof value === "object" && value !== null) {
+    return `{${Object.keys(value as Readonly<Record<string, unknown>>)
+      .sort(compareStableText)
+      .map(
+        (key) =>
+          `${JSON.stringify(key)}:${canonicalUnknownJson(
+            (value as Readonly<Record<string, unknown>>)[key],
+          )}`,
+      )
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
 function assertPoliticalProposalEventProvenance(
   world: WorldState,
   eventStore: EventStore,
@@ -2056,6 +2229,26 @@ function assertPoliticalProposalEventProvenance(
       throw new Error(
         `Political proposal ${proposal.id} response event type does not match status.`,
       );
+    }
+
+    if (proposal.resolutionReason === "explicitReject") {
+      const eventBasis = eventPayloadValue(
+        responseEvent,
+        "reconsiderationBasis",
+      );
+      if (
+        proposal.reconsiderationBasis === undefined ||
+        canonicalUnknownJson(eventBasis) !==
+          canonicalUnknownJson(
+            politicalProposalReconsiderationBasisToJson(
+              proposal.reconsiderationBasis,
+            ),
+          )
+      ) {
+        throw new Error(
+          `Political proposal ${proposal.id} rejection basis provenance does not match.`,
+        );
+      }
     }
   }
 }
@@ -2119,7 +2312,7 @@ function assertRunRecordForPersistence(
 export function serializeSimulationSnapshot(
   scenario: ScenarioDefinition,
   record: RunRecord,
-): SerializedSimulationSnapshotV3 {
+): SerializedSimulationSnapshotV4 {
   assertRunRecordForPersistence(scenario, record);
 
   return {

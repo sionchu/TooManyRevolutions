@@ -1878,3 +1878,67 @@ proposal lifecycle or promote any response policy.
 Medium. Removing the developer seam and trigger validation affects inspection
 contracts, tests, and measurement docs, but not authoritative proposal state,
 intervention resolution, persistence V3, or production F05 strategy semantics.
+
+## ADR-044 — F05_FIX8 state-grounded rejected-demand reconsideration
+
+**Date:** 2026-08-24
+**Status:** Accepted for the developer validation slice; Gate 1F remains `NOT_READY`
+
+### Problem
+
+F05_FIX7 exposed two separate findings: eight IGNORE/REJECT control differences
+that needed causal audit, and repeated explicit-rejection episodes for the same
+authored demand. Lifecycle changes could not be justified until the non-accept
+differences were separated into runtime state, runner ordering, and measurement
+effects.
+
+### Decision
+
+- Audit the exact four IGNORE and four REJECT branches before production
+  lifecycle mutation. The first probe showed equal ActionRecord order, carried
+  faction actions, authoritative core state, intervention state, and Agenda
+  inputs; only proposal lifecycle state was added. The historical and FIX7
+  no-template runners stayed paired. The measured difference was the FIX7
+  observer counting individual pacing events rather than official 30-day event
+  clusters, so only that developer measurement seam was repaired.
+- Define stable demand identity as
+  `proposerFactionId + countryId + subjectKind + interventionId`. Government,
+  opening/response IDs, event IDs, and ticks are episode provenance.
+- Persist an explicit-rejection basis containing the captured Government,
+  feasibility boolean, and sorted discrete failure classes. Reopen only after
+  a Government or named feasibility-basis transition. Do not use cooldowns,
+  raw scalar hashes, or Agenda/read-model eligibility.
+- Keep one open episode per stable demand, preserve the existing ACCEPT
+  intervention path, and emit no proposal pacing events.
+- Raise persistence from V3 to V4, reject V3 explicitly, and validate basis
+  ordering, references, event provenance, save/load, and replay.
+
+### Alternatives
+
+- count proposal events as F05 pacing signals;
+- suppress every rejected demand permanently;
+- add a time cooldown or expiry timer;
+- hash treasury/headroom values to manufacture a reopening transition;
+- accept the eight unexplained control differences as gameplay effects.
+
+### Reason
+
+The audit showed no non-proposal authoritative consumer for the eight branches;
+the mismatch was an observer contract error. The existing intervention
+feasibility result already exposes the named categorical conditions needed for a
+deterministic reconsideration test without inventing a political score or
+continuity meter. A persisted basis is required for replay-safe eligibility, so
+the format bump is explicit rather than an implicit migration.
+
+### Consequences
+
+Repeated unchanged REJECT opportunities no longer reopen the same demand.
+Government and feasibility transitions can produce a new episode, with the
+transition visible in branch telemetry. The F05 historical 36-branch baseline
+and official pacing event set remain unchanged. Gate 1F remains `NOT_READY`.
+
+### Reversal cost
+
+Medium-high. Reverting the amendment requires restoring V3 rejection behavior,
+snapshot decoding, runtime provenance checks, and the lifecycle counterfactuals,
+but does not alter the underlying intervention or territorial contracts.

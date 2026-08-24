@@ -365,7 +365,7 @@ T024 is complete as an in-memory typed snapshot/replay contract. It does not add
 save UI, browser storage, cloud saves, replay viewer, or Gate 1V.
 
 - `pnpm test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run format`, and
-  `pnpm run build` must pass with the explicit `SerializedSimulationSnapshotV3`
+  `pnpm run build` must pass with the explicit `SerializedSimulationSnapshotV4`
   decoder, `EventStore` commit boundary, and regression tests
 - `pnpm run inspect:t024` must pass snapshot version/scenario identity,
   authoritative runtime roundtrip, LandHex/contact/conflict/RNG/EventStore
@@ -374,7 +374,7 @@ save UI, browser storage, cloud saves, replay viewer, or Gate 1V.
 - snapshot input must contain no static ScenarioDefinition/topology,
   `Region.controller`, front, agenda, threat, regime, consolidation, dissolution,
   or other derived read model; those are reconstructed after load
-- wrong scenario identity, unsupported format/unknown keys, incomplete/extra V3
+- wrong scenario identity, unsupported format/unknown keys, incomplete/extra V4
   Country/Region/Faction/PolicyState identity sets, incomplete ideology catalog
   coverage, invalid policy/faction/intervention references, Government/Conflict
   outcome references, missing or unknown LandHex runtime state, static LandHex →
@@ -1207,8 +1207,12 @@ Any feature that cannot contribute to this loop is lower priority for competitio
 - infeasible acceptance stays open with an explicit response-rejected event;
 - a stale Government target is not retargeted and does not create a successor;
 - proposal action/event cause chains are append-only and inspectable;
-- V3 save/load roundtrip covers open, rejected, and accepted proposals, including
-  replay and insertion-order determinism;
+- V4 save/load roundtrip covers open, explicitly rejected (including its
+  reconsideration basis), and accepted proposals, including replay and
+  insertion-order determinism; V3 is rejected without migration;
+- `pnpm run inspect:f05fix8lifecycle` passes unchanged-basis, Government-change,
+  feasibility-change, unrelated-scalar-drift, IGNORE one-open, ACCEPT
+  provenance, insertion-order, V4 roundtrip, and V3 rejection counterfactuals;
 - `WorldState.landHexStates[*].controller`, crisis/conflict writers, continuity,
   and terminal outcome remain unchanged by the kernel;
 - `pnpm run inspect:f05fix6` compares NO_PROPOSAL, PROPOSAL_IGNORE,

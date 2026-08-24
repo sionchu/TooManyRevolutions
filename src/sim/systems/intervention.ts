@@ -31,7 +31,11 @@ import {
   type InterventionDefinition,
   type InterventionEffect,
 } from "../state/intervention";
-import type { PoliticalProposal } from "../state/politicalProposal";
+import {
+  createPoliticalProposalReconsiderationBasis,
+  politicalProposalReconsiderationBasisToJson,
+  type PoliticalProposal,
+} from "../state/politicalProposal";
 import type { ScenarioDefinition } from "../state/scenario";
 import type { WorldState } from "../state/world";
 
@@ -522,11 +526,28 @@ export function runInterventionResolutionPhase(
       }
 
       if (response.response === "reject") {
+        const rejectionFeasibility = evaluateInterventionFeasibility({
+          scenario,
+          world: currentWorld,
+          interventionId: proposal.interventionId,
+          countryId: proposal.countryId,
+          options: {
+            treasuryAvailable:
+              projectedTreasury.get(proposal.countryId) ??
+              currentWorld.countries[proposal.countryId]?.treasury,
+          },
+        });
+        const reconsiderationBasis =
+          createPoliticalProposalReconsiderationBasis(
+            proposal.targetGovernmentId,
+            rejectionFeasibility,
+          );
         setProposal(proposal, {
           status: "rejected",
           resolvedAtTick: context.nextTick,
           responseActionId: action.id,
           resolutionReason: "explicitReject",
+          reconsiderationBasis,
         });
         emit({
           type: "POLITICAL_PROPOSAL_REJECTED",
@@ -538,6 +559,8 @@ export function runInterventionResolutionPhase(
             proposalId: proposal.id,
             response: response.response,
             reason: "explicitReject",
+            reconsiderationBasis:
+              politicalProposalReconsiderationBasisToJson(reconsiderationBasis),
           },
           visibility: "world",
         });

@@ -32,6 +32,8 @@
     "inspect:f05": "vite-node src/sim/inspection/f05PacingFunDecision.cli.ts",
     "inspect:f05fix6": "vite-node src/sim/inspection/f05Fix6PoliticalInteraction.cli.ts",
     "inspect:f05fix7": "vite-node src/sim/inspection/f05Fix7InteractionIntegration.cli.ts",
+    "inspect:f05fix8audit": "vite-node src/sim/inspection/f05Fix8NonAcceptDivergenceAudit.cli.ts",
+    "inspect:f05fix8lifecycle": "vite-node src/sim/inspection/f05Fix8ProposalLifecycle.cli.ts",
     "inspect:v01": "vitest run src/presentation/v01PresentationInspection.test.ts --reporter=verbose --silent=false",
     "test:watch": "vitest",
     "typecheck": "tsc -b --pretty false",

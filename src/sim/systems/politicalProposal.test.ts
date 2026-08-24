@@ -168,6 +168,168 @@ describe("F05_FIX6 political interaction kernel", () => {
     expect(eventTypes(rejected)).not.toContain("INTERVENTION_STARTED");
   });
 
+  it("does not reopen an explicitly rejected demand when its basis is unchanged", () => {
+    const scenario = createF05Fix6PoliticalInteractionScenario();
+    const opened = openProposal(scenario);
+    const rejected = step(scenario, opened.record, [
+      acceptedResponse(opened.record, opened.proposalId, "reject"),
+    ]);
+    const rejectedProposal =
+      rejected.world.politicalProposals![opened.proposalId]!;
+
+    expect(rejectedProposal.reconsiderationBasis).toMatchObject({
+      targetGovernmentId: rejectedProposal.targetGovernmentId,
+      feasible: true,
+      failureClasses: [],
+    });
+
+    const repeated = step(scenario, rejected, [acceptedLobby(rejected)]);
+    expect(Object.values(repeated.world.politicalProposals ?? {})).toHaveLength(
+      1,
+    );
+    expect(
+      repeated.eventStore.events.filter(
+        (event) => event.type === "POLITICAL_PROPOSAL_OPENED",
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("allows a new episode after the target Government changes", () => {
+    const scenario = createF05Fix6PoliticalInteractionScenario();
+    const opened = openProposal(scenario);
+    const rejected = step(scenario, opened.record, [
+      acceptedResponse(opened.record, opened.proposalId, "reject"),
+    ]);
+    const countryId = scenario.playerCountryId!;
+    const oldGovernmentId =
+      rejected.world.countries[countryId]!.currentGovernmentId!;
+    const replacementGovernmentId = asGovernmentId(
+      "f05.fix8.reconsideration-government",
+    );
+    const changedGovernment: RunRecord = {
+      ...rejected,
+      world: {
+        ...rejected.world,
+        governments: {
+          ...rejected.world.governments,
+          [oldGovernmentId]: {
+            ...rejected.world.governments[oldGovernmentId]!,
+            authority: "contender",
+          },
+          [replacementGovernmentId]: {
+            id: replacementGovernmentId,
+            countryId,
+            name: "F05_FIX8 replacement Government",
+            authority: "central",
+            formedAtTick: rejected.world.tick,
+          },
+        },
+        countries: {
+          ...rejected.world.countries,
+          [countryId]: {
+            ...rejected.world.countries[countryId]!,
+            currentGovernmentId: replacementGovernmentId,
+          },
+        },
+      },
+    };
+
+    const reopened = step(scenario, changedGovernment, [
+      acceptedLobby(changedGovernment),
+    ]);
+    const proposals = Object.values(reopened.world.politicalProposals ?? {});
+    expect(proposals).toHaveLength(2);
+    expect(
+      proposals.find((proposal) => proposal.status === "open"),
+    ).toMatchObject({
+      targetGovernmentId: replacementGovernmentId,
+    });
+    expect(
+      proposals.find((proposal) => proposal.id === opened.proposalId),
+    ).toMatchObject({
+      targetGovernmentId: oldGovernmentId,
+      status: "rejected",
+    });
+  });
+
+  it("allows a new episode after the requested intervention feasibility basis changes", () => {
+    const scenario = createF05Fix6PoliticalInteractionScenario();
+    const opened = openProposal(scenario);
+    const countryId = scenario.playerCountryId!;
+    const poorRecord: RunRecord = {
+      ...opened.record,
+      world: {
+        ...opened.record.world,
+        countries: {
+          ...opened.record.world.countries,
+          [countryId]: {
+            ...opened.record.world.countries[countryId]!,
+            treasury: 0,
+          },
+        },
+      },
+    };
+    const rejected = step(scenario, poorRecord, [
+      acceptedResponse(poorRecord, opened.proposalId, "reject"),
+    ]);
+    expect(
+      rejected.world.politicalProposals![opened.proposalId]
+        ?.reconsiderationBasis,
+    ).toMatchObject({
+      feasible: false,
+      failureClasses: [{ kind: "INSUFFICIENT_TREASURY" }],
+    });
+
+    const recovered: RunRecord = {
+      ...rejected,
+      world: {
+        ...rejected.world,
+        countries: {
+          ...rejected.world.countries,
+          [countryId]: {
+            ...rejected.world.countries[countryId]!,
+            treasury: 500,
+          },
+        },
+      },
+    };
+    const reopened = step(scenario, recovered, [acceptedLobby(recovered)]);
+    expect(Object.values(reopened.world.politicalProposals ?? {})).toHaveLength(
+      2,
+    );
+    expect(
+      Object.values(reopened.world.politicalProposals ?? {}).filter(
+        (proposal) => proposal.status === "open",
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("does not reopen for unrelated scalar drift when feasibility remains unchanged", () => {
+    const scenario = createF05Fix6PoliticalInteractionScenario();
+    const opened = openProposal(scenario);
+    const rejected = step(scenario, opened.record, [
+      acceptedResponse(opened.record, opened.proposalId, "reject"),
+    ]);
+    const countryId = scenario.playerCountryId!;
+    const drifted: RunRecord = {
+      ...rejected,
+      world: {
+        ...rejected.world,
+        countries: {
+          ...rejected.world.countries,
+          [countryId]: {
+            ...rejected.world.countries[countryId]!,
+            legitimacy: rejected.world.countries[countryId]!.legitimacy - 1,
+          },
+        },
+      },
+    };
+    const repeated = step(scenario, drifted, [acceptedLobby(drifted)]);
+    expect(Object.values(repeated.world.politicalProposals ?? {})).toHaveLength(
+      1,
+    );
+  });
+
   it("routes ACCEPT through the existing intervention commitment and effects", () => {
     const scenario = createF05Fix6PoliticalInteractionScenario();
     const opened = openProposal(scenario);
