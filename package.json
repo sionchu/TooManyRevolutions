@@ -35,6 +35,7 @@
     "inspect:f05fix8audit": "vite-node src/sim/inspection/f05Fix8NonAcceptDivergenceAudit.cli.ts",
     "inspect:f05fix8lifecycle": "vite-node src/sim/inspection/f05Fix8ProposalLifecycle.cli.ts",
     "inspect:f05fix9": "vite-node src/sim/inspection/f05Fix9LateSteadyStateAudit.cli.ts",
+    "inspect:f05fix10": "vite-node src/sim/inspection/f05Fix10StructuralRemedySelection.cli.ts",
     "inspect:v01": "vitest run src/presentation/v01PresentationInspection.test.ts --reporter=verbose --silent=false",
     "test:watch": "vitest",
     "typecheck": "tsc -b --pretty false",
