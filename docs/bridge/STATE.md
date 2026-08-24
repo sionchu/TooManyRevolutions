@@ -5,7 +5,7 @@ UPDATED: 2026-08-25
 REPOSITORY: sionchu/TooManyRevolutions
 BRANCH: master
 CURRENT_GATE: Gate 1F
-CURRENT_PHASE: F05_FIX14 FUND_MOVEMENT commitment lifecycle closure — COMPLETE / AWAITING_CHATGPT_REVIEW
+CURRENT_PHASE: F05_FIX15 War-as-Politics grounding & active-conflict remedy selection — AUTHORIZED
 
 ## Key commits
 
@@ -25,6 +25,8 @@ F05_FIX13_IMPLEMENTATION_COMMIT: 69f857fdb9036725014e676c8633977c421b19df
 F05_FIX13_RESULT_METADATA_COMMIT: 19fd7a161bb5c95021921a31d5d566ff9c6920b7
 F05_FIX14_TASK_COMMIT: 462b928fd35aab7ff09a5c12ca9ecc6b78044aa9
 F05_FIX14_IMPLEMENTATION_COMMIT: 4345e7fa84d589576db65db1f2df43c8934a9b6f
+F05_FIX14_RESULT_METADATA_COMMIT: 5987b4c6732a91cf516c0eff3dae47cd268510eb
+F05_FIX15_TASK_COMMIT: 8fd27058c95c75f55efda8612bd40a0befe81d67
 
 ## Accepted gate history
 
@@ -48,7 +50,6 @@ F05_FIX9_EXISTING_BUG_FOUND: NO
 F05_FIX9_INTERACTION_COVERAGE_EXHAUSTED: YES
 F05_FIX9_ACTIVE_CONFLICT_EQUILIBRIUM: YES
 F05_FIX9_OUTCOME_GAP: YES
-F05_FIX9_PLAYER_RESPONSE_SET_SATURATED: NO
 F05_FIX9_STATE_GROUNDED_MAX_REASSESSMENT_SILENCE: 1200 days
 F05_FIX9_POST_INTERVENTION_LATE_SILENCE: 1110 days
 F05_FIX9_LATE_SILENCE_POPULATION: 6 ACCEPT branches >720 days
@@ -64,7 +65,6 @@ F05_FIX10_ORGANIZE_REACHABILITY: 0/372
 F05_FIX10_SELECTED_ACTION: FUND_MOVEMENT
 F05_FIX10_TARGET_OBJECT_REQUIRED: YES
 F05_FIX10_ACTION_SCHEMA_CHANGE_REQUIRED: YES
-F05_FIX10_MAGNITUDE_GROUNDING_STATUS: BLOCKED_NO_AUTHORED_MAGNITUDE
 F05_FIX10_GATE1F_RECOMMENDATION: NOT_READY
 
 ## ChatGPT acceptance of F05_FIX11
@@ -106,64 +106,86 @@ F05_FIX13_DUPLICATE_GUARD: active same actor/target blocks second commitment
 F05_FIX13_AGENDA: active target/amount visible without severity bonus
 F05_FIX13_PERSISTENCE: SerializedSimulationSnapshotV5 / format version 5; V4 rejected
 F05_FIX13_LONG_HORIZON: 2 commitments; first tick 31; duplicate success events 0; Agenda exposure 1170 ticks
-F05_FIX13_RESOURCE_DEBIT: NONE
-F05_FIX13_FORBIDDEN_EFFECT_EVENTS: NONE
 F05_FIX13_LATE_REASSESSMENT_CHANGED: NO
 F05_FIX13_GATE1F_RECOMMENDATION: NOT_READY
 
-Accepted review note:
+## ChatGPT acceptance of F05_FIX14
 
-- targeted schema-v2 business-invalid inputs currently cannot create a commitment, but application order can allow `currentStrategy = fundMovement` before commitment business validation; F05_FIX14 must harden targeted-v2 semantic atomicity without changing legacy v1 behavior.
-
-## F05_FIX14 authorization
-
-F05_FIX14: AUTHORIZED
-F05_FIX14_TASK_FILE: `docs/bridge/tasks/F05_FIX14.md`
-F05_FIX14_DIRECTION: close the FUND_MOVEMENT lifecycle question and decide whether this route remains a viable Gate 1F pacing remedy.
-
-Mandatory obligations:
-
-1. Harden targeted schema-v2 application so profile/current-state business-invalid inputs cannot partially mutate strategy while failing commitment creation.
-2. Audit the only authorized lifecycle candidate: at the monthly faction political boundary, ask whether the same actor would still choose FUND_MOVEMENT under current authoritative state if only its own active duplicate block were excluded.
-3. If that candidate is honest, implement only `active -> resolved` with explicit state-grounded provenance, no timer/payoff/new meter, and strict persistence/replay.
-4. If it is not honest, do not invent another lifecycle.
-5. Run no-response and existing-response counterfactuals.
-6. End with either a profile-enabled F05 remeasurement readiness or a pivot away from FUND_MOVEMENT. Do not continue an open-ended FUND_MOVEMENT fix chain.
-
-Exact allowed classifications:
-
-```text
-FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_REASSESSMENT_IMPROVED
-FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_LATE_SILENCE_PERSISTS
-FUND_MOVEMENT_ROUTE_EXHAUSTED_NO_HONEST_LIFECYCLE
-```
-
-Readiness:
-
-```text
-PROFILE_ENABLED_F05_REMEASUREMENT
-PIVOT_FROM_FUND_MOVEMENT
-```
-
-## F05_FIX14 completion awaiting review
-
-F05_FIX14: COMPLETE / AWAITING_CHATGPT_REVIEW
+F05_FIX14: COMPLETE / REVIEWED / PASS / ACCEPTED
 F05_FIX14_PRIMARY_CLASSIFICATION: FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_LATE_SILENCE_PERSISTS
 F05_FIX14_NEXT_IMPLEMENTATION_READINESS: PIVOT_FROM_FUND_MOVEMENT
 F05_FIX14_TARGETED_V2_ATOMICITY: PASS
-F05_FIX14_LIFECYCLE: active -> resolved(actorIntentCeased) from unchanged chooser and current authoritative state
+F05_FIX14_LIFECYCLE: active -> resolved(actorIntentCeased) from unchanged chooser/current authoritative state
 F05_FIX14_CURRENT_STRATEGY_DEPENDENCY: NONE
 F05_FIX14_TIMER_COOLDOWN_COUNTDOWN: NONE
-F05_FIX14_EXISTING_RESPONSE: tick 32 response; tick 60 resolution; available resources 0.5 -> 0.8; Agenda cause removed
+F05_FIX14_EXISTING_RESPONSE: tick 32 response; tick 60 resolution; available resources 0.5 -> 0.8; Agenda active cause removed
 F05_FIX14_NO_RESPONSE: 1200 days; no resolution; active commitments 2
-F05_FIX14_REENTRY: one later commitment at tick 211; duplicate/churn 0
+F05_FIX14_REENTRY: later state-grounded recommitment tick 211; duplicate/churn 0
 F05_FIX14_PERSISTENCE: SerializedSimulationSnapshotV6 / format version 6; V5 rejected
 F05_FIX14_REPLAY: uninterrupted/save-load/insertion-order equal
 F05_FIX14_HISTORICAL_BASELINES: F05 unchanged; F05_FIX9 1110/1200 and 108/108; F05_FIX13 unchanged
 F05_FIX14_RESOURCE_DEBIT: NONE
 F05_FIX14_FORBIDDEN_WRITERS: NONE
 F05_FIX14_GATE1F_RECOMMENDATION: NOT_READY
-F05_FIX15: NOT_AUTHORIZED
+
+Accepted interpretation:
+
+- targeted FUND_MOVEMENT is now a coherent authored/runtime/lifecycle political object;
+- existing political accommodation can cause a real state-grounded commitment resolution and later recommitment;
+- the 1,200-day no-response path remains unresolved, so FUND_MOVEMENT does not materially reduce the measured late silence;
+- the FUND_MOVEMENT route is closed as the current Gate 1F pacing remedy;
+- the next repair direction must pivot to another F05_FIX9 structural cause rather than add another FUND_MOVEMENT consequence/payoff/lifecycle rule.
+
+## F05_FIX15 authorization
+
+F05_FIX15: AUTHORIZED
+F05_FIX15_TASK_FILE: `docs/bridge/tasks/F05_FIX15.md`
+F05_FIX15_DIRECTION: satisfy the War-as-Politics grounding gate and select the smallest honest repair seam for `ACTIVE_CONFLICT_EQUILIBRIUM`.
+
+Exact late-state basis:
+
+```text
+country physical LandHexes = 0
+active conflicts = 2
+rebellion = NO_ACTIVE_FRONT_EDGE
+coup = COUP_HAS_NO_TERRITORIAL_WRITER
+Government remains valid
+run outcome remains active
+T022 consolidation blocked
+T023 dissolution not proven by occupation/Government defeat
+```
+
+Required semantic separation:
+
+- coups are audited as non-territorial coordination/seizure-of-authority problems; no fake LandHex front;
+- rebellion/insurgency persistence is not equivalent to one missing front edge;
+- Government transition remains nonterminal;
+- occupation alone remains insufficient for State Dissolution;
+- settlement/demobilization/conscription/war finance/occupation/displacement may be grounded, but new domains must be explicitly deferred if current authoritative state cannot express them honestly.
+
+Fixed source pack in the immutable task covers Clausewitz, Singh, Kalyvas, Fearon & Laitin, Walter, Matanock, Tilly, Levi, Scheve & Stasavage, and wartime displacement literature with conservative claim boundaries.
+
+Exact primary classifications:
+
+```text
+WAR_POLITICS_GROUNDED_COUP_RESOLUTION_SLICE
+WAR_POLITICS_GROUNDED_REBELLION_TERMINATION_SLICE
+WAR_POLITICS_GROUNDED_CONFLICT_OBJECTIVE_SCHEMA
+WAR_POLITICS_REQUIRES_NEW_AUTHORITATIVE_DOMAIN
+WAR_POLITICS_GROUNDING_INSUFFICIENT
+```
+
+Readiness:
+
+```text
+COUP_POLITICAL_RESOLUTION_VERTICAL_SLICE
+REBELLION_TERMINATION_VERTICAL_SLICE
+CONFLICT_OBJECTIVE_SCHEMA_ONLY
+NEW_DOMAIN_GROUNDING_REQUIRED
+NONE
+```
+
+F05_FIX15 is grounding/architecture selection only. Production conflict logic, Conflict/WorldState schema, T021/T022/T023, persistence V6, and official F05 semantics remain unchanged.
 
 ## Current architecture constraints
 
@@ -173,13 +195,13 @@ F05_FIX15: NOT_AUTHORIZED
 - Region.stateControl is not territorial ownership;
 - fronts remain derived;
 - no direct crisis scheduling/deletion by interactions;
-- no generic politicalPower/reformPoint/stability/mobilization/effort mana;
+- no generic politicalPower/reformPoint/stability/mobilization/effort/war mana;
 - LLM never directly mutates authoritative state;
 - proposal/action target and amount content must be explicit, never inferred from labels/interests/ideology;
 - no hidden synthetic START_INTERVENTION or FUND_MOVEMENT ActionRecord;
-- no continuity damage/restoration from occupation/government defeat;
+- no continuity damage/restoration from occupation/Government defeat;
 - no direct terminal shortcut;
-- War-as-Politics implementation remains blocked by `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`;
+- War-as-Politics **implementation** remains blocked until F05_FIX15 grounding is reviewed/accepted;
 - V02 remains blocked until Gate 1F passes.
 
 ## Current gate / persistence
@@ -190,9 +212,9 @@ POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
 PERSISTENCE: SerializedSimulationSnapshotV6 / format version 6
 
 LAST_COMPLETED_TASK_ID: F05_FIX14
-NEXT_AUTHORIZED_TASK_ID: NONE
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
-CURRENT_TASK_FILE: NONE
+NEXT_AUTHORIZED_TASK_ID: F05_FIX15
+NEXT_TASK_STATUS: AUTHORIZED
+CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX15.md`
 LAST_RESULT_FILE: `docs/bridge/results/F05_FIX14_RESULT.md`
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
