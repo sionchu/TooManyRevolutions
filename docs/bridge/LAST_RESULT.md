@@ -1,48 +1,46 @@
 # TMR Last Bridge Result
 
-TASK_ID: F05_FIX6
+TASK_ID: F05_FIX7
 
 STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW
 
 START_BRANCH: master
 
-START_COMMIT: ae008eb56620cb7ab4e3ecdc0dbee739b174b7fe
+START_COMMIT: 7d5721a7528885fe2cb327077d893d34939912ab
 
-IMPLEMENTATION_COMMIT: e8be570
+BASE_TASK_COMMIT: 20a9b0e7db45bbec092012456a638fd921009bd5
+
+IMPLEMENTATION_COMMIT: 60a4a1d
 
 END_BRANCH: master
 
-END_COMMIT: ef87782
+END_COMMIT: pending completion metadata commit
 
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 
 COMMIT_CREATED: YES
 
-PUSHED: YES after completion metadata commit
+PUSHED: pending completion metadata commit
 
 ## OUTCOME
 
-F05_FIX6 implemented the minimum Political Interaction Kernel and one explicit
-vertical slice. An authored coup-faction `LOBBY` template opens an
-`interventionRequest` proposal against the current Government. A later player
-`ACCEPT` or `REJECT` is authoritative: REJECT preserves the measured status quo,
-while ACCEPT reuses the existing F04D coercive-restriction intervention resolver
-and its treasury, administrative, duration, institutional, and faction effects.
+F05_FIX7 closed the v1 LOBBY-only template contract and measured the accepted
+Political Interaction Kernel in a separate five-year integration matrix. The
+historical F05 36-branch baseline remains unchanged. The proposal matrix adds
+108 branches across all six existing contexts, all six existing strategies, and
+IGNORE / REJECT / ACCEPT_IF_FEASIBLE.
 
-The same-seed NO_PROPOSAL / IGNORE / REJECT / ACCEPT inspection shows a
-meaningful ACCEPT downstream change without proposal-event counting. CountryId
-and Government relation remain intact; LandHex, crisis, conflict, continuity,
-and terminal writers are unchanged. Authoritative proposal state is persisted
-as strict `SerializedSimulationSnapshotV3`; V2 is rejected.
+The measured result is `PROPOSAL_RESPONSE_DOMINANCE_OR_CHURN`: explicit reject
+reopened the identical authored proposal key 48 times, response-mode effects
+were mixed, and the maximum state-grounded reassessment silence remained 1,200
+days. Proposal decision load was reported separately and proposal lifecycle
+events were not added to F05 pacing.
 
-Primary classification: `KERNEL_IMPLEMENTED_VERTICAL_SLICE_MEANINGFUL`.
-Official F05 pacing is unchanged and Gate 1F remains `NOT_READY`.
+Detailed result: `docs/bridge/results/F05_FIX7_RESULT.md`
 
-Detailed result: `docs/bridge/results/F05_FIX6_RESULT.md`
+Integration report: `docs/F05_GATE1F_REPAIR7_INTERACTION_INTEGRATION.md`
 
-Kernel/source ledger: `docs/POLITICAL_INTERACTION_KERNEL.md`
-
-Counterfactual: `docs/F05_GATE1F_REPAIR6_POLITICAL_INTERACTION.md`
+Kernel/orchestration boundary: `docs/POLITICAL_INTERACTION_KERNEL.md`
 
 ## NEXT
 

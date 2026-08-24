@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "test": "vitest run --exclude src/sim/inspection/f01LongRunHeadlessInspection.test.ts --exclude src/sim/inspection/f02MultiSeedOutcomeSurveyInspection.test.ts --exclude src/sim/inspection/f03InterventionCounterfactualInspection.test.ts --exclude src/sim/inspection/f03bAgencyLeverageDiagnosisInspection.test.ts --exclude src/sim/inspection/f04DegenerateStrategyExploitCheckInspection.test.ts --exclude src/sim/inspection/f04dInstitutionActionCounterfactualsInspection.test.ts --exclude src/sim/inspection/f05PacingFunDecisionInspection.test.ts",
+    "test": "vitest run --no-file-parallelism --exclude src/sim/inspection/f01LongRunHeadlessInspection.test.ts --exclude src/sim/inspection/f02MultiSeedOutcomeSurveyInspection.test.ts --exclude src/sim/inspection/f03InterventionCounterfactualInspection.test.ts --exclude src/sim/inspection/f03bAgencyLeverageDiagnosisInspection.test.ts --exclude src/sim/inspection/f04DegenerateStrategyExploitCheckInspection.test.ts --exclude src/sim/inspection/f04dInstitutionActionCounterfactualsInspection.test.ts --exclude src/sim/inspection/f05PacingFunDecisionInspection.test.ts",
     "inspect:t015": "vitest run src/sim/inspection/t015DiffusionInspection.test.ts --reporter=verbose --silent=false",
     "inspect:t015b": "vitest run src/sim/inspection/t015bDiffusionStabilization.test.ts --reporter=verbose --silent=false",
     "inspect:t015c": "vitest run src/sim/inspection/t015cPoliticalTimeScale.test.ts --reporter=verbose --silent=false",
