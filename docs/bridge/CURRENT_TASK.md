@@ -1,128 +1,144 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX11
+TASK_ID: F05_FIX12
 STATUS: AUTHORIZED
 BASE_BRANCH: master
-TASK_COMMIT: fd8dc4f98a1813a5d0f5848232fbffac3131b600
-STATE_ACTIVATION_COMMIT: 6374b1afbd42aae22c0c13722a15842c7c72450c
-TASK_FILE: docs/bridge/tasks/F05_FIX11.md
+TASK_COMMIT: 56127d84219be61996000ce03d43c31bd63abc3d
+STATE_ACTIVATION_COMMIT: d7952584396d0a5dd1211b0892d68de33f6e7de7
+TASK_FILE: docs/bridge/tasks/F05_FIX12.md
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
-RESULT_PATH: docs/bridge/results/F05_FIX11_RESULT.md
+RESULT_PATH: docs/bridge/results/F05_FIX12_RESULT.md
 
 ## Mission summary
 
-F05_FIX10 is reviewed/accepted as `COVERAGE_REQUIRES_ACTION_SCHEMA_TARGETING`. The exact six late branches produced 372/372 `FUND_MOVEMENT` selections, with LOBBY and ORGANIZE at 0/372. F05_FIX11 must ground the smallest honest target + actor-owned commitment contract before any production schema/effect implementation.
+F05_FIX11 is reviewed/accepted as `FUND_MOVEMENT_REQUIRES_NEW_AUTHORING_SEAM`.
 
-The task is **grounding/design only**.
+F05_FIX12 must close that seam. There are only two valid outcomes:
 
-Required order:
+```text
+FUND_MOVEMENT_AUTHORING_SEAM_IMPLEMENTED
+FUND_MOVEMENT_AUTHORING_SEAM_REJECTED_FOR_GATE1F
+```
 
-1. read the immutable F05_FIX11 task and its fixed six-source external grounding pack;
-2. reconcile the source claims with F05_FIX5, F05_FIX9, F05_FIX10 and current source code;
-3. define the exact semantic meaning of `FUND_MOVEMENT` rather than relying on the label;
-4. evaluate target domains (`RegionId`, explicit Region set, Country-wide, another existing object, or none);
-5. decide whether existing `Faction.resources` can be reserved/spent/earmarked honestly, or whether the mechanism would require a forbidden/new effort domain;
-6. classify the amount-authoring seam without selecting a number;
-7. identify the first legitimate non-war/non-terminal consumer boundary;
-8. determine whether a state-grounded lifecycle/repeat boundary is designable without cooldown/countdown;
-9. specify persistence/replay implications without changing V4;
-10. select exactly one F05_FIX11 primary classification and implementation-readiness value;
-11. do not implement the direction in this task.
+No third "needs more grounding" outcome is allowed.
 
-## Fixed external source pack
+If implementable, add only the smallest static scenario-owned authoring contract needed to express:
 
-The immutable task contains conservative claim boundaries for:
+```text
+explicit Faction
++ FUND_MOVEMENT
++ explicit single Region target
++ explicit faction-resource amount
+```
 
-- McCarthy & Zald (1977), DOI `10.1086/226464`;
-- Jenkins (1983), DOI `10.1146/annurev.so.09.080183.002523`;
-- McCarthy & Wolfson (1996), DOI `10.2307/2096309`;
-- Hunter & Staggenborg (1986), DOI `10.1016/0362-3319(86)90033-9`;
-- Cress & Snow (1996), DOI `10.2307/2096310`;
-- Ganz (2000), DOI `10.1086/210398`.
+The amount has no default and no state-derived formula. The target is never inferred.
 
-Codex does not need internet access to use these authorized claim boundaries. If internet is unavailable, do not fabricate additional source claims.
+If this cannot be represented cleanly without violating TMR architecture, reject FUND_MOVEMENT as the current Gate 1F interaction-coverage remedy.
 
-## Key constraints
+## Allowed implementation
 
-- No production `FactionActionPayload` change.
-- Do not add `targetRegionId` or another runtime target field yet.
-- `RegionId` is a candidate, not a pre-decided answer.
-- Never use LandHex as the default political-mobilization target.
-- Do not infer target from highest unrest/radicalism/organization, sort order, faction name, ideology label, conflict front, or fixture layout.
-- No authoritative commitment record/resolver.
-- No resource debit/reservation/earmark writer.
-- No numeric cost/effect/duration/conversion ratio.
-- No state-derived amount formula for convenience.
-- No combat-strength bonus, crisis writer, conflict resolution, LandHex change, continuity writer, terminal shortcut, or hidden recovery.
-- No second LOBBY template, BARGAIN, ORGANIZE consequence, chooser rewrite, generic mobilization/political mana, cooldown/countdown, War-as-Politics implementation, V02/UI, or runtime LLM solver.
-- Do not self-authorize Gate 1F PASS or F05_FIX12.
+Static scenario/content schema and validation only, for example a narrow FUND_MOVEMENT-specific authoring type and optional `ScenarioDefinition` field.
+
+Focused schema/validation tests are allowed.
+
+Existing scenarios with no authoring record must remain behaviorally unchanged.
+
+## Forbidden implementation
+
+- no `FactionActionPayload` runtime schema change;
+- no ActionRecord target/amount payload yet;
+- no heuristic target/amount selection;
+- no commitment WorldState;
+- no resource debit/reserve/earmark writer;
+- no commitment lifecycle/resolver/events;
+- no Agenda reader/change;
+- no faction scalar consequence;
+- no T018/T021 consequence;
+- no Conflict/LandHex/continuity/terminal change;
+- no generic political/mobilization/effort meter;
+- no cooldown/countdown;
+- no second LOBBY/BARGAIN/ORGANIZE expansion;
+- no chooser rewrite;
+- no War-as-Politics, V02/UI, runtime LLM/solver;
+- no Gate 1F PASS or F05_FIX13 self-authorization.
+
+Persistence remains V4.
+
+## Closure requirements
+
+If implemented, static validation must cover at minimum:
+
+- unknown Faction rejection;
+- unknown Region rejection;
+- invalid/non-positive/non-finite amount rejection;
+- duplicate/ambiguous profile rejection;
+- accepted valid profile;
+- deterministic behavior;
+- absence of the field preserves all existing scenarios.
+
+Prefer at most one FUND_MOVEMENT authoring record per Faction in v1 unless current repository evidence proves another equally deterministic rule.
+
+No actual Gate 1F target/amount content value is required in this task. Synthetic test values must not become defaults or production balance claims.
 
 ## Required primary classification
 
 Exactly one:
 
 ```text
-FUND_MOVEMENT_TARGET_AND_COMMITMENT_GROUNDED
-FUND_MOVEMENT_TARGET_SCHEMA_ONLY_GROUNDED
-FUND_MOVEMENT_TARGET_GROUNDED_COMMITMENT_BLOCKED
-FUND_MOVEMENT_REQUIRES_NEW_AUTHORING_SEAM
-FUND_MOVEMENT_GROUNDING_INSUFFICIENT
+FUND_MOVEMENT_AUTHORING_SEAM_IMPLEMENTED
+FUND_MOVEMENT_AUTHORING_SEAM_REJECTED_FOR_GATE1F
 ```
 
 Required readiness:
 
 ```text
 NEXT_IMPLEMENTATION_READINESS:
-  TARGET_SCHEMA_ONLY
-  TARGET_PLUS_COMMITMENT_LIFECYCLE
+  TARGETED_COMMITMENT_VERTICAL_SLICE
   NONE
 ```
 
-The classification is not authorization to implement it.
-
 ## Required documents
 
-- `docs/F05_FIX11_FUND_MOVEMENT_GROUNDING.md`
-- `docs/bridge/results/F05_FIX11_RESULT.md`
-- update `docs/FACTION_INTERNAL_COMMITMENT_KERNEL.md` only if `TARGET_PLUS_COMMITMENT_LIFECYCLE` is genuinely grounded; keep it design-only.
+- `docs/F05_FIX12_FUND_MOVEMENT_AUTHORING_SEAM.md`
+- `docs/bridge/results/F05_FIX12_RESULT.md`
 
-## Repository-root guard
+## Repository-root / Codex Desktop freshness guard
 
 The real repository is the nested `TooManyRevolutions` directory.
 
-If Codex starts in parent `Game-TMR` and `TooManyRevolutions/` appears untracked:
+If the parent `Game-TMR` shows `TooManyRevolutions/` as untracked, first:
 
 ```bash
 cd TooManyRevolutions
 ```
 
-before any Git/task work. Never commit/reset/configure the parent empty repository.
+Never modify the parent empty repository.
 
-## Freshness
+Because Codex Desktop threads may use isolated worktrees, use this order:
 
-Preferred:
+```text
+1. externally synchronize the real nested repo
+2. verify master SHA
+3. start a fresh Codex thread/worktree
+4. verify fresh HEAD and origin/master
+5. execute F05_FIX12
+```
+
+Do not reset/rebase an old stale Codex worktree to bypass freshness.
+
+Before execution verify:
 
 ```bash
 git status
-git fetch origin
 git rev-parse HEAD
 git rev-parse origin/master
-git pull --ff-only
 ```
 
-If outbound HTTPS is unavailable inside Codex, do not create a branch/reset/rebase to bypass it. Proceed only after the user/ChatGPT externally synchronizes the real nested repository and confirms the current GitHub master SHA, with:
-
-```text
-working tree clean
-HEAD == origin/master == confirmed GitHub master
-CURRENT_TASK = F05_FIX11
-```
-
-If not, stop and report freshness failure.
+Proceed only when the working tree is clean and both SHAs equal the exact current GitHub master activation SHA supplied by ChatGPT/user.
 
 ## Verification
 
-Follow the immutable task, including:
+Follow the immutable task, including at minimum:
 
 ```bash
 pnpm install --frozen-lockfile
@@ -133,25 +149,25 @@ pnpm run build
 pnpm run inspect:f05
 pnpm run inspect:f05fix9
 pnpm run inspect:f05fix10
-# focused F05_FIX11 inspection/test only if developer-only code was added
+# focused F05_FIX12 tests if code is added
 pnpm test
 git diff --check
 ```
 
-If the known Vitest `[vitest-worker]: Timeout calling "onTaskUpdate"` runner/IPC error reproduces after assertions pass, report assertion and runner status separately. Do not modify gameplay to address it.
+Report the known Vitest `onTaskUpdate` IPC issue separately if assertions pass but the runner exits non-zero.
 
 ## Completion
 
 On completion:
 
-- `F05_FIX11: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state;
-- `LAST_COMPLETED_TASK_ID: F05_FIX11`;
+- `F05_FIX12: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state;
+- `LAST_COMPLETED_TASK_ID: F05_FIX12`;
 - `NEXT_AUTHORIZED_TASK_ID: NONE`;
 - `NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW`;
 - `CURRENT_TASK_FILE: NONE`;
-- `GATE1F_CHATGPT_DECISION: NOT_READY`;
-- `V02: NOT STARTED`;
-- no production implementation of the selected direction;
-- do not authorize F05_FIX12.
+- keep Gate 1F `NOT_READY`;
+- keep V02 `NOT STARTED`;
+- do not implement runtime commitment behavior;
+- do not authorize F05_FIX13.
 
-Execute only `docs/bridge/tasks/F05_FIX11.md`.
+Execute only `docs/bridge/tasks/F05_FIX12.md`.
