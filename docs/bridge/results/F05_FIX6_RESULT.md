@@ -12,13 +12,13 @@ IMPLEMENTATION_COMMIT: e8be570 (feat: add political interaction proposal kernel)
 
 END_BRANCH: master
 
-END_COMMIT: e8be570 (bridge metadata follows in the completion commit)
+END_COMMIT: ef87782 (bridge result metadata commit)
 
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 
 COMMIT_CREATED: YES
 
-PUSHED: PENDING_COMPLETION_PUSH
+PUSHED: YES after completion metadata commit
 
 ## PRIMARY CLASSIFICATION
 

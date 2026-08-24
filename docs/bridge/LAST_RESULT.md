@@ -12,7 +12,7 @@ IMPLEMENTATION_COMMIT: e8be570
 
 END_BRANCH: master
 
-END_COMMIT: completion commit recorded in `docs/bridge/STATE.md`
+END_COMMIT: ef87782
 
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 
