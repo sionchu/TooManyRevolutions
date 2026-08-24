@@ -84,6 +84,27 @@ F05_FIX8_RESPONSE_DOMINANCE: MIXED
 F05_FIX8_READY_FOR_F05_PROMOTION: NO
 F05_FIX8_GATE1F_RECOMMENDATION: NOT_READY
 
+F05_FIX9: COMPLETE / AWAITING_CHATGPT_REVIEW
+F05_FIX9_TASK: PASS / DIAGNOSIS_COMPLETE
+F05_FIX9_PRIMARY_CLASSIFICATION: LATE_STEADY_STATE_MIXED_CAUSE
+F05_FIX9_EXISTING_BUG_FOUND: NO
+F05_FIX9_INTERACTION_COVERAGE_EXHAUSTED: YES
+F05_FIX9_ACTIVE_CONFLICT_EQUILIBRIUM: YES
+F05_FIX9_OUTCOME_GAP: YES
+F05_FIX9_PLAYER_RESPONSE_SET_SATURATED: NO
+F05_FIX9_IMPLEMENTATION: NONE
+F05_FIX9_HISTORICAL_F05_BASELINE: UNCHANGED
+F05_FIX9_STATE_GROUNDED_MAX_REASSESSMENT_SILENCE: 1200 days
+F05_FIX9_POST_INTERVENTION_LATE_SILENCE: 1110 days
+F05_FIX9_LATE_SILENCE_POPULATION: 6 branches >720 days
+F05_FIX9_NON_ACCEPT_DIVERGENCES: 0
+F05_FIX9_IDENTICAL_REOPEN_CHURN: 0
+F05_FIX9_LEGITIMATE_REOPENS: 2
+F05_FIX9_READY_FOR_F05_PROMOTION: NO
+F05_FIX9_GATE1F_RECOMMENDATION: NOT_READY
+F05_FIX9_RESULT_FILE: `docs/bridge/results/F05_FIX9_RESULT.md`
+F05_FIX9_AUDIT_FILE: `docs/F05_FIX9_LATE_STEADY_STATE_AUDIT.md`
+
 ## ChatGPT acceptance of F05_FIX8
 
 ChatGPT accepts F05_FIX8 as a correct lifecycle/measurement repair.
@@ -104,9 +125,9 @@ Accepted facts:
 
 Accepted edge-case note for later: an ignored proposal that remains open across Government change may need a separate stale-open audit before production interaction expansion. It is not a F05_FIX8 rejection.
 
-## F05_FIX9 authorization
+## F05_FIX9 completion state
 
-F05_FIX9: AUTHORIZED / NOT STARTED
+F05_FIX9: COMPLETE / AWAITING_CHATGPT_REVIEW
 
 F05_FIX9_DIRECTION: diagnose the post-interaction late steady state before adding any new political interaction content.
 
@@ -123,7 +144,7 @@ accepted interaction completes
 -> classify whether the cause is an existing bug, model equilibrium, outcome gap, exhausted interaction coverage, saturated response set, or mixed cause
 ```
 
-F05_FIX9_IMPLEMENTATION_POLICY: diagnosis-first; production repair allowed only for one proven narrow bug/omission in an already-authorized existing consumer/writer. Otherwise no implementation.
+F05_FIX9_IMPLEMENTATION_POLICY: diagnosis-first; production repair gate was not met, so no implementation was made.
 
 F05_FIX9_FORBIDS: new proposal subjects/templates, BARGAIN/counteroffers, new faction consequences, new generic meters, arbitrary timers/cooldowns, proposal pacing filler, crisis/territory/continuity shortcuts, automatic successor Government, War as Politics, fantasy, V02/UI, strategic-solver/LLM NPC runtime.
 
@@ -134,11 +155,11 @@ V02: NOT STARTED
 POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
 PERSISTENCE: SerializedSimulationSnapshotV4 / format version 4; V3 rejected
 
-LAST_COMPLETED_TASK_ID: F05_FIX8
-NEXT_AUTHORIZED_TASK_ID: F05_FIX9
-NEXT_TASK_STATUS: AUTHORIZED
-CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX9.md`
-LAST_RESULT_FILE: `docs/bridge/results/F05_FIX8_RESULT.md`
+LAST_COMPLETED_TASK_ID: F05_FIX9
+NEXT_AUTHORIZED_TASK_ID: NONE
+NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
+CURRENT_TASK_FILE: NONE
+LAST_RESULT_FILE: `docs/bridge/results/F05_FIX9_RESULT.md`
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
 ## Bridge freshness requirement

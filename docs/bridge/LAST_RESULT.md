@@ -1,60 +1,66 @@
 # TMR Last Bridge Result
 
-TASK_ID: F05_FIX8
+TASK_ID: F05_FIX9
 
 STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW
 
 START_BRANCH: master
 
-START_COMMIT: c8e43097b4e1135cdbf56389cd5c24da7e659607
+START_COMMIT: 25976b63dd181fef5cd73095687a40f84af26399
 
-BASE_TASK_COMMIT: dbd39ff9e5fdc22a29cef1157399a634a0fa7701
+BASE_TASK_COMMIT: 44ceebcd29d1374f4e9f7f74f61d99f511c4c021
 
-IMPLEMENTATION_COMMIT: 89f350bd67ced8e49c161f95fa5e2a1c94066d42
+IMPLEMENTATION_COMMIT: NONE (diagnosis-only)
 
 END_BRANCH: master
 
-END_COMMIT: 56cb79e8d19aa9b2e40b918167814af02145e3a5
+END_COMMIT: LOCAL COMPLETION COMMIT (recorded after commit)
 
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 
 COMMIT_CREATED: YES
 
-PUSHED: YES after completion metadata commit
+PUSHED: PENDING
 
 ## OUTCOME
 
-F05_FIX7 closed the v1 LOBBY-only template contract and measured the accepted
-Political Interaction Kernel in a separate five-year integration matrix. The
-historical F05 36-branch baseline remains unchanged. The proposal matrix adds
-108 branches across all six existing contexts, all six existing strategies, and
-IGNORE / REJECT / ACCEPT_IF_FEASIBLE.
+F05_FIX9 completed a diagnosis-only audit of the 144-branch long-horizon
+population. Six ACCEPT branches exceed 720 days of post-intervention late
+silence; the maximum is 1110 days. Freeze graphs and perturbation probes show
+a mixed cause: existing conflict front/strength guards and the coup
+no-territory writer boundary, blocked T022/T023 outcome criteria, and exhausted
+existing authored LOBBY coverage after the accepted interaction. No existing
+writer/consumer bug met the implementation gate, so no production seam was
+changed. Historical F05 remains unchanged and Gate 1F remains NOT_READY.
 
-The measured result is `ORCHESTRATION_ARTIFACT_FIXED` with an implemented
-state-grounded reconsideration model. The eight pre-fix IGNORE/REJECT
-differences were caused by the developer observer's pacing-cluster seam; the
-post-fix audit has zero non-accept divergences. Identical-basis reopen churn is
-closed, while two named feasibility transitions provide legitimate reopen
-evidence. The historical F05 baseline remains unchanged and Gate 1F remains
-NOT_READY.
+Detailed result: `docs/bridge/results/F05_FIX9_RESULT.md`
 
-Detailed result: `docs/bridge/results/F05_FIX8_RESULT.md`
+Root-cause audit: `docs/F05_FIX9_LATE_STEADY_STATE_AUDIT.md`
 
-Integration report: `docs/F05_GATE1F_REPAIR8_PROPOSAL_LIFECYCLE.md`
-
-Kernel/orchestration boundary: `docs/POLITICAL_INTERACTION_KERNEL.md`
+Verification note: the full `pnpm test` run completed all 56 files and 448
+assertions, including the F05_FIX9 test, but Vitest exited 1 with two
+`[vitest-worker]: Timeout calling "onTaskUpdate"` runner/IPC errors. The same
+two errors reproduced in a single-worker/fork rerun; no assertion failed.
 
 ## OUTCOME FIELDS
 
-NON_ACCEPT_DIVERGENCE: ORCHESTRATION_ARTIFACT_FIXED
+PRIMARY_CLASSIFICATION: LATE_STEADY_STATE_MIXED_CAUSE
 
-RECONSIDERATION_MODEL: IMPLEMENTED_STATE_GROUNDED
+EXISTING_BUG_FOUND: NO
 
-PERSISTENCE_FORMAT: V4
+IMPLEMENTATION: NONE
 
-IDENTICAL_REOPEN_CHURN: CLOSED
+STATE_GROUNDED_MAX_REASSESSMENT_SILENCE: 1200 days
 
-LEGITIMATE_REOPEN_EVIDENCE: YES
+POST_INTERVENTION_LATE_SILENCE: 1110 days
+
+NON_ACCEPT_DIVERGENCES: 0
+
+IDENTICAL_REOPEN_CHURN: 0
+
+LEGITIMATE_REOPENS: 2
+
+PERSISTENCE_FORMAT: V4_UNCHANGED
 
 HISTORICAL_F05_BASELINE: UNCHANGED
 
