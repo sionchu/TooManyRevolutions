@@ -77,6 +77,10 @@ Executed on Node/Pnpm environment with `pnpm 11.19.0`:
   runner/IPC reporting errors, not assertion failures; the F05_FIX9 focused
   test itself passed (128746 ms). A single-worker/fork rerun reproduced the
   same two runner errors after all 56 files and 448 assertions passed.
+- Isolated `pnpm exec vitest run
+  src/sim/inspection/f05Fix9LateSteadyStateAudit.test.ts --pool=forks
+  --maxWorkers=1 --testTimeout=600000 --reporter=dot --silent` — 1/1 assertion
+  passed; Vitest still exited with one identical `onTaskUpdate` runner error.
 - `git diff --check` — PASS
 
 Gate 1F remains `NOT_READY`, V02 remains `NOT_STARTED`, and no subsequent task

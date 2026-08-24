@@ -43,6 +43,8 @@ Verification note: the full `pnpm test` run completed all 56 files and 448
 assertions, including the F05_FIX9 test, but Vitest exited 1 with two
 `[vitest-worker]: Timeout calling "onTaskUpdate"` runner/IPC errors. The same
 two errors reproduced in a single-worker/fork rerun; no assertion failed.
+An isolated single-file F05_FIX9 rerun also passed its 1/1 assertion and
+exited with one identical runner error.
 
 ## OUTCOME FIELDS
 
