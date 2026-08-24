@@ -1,88 +1,77 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX7
+TASK_ID: F05_FIX8
 
 STATUS: AUTHORIZED
 
 BASE_BRANCH: master
 
-BASE_COMMIT: 20a9b0e7db45bbec092012456a638fd921009bd5
+BASE_COMMIT: dbd39ff9e5fdc22a29cef1157399a634a0fa7701
 
-BASE_COMMIT_NOTE: This commit added the immutable `docs/bridge/tasks/F05_FIX7.md` task. A newer HEAD is allowed only when commits after this base are ChatGPT-authored Bridge activation/current-task updates under `docs/bridge/STATE.md` and/or this `CURRENT_TASK.md`. Before execution, run `git fetch origin`, verify post-base changes are Bridge-only authorization changes, and then `git pull --ff-only`.
+BASE_COMMIT_NOTE: This commit added the immutable `docs/bridge/tasks/F05_FIX8.md` task. A newer HEAD is allowed only when commits after this base are ChatGPT-authored Bridge activation/current-task updates under `docs/bridge/STATE.md` and/or this `CURRENT_TASK.md`. Before execution, run `git fetch origin`, verify post-base changes are Bridge-only authorization changes, and then `git pull --ff-only`.
 
-TASK_FILE: docs/bridge/tasks/F05_FIX7.md
+TASK_FILE: docs/bridge/tasks/F05_FIX8.md
 
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 
-COMMIT_POLICY_NOTE: PASS means the v1 LOBBY-only trigger contract is made honest, the historical F05 baseline is preserved, the separate five-year proposal-response integration matrix is complete, proposal-decision load is separated from state-grounded pacing, churn/dominance is diagnosed, and verification is truthful. It does NOT mean Gate 1F passed. A truthful `INTERACTION_INTEGRATION_MEANINGFUL_PACING_STILL_BLOCKED`, `PROPOSAL_RESPONSE_DOMINANCE_OR_CHURN`, or other authorized NOT_READY result is a successful task outcome.
+COMMIT_POLICY_NOTE: PASS means the 8 non-accept divergences are fully audited, lifecycle semantics are explicit, any rejected-demand reconsideration implementation is state-grounded/deterministic, persistence and replay remain trustworthy, and long-horizon results are truthful. It does NOT mean Gate 1F passed. A truthful `NON_ACCEPT_DIVERGENCE_UNRESOLVED`, `LIFECYCLE_RECONSIDERATION_MODEL_INSUFFICIENT`, or `...PACING_STILL_BLOCKED` result is an acceptable successful task outcome.
 
 AUTHORIZED_SCOPE:
 
-- accept F05_FIX6 Political Interaction Kernel as reviewed/accepted
-- close the v1 template configuration footgun by restricting/validating `FactionProposalTemplate.triggerAction` to `LOBBY` only
-- preserve the historical official F05 six-strategy / 36-branch baseline unchanged
-- create a developer-only long-horizon integration scenario with exactly the existing F05_FIX6 explicit template: coup/security Faction + LOBBY -> existing F04D coercive-restriction InterventionId
-- add a deterministic developer-runner proposal-response seam with modes `NO_TEMPLATE`, `PROPOSAL_IGNORE`, `PROPOSAL_REJECT`, `PROPOSAL_ACCEPT_IF_FEASIBLE`
-- keep response actions on the normal ActionProposal -> accepted ActionRecord path
-- `ACCEPT_IF_FEASIBLE` must derive current intervention feasibility and must not spam infeasible response actions
-- explicitly define same-tick player intervention / proposal response ActionRecord ordering and test it
-- run the historical 36-branch F05 baseline as regression
-- run the separate proposal-enabled matrix over all six F05 contexts × six existing intervention strategies × IGNORE/REJECT/ACCEPT_IF_FEASIBLE
-- record proposal lifecycle telemetry, response telemetry, requested-intervention telemetry, churn, and response dominance
-- preserve existing Gate-relevant state-grounded pacing metrics
-- report proposal decision load separately
-- do not add proposal lifecycle events to F05 `PACING_EVENT_TYPES` merely to reduce silence
-- test whether any state-grounded silence reduction persists after the requested intervention completes
-- preserve neighboring one-day timing checks
-- create `docs/F05_GATE1F_REPAIR7_INTERACTION_INTEGRATION.md`
-- write `docs/bridge/results/F05_FIX7_RESULT.md`
+- accept F05_FIX7 as reviewed/accepted measurement
+- create `docs/F05_FIX8_NON_ACCEPT_DIVERGENCE_AUDIT.md`
+- enumerate the exact 4 IGNORE + 4 REJECT branches that differ from matching NO_TEMPLATE controls
+- identify the first divergence tick and first ActionRecord/event/authoritative-state difference for each
+- isolate historical runner vs FIX7 integration runner vs template/proposal-state effects with paired controls
+- classify every divergence exactly as specified in the immutable task
+- if a developer-runner or measurement artifact is proven, fix only that developer seam and rerun the audit
+- if any divergence remains unresolved, stop lifecycle implementation
+- create `docs/F05_FIX8_PROPOSAL_LIFECYCLE_SEMANTICS.md` only after the audit is resolved
+- distinguish stable demand identity from proposal episode provenance
+- prefer stable demand identity `proposerFactionId + countryId + subjectKind + interventionId`
+- define rejected-demand reconsideration from named existing authoritative state changes, not time
+- prefer current Government + requested-intervention discrete feasibility basis as the minimum v1 reconsideration basis
+- prohibit raw continuously drifting scalar hashes and Agenda/read-model eligibility
+- if grounded, implement the smallest explicit-REJECT lifecycle rule: same demand cannot reopen while the reconsideration basis is unchanged, but can reopen after a real approved basis transition
+- keep IGNORE one-open maximum and preserve existing ACCEPT intervention provenance
+- version persistence explicitly if new authoritative lifecycle state must be stored
+- run focused unchanged-basis / Government-change / feasibility-change / unrelated-drift counterfactuals
+- rerun the unchanged historical F05 36-branch baseline and the separate 108-branch long-horizon proposal matrix if implementation occurs
+- create `docs/F05_GATE1F_REPAIR8_PROPOSAL_LIFECYCLE.md` if implementation occurs
+- write `docs/bridge/results/F05_FIX8_RESULT.md`
 - update Bridge completion state
 
 FORBIDDEN_SCOPE:
 
-- new proposal subjects or additional proposal templates
-- generalizing proposal triggers beyond LOBBY
-- direct faction scalar effects from proposal lifecycle
-- BARGAIN/counteroffer/full settlement systems
-- proposal-specific combat modifiers
-- generic hidden utility/political-power/stability scores
-- automatic production player AI or probabilistic response
-- Nash/CFR/fictitious-play/PSRO/MCTS/RL/QRE
+- arbitrary cooldown, expiry timer, or wait-N-days rule
+- permanent rejected-demand ban with no state-grounded reconsideration path
+- raw scalar snapshot/hash whose purpose is merely to make reopening possible
+- Agenda/read-model values as authoritative proposal eligibility
+- new proposal subjects/templates, BARGAIN/counteroffers/full settlement
+- new faction scalar effects or proposal-specific combat modifiers
+- generic hidden utility/political-power/stability meters
+- probabilistic player response, QRE/logit randomness, Nash/CFR/PSRO/MCTS/RL
 - runtime LLM/MCP NPC decisions
-- continuity decay/restoration, sovereignty meter, or T023 threshold changes
+- continuity decay/restoration, sovereignty meter, T023 changes
 - automatic successor/revolutionary Government creation
 - direct crisis deletion/conflict resolution/free LandHex/hidden comeback
-- proposal cooldown/expiry/rejection memory added merely to improve pacing
 - elections/parties/coalitions/full labor bargaining/transitional justice/military factions/local autonomy
 - War as Politics / fantasy / V02 / renderer/UI
 - story nodes/countdowns/filler events
-- rewriting the official F05 strategy semantics in this task
-- self-authorizing Gate 1F PASS or a follow-up task
+- changing historical F05 strategy semantics
+- self-authorizing Gate 1F PASS or another follow-up task
 
 EXPECTED_OUTPUT:
 
-- exact long-horizon branch population and response-mode definitions
-- historical F05 baseline regression result
-- proposal-enabled matrix result
-- representative T0/T18/T180 NO_TEMPLATE vs IGNORE vs REJECT vs ACCEPT_IF_FEASIBLE comparison
-- proposal open/accept/reject/reopen counts
-- state-grounded longest reassessment silence
-- proposal-decision-load longest silence
-- post-intervention late-silence result
-- churn and response dominance diagnosis
-- one primary classification:
-  - `INTERACTION_INTEGRATION_MEANINGFUL_PACING_IMPROVED`
-  - `INTERACTION_INTEGRATION_MEANINGFUL_PACING_STILL_BLOCKED`
-  - `PROPOSAL_RESPONSE_DOMINANCE_OR_CHURN`
-  - `INTERACTION_INTEGRATION_NO_MEANINGFUL_LONG_HORIZON_EFFECT`
-  - `INTEGRATION_BLOCKED_BY_ORCHESTRATION_CONTRACT`
-- `HISTORICAL_F05_BASELINE: UNCHANGED | CHANGED`
-- `V1_TRIGGER_CONTRACT: CLOSED | OPEN`
-- `REOPEN_CHURN: NONE | PRESENT`
-- `RESPONSE_DOMINANCE: NONE | IGNORE | REJECT | ACCEPT | MIXED`
-- `READY_FOR_F05_PROMOTION: YES | NO`
-- `GATE1F_RECOMMENDATION: PASS | PASS_WITH_NOTES | NOT_READY`
-- `V02: NOT STARTED`
+- complete 8-branch divergence causal audit
+- explicit demand identity / proposal episode / reconsideration semantics
+- optional state-grounded lifecycle implementation only after the audit passes
+- persistence version result (`V3_UNCHANGED` or explicit `V4`)
+- identical-demand reopen/churn result
+- legitimate state-change reopen evidence
+- historical F05 baseline regression
+- long-horizon proposal matrix result if implementation occurs
+- `NON_ACCEPT_DIVERGENCE`, `RECONSIDERATION_MODEL`, `PERSISTENCE_FORMAT`, `IDENTICAL_REOPEN_CHURN`, `LEGITIMATE_REOPEN_EVIDENCE`, `HISTORICAL_F05_BASELINE`, state-grounded silence, post-intervention late silence, `READY_FOR_F05_PROMOTION`, `GATE1F_RECOMMENDATION`, `V02`
 
 STARTUP / FRESHNESS CHECK:
 
@@ -109,22 +98,23 @@ VERIFICATION:
 - `pnpm run inspect:f04b`
 - `pnpm run inspect:f04d`
 - `pnpm run inspect:f05` unchanged historical baseline
-- new focused F05_FIX7 long-horizon integration inspection
-- focused proposal/action/persistence tests as touched
+- focused divergence audit tests/inspection
+- focused proposal lifecycle/persistence tests if implementation occurs
+- rerun F05_FIX7-style integration matrix if implementation occurs
 - `pnpm test`
 - `git diff --check`
 
-RESULT_PATH: docs/bridge/results/F05_FIX7_RESULT.md
+RESULT_PATH: docs/bridge/results/F05_FIX8_RESULT.md
 
 ON_COMPLETION:
 
-- set `F05_FIX7: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state
-- set `LAST_COMPLETED_TASK_ID: F05_FIX7`
+- set `F05_FIX8: COMPLETE / AWAITING_CHATGPT_REVIEW` or truthful blocked state
+- set `LAST_COMPLETED_TASK_ID: F05_FIX8`
 - set `NEXT_AUTHORIZED_TASK_ID: NONE`
 - set `NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW`
 - set `CURRENT_TASK_FILE: NONE`
 - keep `V02: NOT STARTED`
-- do not promote the response policy into official F05 in this task
+- do not add another political-interaction domain
 - do not declare Gate 1F passed
 
 Execute only the immutable task file referenced above.
