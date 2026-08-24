@@ -1,72 +1,91 @@
 # TMR Last Bridge Result
 
-TASK_ID: F05_FIX9
+TASK_ID: F05_FIX10
 
 STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW
 
 START_BRANCH: master
 
-START_COMMIT: 25976b63dd181fef5cd73095687a40f84af26399
+START_COMMIT: c05704eda14916897bfa2f52b731aebef82c37aa
 
-BASE_TASK_COMMIT: 44ceebcd29d1374f4e9f7f74f61d99f511c4c021
+BASE_TASK_COMMIT: 2789279f7ecead1852e325a5a0c19a59e3a3df74
 
-IMPLEMENTATION_COMMIT: NONE (diagnosis-only)
+TASK_RESULT_COMMIT: 98985e84a5448e9d2454847f36e11a4c6cfa3732
 
-END_BRANCH: master
-
-END_COMMIT: c373c5ae591911d3650840ae8eac4973d63bde75
+END_COMMIT: PENDING_METADATA_COMMIT
 
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
 
 COMMIT_CREATED: YES
 
-RESULT_COMMIT: c373c5ae591911d3650840ae8eac4973d63bde75
-
-PUSHED: YES
+PUSHED: PENDING
 
 ## OUTCOME
 
-F05_FIX9 completed a diagnosis-only audit of the 144-branch long-horizon
-population. Six ACCEPT branches exceed 720 days of post-intervention late
-silence; the maximum is 1110 days. Freeze graphs and perturbation probes show
-a mixed cause: existing conflict front/strength guards and the coup
-no-territory writer boundary, blocked T022/T023 outcome criteria, and exhausted
-existing authored LOBBY coverage after the accepted interaction. No existing
-writer/consumer bug met the implementation gate, so no production seam was
-changed. Historical F05 remains unchanged and Gate 1F remains NOT_READY.
+F05_FIX10 measured the six exact F05_FIX9 late-silence branches without
+changing production gameplay. The audit recorded 372 expanded
+faction-boundary rows, with `FUND_MOVEMENT` selected in all 372 rows,
+`ORGANIZE` in 0, and a second/hypothetical LOBBY selection in 0. The current
+action payload contains only `{ factionId }`, while the late states expose two
+relevant Regions used by existing Region-scoped consumers. The honest next
+direction therefore requires action-schema/targeting work before an internal
+commitment can be implemented.
 
-Detailed result: `docs/bridge/results/F05_FIX9_RESULT.md`
-
-Root-cause audit: `docs/F05_FIX9_LATE_STEADY_STATE_AUDIT.md`
-
-Verification note: the full `pnpm test` run completed all 56 files and 448
-assertions, including the F05_FIX9 test, but Vitest exited 1 with two
-`[vitest-worker]: Timeout calling "onTaskUpdate"` runner/IPC errors. The same
-two errors reproduced in a single-worker/fork rerun; no assertion failed.
-An isolated single-file F05_FIX9 rerun also passed its 1/1 assertion and
-exited with one identical runner error.
+The active-conflict track remains `DEFERRED_BY_GROUNDING_GATE`, the outcome
+track remains `DEFERRED_BY_CONTINUITY_EVIDENCE`, and the exact classification
+is `COVERAGE_REQUIRES_ACTION_SCHEMA_TARGETING`. No FUND_MOVEMENT or ORGANIZE
+consequence, proposal, BARGAIN, second LOBBY template, continuity writer,
+territorial rule, or persistence field was added. The design-only contract is
+`docs/FACTION_INTERNAL_COMMITMENT_KERNEL.md`; the complete gate audit is
+`docs/F05_FIX10_STRUCTURAL_REMEDY_SELECTION.md`.
 
 ## OUTCOME FIELDS
 
-PRIMARY_CLASSIFICATION: LATE_STEADY_STATE_MIXED_CAUSE
+PRIMARY_CLASSIFICATION: COVERAGE_REQUIRES_ACTION_SCHEMA_TARGETING
 
-EXISTING_BUG_FOUND: NO
+ACTIVE_CONFLICT_TRACK: DEFERRED_BY_GROUNDING_GATE
 
-IMPLEMENTATION: NONE
+OUTCOME_TRACK: DEFERRED_BY_CONTINUITY_EVIDENCE
 
-STATE_GROUNDED_MAX_REASSESSMENT_SILENCE: 1200 days
+SECOND_LOBBY_REACHABILITY: NOT_REACHABLE
 
-POST_INTERVENTION_LATE_SILENCE: 1110 days
+FUND_MOVEMENT_REACHABILITY: REACHABLE
 
-NON_ACCEPT_DIVERGENCES: 0
+ORGANIZE_REACHABILITY: NOT_REACHABLE
 
-IDENTICAL_REOPEN_CHURN: 0
+SELECTED_ACTION: FUND_MOVEMENT
 
-LEGITIMATE_REOPENS: 2
+TARGET_OBJECT_REQUIRED: YES
 
-PERSISTENCE_FORMAT: V4_UNCHANGED
+ACTION_SCHEMA_CHANGE_REQUIRED: YES
+
+COMMITMENT_MODEL_STATUS: DESIGNABLE_AFTER_ACTION_SCHEMA_TARGETING
+
+MAGNITUDE_GROUNDING_STATUS: BLOCKED_NO_AUTHORED_MAGNITUDE
+
+PERSISTENCE_IMPLICATION: FUTURE_VERSION_REQUIRED_IF_COMMITMENT_STATE_IS_ADDED
+
+PRODUCTION_GAMEPLAY_CHANGE: NONE
 
 HISTORICAL_F05_BASELINE: UNCHANGED
+
+F05_FIX9_DIAGNOSIS: UNCHANGED
+
+VITEST_RUNNER_STATUS: ASSERTIONS_PASS_RUNNER_IPC_ERROR
+
+GATE1F_RECOMMENDATION: NOT_READY
+
+V02: NOT_STARTED
+
+## Verification summary
+
+The required install, format, typecheck, lint, build, F05, F05_FIX8 lifecycle,
+F05_FIX8 audit, F05_FIX9, and focused F05_FIX10 inspection commands completed
+with the outcomes recorded in the detailed result. The focused F05_FIX10 test
+passed its 1 assertion. The full `pnpm test` run passed all 57 files and 449
+assertions, but Vitest reported three known
+`[vitest-worker]: Timeout calling "onTaskUpdate"` runner/IPC errors and exited
+non-zero for runner reporting. `git diff --check` passed.
 
 ## NEXT
 
@@ -76,4 +95,6 @@ NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
 
 GATE1F_RECOMMENDATION: NOT_READY
 
-V02: NOT STARTED
+V02: NOT_STARTED
+
+F05_FIX11: NOT_AUTHORIZED
