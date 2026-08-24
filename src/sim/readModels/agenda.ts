@@ -484,7 +484,8 @@ function factionEvidence(
     }
 
     if (
-      event.type === "FACTION_FUND_MOVEMENT_COMMITTED" &&
+      (event.type === "FACTION_FUND_MOVEMENT_COMMITTED" ||
+        event.type === "FACTION_FUND_MOVEMENT_RESOLVED") &&
       event.actorId === faction.id
     ) {
       return true;

@@ -2,6 +2,7 @@ import { createDeterministicActionId } from "../state/action";
 import {
   createDeterministicFactionFundMovementCommitmentId,
   FACTION_FUND_MOVEMENT_COMMITMENT_STATUSES,
+  FACTION_FUND_MOVEMENT_RESOLUTION_REASONS,
   type FactionFundMovementCommitment,
 } from "../state/factionFundMovement";
 import type { CountryId } from "../state/ids";
@@ -481,6 +482,14 @@ function assertFactionFundMovementCommitments(world: WorldState): void {
     }
 
     if (typedCommitment.status === "active") {
+      if (
+        "resolvedAtTick" in typedCommitment ||
+        "resolutionReason" in typedCommitment
+      ) {
+        throw new Error(
+          `Active FUND_MOVEMENT commitment ${typedCommitment.id} has resolution provenance.`,
+        );
+      }
       const actorTarget = `${typedCommitment.factionId}:${typedCommitment.targetRegionId}`;
       if (activeActorTargets.has(actorTarget)) {
         throw new Error(
@@ -488,6 +497,21 @@ function assertFactionFundMovementCommitments(world: WorldState): void {
         );
       }
       activeActorTargets.add(actorTarget);
+    } else {
+      assertStringEnum(
+        typedCommitment.resolutionReason,
+        FACTION_FUND_MOVEMENT_RESOLUTION_REASONS,
+        `${typedCommitment.id}.resolutionReason`,
+      );
+      if (
+        !Number.isInteger(typedCommitment.resolvedAtTick) ||
+        typedCommitment.resolvedAtTick <= typedCommitment.createdAtTick ||
+        typedCommitment.resolvedAtTick > world.tick
+      ) {
+        throw new Error(
+          `Resolved FUND_MOVEMENT commitment ${typedCommitment.id} has invalid resolution provenance.`,
+        );
+      }
     }
   }
 }

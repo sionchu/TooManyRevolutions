@@ -20,7 +20,13 @@ import {
 import { createGameEvent, type GameEvent } from "../events/event";
 import type { InstitutionalRuleState } from "../state/policy";
 import type { Faction, FactionStrategy } from "../state/faction";
-import type { CountryId, FactionId, IdeologyId, RegionId } from "../state/ids";
+import type {
+  CountryId,
+  FactionFundMovementCommitmentId,
+  FactionId,
+  IdeologyId,
+  RegionId,
+} from "../state/ids";
 import type { Region } from "../state/region";
 import type {
   FactionFundMovementTemplate,
@@ -28,6 +34,7 @@ import type {
 } from "../state/scenario";
 import {
   createDeterministicFactionFundMovementCommitmentId,
+  deriveActiveFactionFundMovementCommitments,
   deriveFactionAvailableResources,
   hasActiveFactionFundMovementCommitment,
   type FactionFundMovementCommitment,
@@ -348,17 +355,22 @@ function deriveAvailableActions(
   faction: Faction,
   institutionalRules: InstitutionalRuleState | null,
   scenario?: ScenarioDefinition,
+  excludedFundMovementCommitmentId?: FactionFundMovementCommitmentId,
 ): Readonly<Record<FactionActionType, boolean>> {
   const fundTemplate = factionFundMovementTemplate(scenario, faction.id);
   const fundMovementAvailable =
     fundTemplate === undefined
       ? faction.resources >= FACTION_HEURISTIC_THRESHOLDS.minimumFundResources
-      : deriveFactionAvailableResources(world, faction.id) >=
-          fundTemplate.resourceAmount &&
+      : deriveFactionAvailableResources(
+          world,
+          faction.id,
+          excludedFundMovementCommitmentId,
+        ) >= fundTemplate.resourceAmount &&
         !hasActiveFactionFundMovementCommitment(
           world,
           faction.id,
           fundTemplate.targetRegionId,
+          excludedFundMovementCommitmentId,
         );
 
   return {
@@ -390,11 +402,11 @@ function deriveStateWeakness(
   );
 }
 
-/** Derive a compact, read-only observation from current mutable state. */
-export function deriveFactionObservation(
+function deriveFactionObservationWithOptions(
   world: WorldState,
   factionId: FactionId,
   scenario?: ScenarioDefinition,
+  excludedFundMovementCommitmentId?: FactionFundMovementCommitmentId,
 ): FactionObservation {
   const faction = world.factions[factionId];
   if (faction === undefined) {
@@ -442,8 +454,18 @@ export function deriveFactionObservation(
       faction,
       institutionalRules,
       scenario,
+      excludedFundMovementCommitmentId,
     ),
   };
+}
+
+/** Derive a compact, read-only observation from current mutable state. */
+export function deriveFactionObservation(
+  world: WorldState,
+  factionId: FactionId,
+  scenario?: ScenarioDefinition,
+): FactionObservation {
+  return deriveFactionObservationWithOptions(world, factionId, scenario);
 }
 
 export interface FactionDynamicsDrivers {
@@ -630,6 +652,37 @@ export function chooseFactionActionType(
   return "WAIT";
 }
 
+/**
+ * Re-evaluate one active earmark with the existing chooser semantics. Only
+ * that commitment's own availability and duplicate effects are excluded.
+ */
+export function wouldFactionRenewFundMovementCommitment(
+  world: WorldState,
+  commitment: FactionFundMovementCommitment,
+  scenario: ScenarioDefinition,
+): boolean {
+  if (commitment.status !== "active") {
+    return false;
+  }
+
+  const template = factionFundMovementTemplate(scenario, commitment.factionId);
+  if (
+    template === undefined ||
+    template.targetRegionId !== commitment.targetRegionId ||
+    template.resourceAmount !== commitment.resourceAmount
+  ) {
+    return false;
+  }
+
+  const observation = deriveFactionObservationWithOptions(
+    world,
+    commitment.factionId,
+    scenario,
+    commitment.id,
+  );
+  return chooseFactionActionType(observation) === "FUND_MOVEMENT";
+}
+
 /** Pure faction decision; the returned proposal does not mutate WorldState. */
 export function chooseFactionActionProposal(
   world: WorldState,
@@ -678,6 +731,83 @@ function isPoliticalBoundary(
     advanceSimDate(world.date),
     cadence,
   );
+}
+
+export interface FactionFundMovementLifecycleApplication {
+  readonly world: WorldState;
+  readonly emittedEvents: readonly GameEvent[];
+  readonly nextEventSequence: number;
+}
+
+/**
+ * Resolve an active earmark only when current authoritative chooser intent has
+ * ceased. Elapsed time, currentStrategy, cooldowns, and hidden progress are
+ * deliberately absent from this transition.
+ */
+export function applyFactionFundMovementLifecycle(
+  world: WorldState,
+  nextTick: number,
+  nextEventSequence: number,
+  scenario: ScenarioDefinition,
+  cadence: PoliticalCadence = DEFAULT_FACTION_POLITICAL_CADENCE,
+): FactionFundMovementLifecycleApplication {
+  if (
+    world.run.outcome.status !== "active" ||
+    !isPoliticalBoundary(world, nextTick, cadence)
+  ) {
+    return { world, emittedEvents: [], nextEventSequence };
+  }
+
+  const resolutions = deriveActiveFactionFundMovementCommitments(world).filter(
+    (commitment) =>
+      !wouldFactionRenewFundMovementCommitment(world, commitment, scenario),
+  );
+  if (resolutions.length === 0) {
+    return { world, emittedEvents: [], nextEventSequence };
+  }
+
+  const nextCommitments = { ...world.factionFundMovementCommitments };
+  const emittedEvents: GameEvent[] = [];
+  let eventSequence = nextEventSequence;
+
+  for (const commitment of resolutions) {
+    nextCommitments[commitment.id] = {
+      ...commitment,
+      status: "resolved",
+      resolvedAtTick: nextTick,
+      resolutionReason: "actorIntentCeased",
+    };
+    emittedEvents.push(
+      createGameEvent({
+        tick: nextTick,
+        sequence: eventSequence,
+        type: "FACTION_FUND_MOVEMENT_RESOLVED",
+        actorId: commitment.factionId,
+        targetId: commitment.targetRegionId,
+        causeIds: [],
+        payload: {
+          commitmentId: commitment.id,
+          sourceActionId: commitment.sourceActionId,
+          factionId: commitment.factionId,
+          targetRegionId: commitment.targetRegionId,
+          resourceAmount: commitment.resourceAmount,
+          resolvedAtTick: nextTick,
+          resolutionReason: "actorIntentCeased",
+        },
+        visibility: "world",
+      }),
+    );
+    eventSequence += 1;
+  }
+
+  return {
+    world: {
+      ...world,
+      factionFundMovementCommitments: nextCommitments,
+    },
+    emittedEvents,
+    nextEventSequence: eventSequence,
+  };
 }
 
 export interface FactionDynamicsApplication {
@@ -801,21 +931,16 @@ const FACTION_ACTION_ACTION_TYPES_SET = new Set<FactionActionType>(
   FACTION_ACTION_ORDER,
 );
 
-function applyTargetedFundMovementCommitment(
+function prepareTargetedFundMovementCommitment(
   context: SimulationPhaseContext,
   world: WorldState,
   action: ValidatedActionRecord,
   payload: TargetedFactionFundMovementActionPayload,
-  nextEventSequence: number,
-): {
-  readonly world: WorldState;
-  readonly event: GameEvent | null;
-  readonly nextEventSequence: number;
-} {
+): FactionFundMovementCommitment | null {
   const scenario = context.scenario;
   const template = factionFundMovementTemplate(scenario, payload.factionId);
   if (template === undefined || world.run.outcome.status !== "active") {
-    return { world, event: null, nextEventSequence };
+    return null;
   }
 
   const faction = world.factions[payload.factionId];
@@ -831,7 +956,7 @@ function applyTargetedFundMovementCommitment(
       payload.resourceAmount ||
     hasActiveFactionFundMovementCommitment(world, faction.id, targetRegion.id)
   ) {
-    return { world, event: null, nextEventSequence };
+    return null;
   }
 
   const commitment: FactionFundMovementCommitment = {
@@ -844,18 +969,31 @@ function applyTargetedFundMovementCommitment(
     status: "active",
   };
   if (world.factionFundMovementCommitments[commitment.id] !== undefined) {
-    return { world, event: null, nextEventSequence };
+    return null;
   }
 
+  return commitment;
+}
+
+function applyPreparedTargetedFundMovementCommitment(
+  context: SimulationPhaseContext,
+  world: WorldState,
+  commitment: FactionFundMovementCommitment & { readonly status: "active" },
+  nextEventSequence: number,
+): {
+  readonly world: WorldState;
+  readonly event: GameEvent;
+  readonly nextEventSequence: number;
+} {
   const event = createGameEvent({
     tick: context.nextTick,
     sequence: nextEventSequence,
     type: "FACTION_FUND_MOVEMENT_COMMITTED",
-    actorId: faction.id,
-    targetId: targetRegion.id,
+    actorId: commitment.factionId,
+    targetId: commitment.targetRegionId,
     causeIds: [],
     payload: {
-      actionId: action.id,
+      actionId: commitment.sourceActionId,
       commitmentId: commitment.id,
       factionId: commitment.factionId,
       targetRegionId: commitment.targetRegionId,
@@ -903,6 +1041,19 @@ function applyAcceptedFactionActions(context: SimulationPhaseContext): {
       continue;
     }
 
+    const targetedCommitment =
+      targetedPayload === null
+        ? null
+        : prepareTargetedFundMovementCommitment(
+            context,
+            currentWorld,
+            action,
+            targetedPayload,
+          );
+    if (targetedPayload !== null && targetedCommitment === null) {
+      continue;
+    }
+
     const nextStrategy = strategyForActionType(action.actionType);
     if (faction.currentStrategy !== nextStrategy) {
       const event = createGameEvent({
@@ -936,18 +1087,15 @@ function applyAcceptedFactionActions(context: SimulationPhaseContext): {
       };
     }
 
-    if (targetedPayload !== null) {
-      const committed = applyTargetedFundMovementCommitment(
+    if (targetedCommitment?.status === "active") {
+      const committed = applyPreparedTargetedFundMovementCommitment(
         context,
         currentWorld,
-        action,
-        targetedPayload,
+        targetedCommitment,
         nextEventSequence,
       );
       currentWorld = committed.world;
-      if (committed.event !== null) {
-        emittedEvents.push(committed.event);
-      }
+      emittedEvents.push(committed.event);
       nextEventSequence = committed.nextEventSequence;
     }
 
@@ -991,17 +1139,31 @@ export function runFactionPressurePhase(
     context.scenario,
     config.dynamics,
   );
+  const lifecycle =
+    context.scenario === undefined
+      ? {
+          world: dynamics.world,
+          emittedEvents: [] as readonly GameEvent[],
+          nextEventSequence: applied.nextEventSequence,
+        }
+      : applyFactionFundMovementLifecycle(
+          dynamics.world,
+          context.nextTick,
+          applied.nextEventSequence,
+          context.scenario,
+          cadence,
+        );
   const factionProposals = deriveFactionActionProposals(
-    dynamics.world,
+    lifecycle.world,
     context.nextTick,
     cadence,
     context.scenario,
   );
 
   return {
-    nextWorld: dynamics.world,
-    emittedEvents: applied.emittedEvents,
-    nextEventSequence: applied.nextEventSequence,
+    nextWorld: lifecycle.world,
+    emittedEvents: [...applied.emittedEvents, ...lifecycle.emittedEvents],
+    nextEventSequence: lifecycle.nextEventSequence,
     actionProposals: factionProposals.map((proposal) =>
       toFactionActionProposal(proposal, context.nextTick + 1),
     ),

@@ -14,21 +14,40 @@ export interface TargetedFactionFundMovementActionPayload {
   readonly resourceAmount: number;
 }
 
-export const FACTION_FUND_MOVEMENT_COMMITMENT_STATUSES = ["active"] as const;
+export const FACTION_FUND_MOVEMENT_COMMITMENT_STATUSES = [
+  "active",
+  "resolved",
+] as const;
+
+export const FACTION_FUND_MOVEMENT_RESOLUTION_REASONS = [
+  "actorIntentCeased",
+] as const;
 
 export type FactionFundMovementCommitmentStatus =
   (typeof FACTION_FUND_MOVEMENT_COMMITMENT_STATUSES)[number];
 
+export type FactionFundMovementResolutionReason =
+  (typeof FACTION_FUND_MOVEMENT_RESOLUTION_REASONS)[number];
+
 /** Authoritative actor-owned earmark; it has no completion timer or payoff. */
-export interface FactionFundMovementCommitment {
+interface FactionFundMovementCommitmentBase {
   readonly id: FactionFundMovementCommitmentId;
   readonly sourceActionId: ActionId;
   readonly factionId: FactionId;
   readonly targetRegionId: RegionId;
   readonly resourceAmount: number;
   readonly createdAtTick: number;
-  readonly status: FactionFundMovementCommitmentStatus;
 }
+
+export type FactionFundMovementCommitment =
+  | (FactionFundMovementCommitmentBase & {
+      readonly status: "active";
+    })
+  | (FactionFundMovementCommitmentBase & {
+      readonly status: "resolved";
+      readonly resolvedAtTick: number;
+      readonly resolutionReason: FactionFundMovementResolutionReason;
+    });
 
 export function createDeterministicFactionFundMovementCommitmentId(
   actionId: ActionId,
@@ -55,9 +74,12 @@ export function hasActiveFactionFundMovementCommitment(
   world: WorldState,
   factionId: FactionId,
   targetRegionId: RegionId,
+  excludedCommitmentId?: FactionFundMovementCommitmentId,
 ): boolean {
   return deriveActiveFactionFundMovementCommitments(world, factionId).some(
-    (commitment) => commitment.targetRegionId === targetRegionId,
+    (commitment) =>
+      commitment.id !== excludedCommitmentId &&
+      commitment.targetRegionId === targetRegionId,
   );
 }
 
@@ -68,6 +90,7 @@ export function hasActiveFactionFundMovementCommitment(
 export function deriveFactionAvailableResources(
   world: WorldState,
   factionId: FactionId,
+  excludedCommitmentId?: FactionFundMovementCommitmentId,
 ): number {
   const faction = world.factions[factionId];
   if (faction === undefined) {
@@ -77,7 +100,9 @@ export function deriveFactionAvailableResources(
   const activeEarmark = deriveActiveFactionFundMovementCommitments(
     world,
     factionId,
-  ).reduce((total, commitment) => total + commitment.resourceAmount, 0);
+  )
+    .filter((commitment) => commitment.id !== excludedCommitmentId)
+    .reduce((total, commitment) => total + commitment.resourceAmount, 0);
 
   return Math.max(0, faction.resources - activeEarmark);
 }

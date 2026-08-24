@@ -1080,6 +1080,37 @@ T017/T018/T021이 갱신된 authoritative faction fields를 기존 규칙으로
 읽는다. `0.02` step은 Gate 1F recovery-timescale 측정값이며 최종 balance
 결정이 아니다.
 
+## 10.2B F05_FIX14 FUND_MOVEMENT commitment lifecycle
+
+Targeted schema-v2 `FUND_MOVEMENT`는 scenario-authored target/amount, current
+profile match, target ownership, available resources, active duplicate를 전부
+검증한 뒤에만 `currentStrategy`와 commitment를 함께 변경한다. 이 business
+validation이 실패하면 strategy event, commitment, success event가 모두 없으며,
+legacy schema-v1의 strategy-only semantics는 유지한다.
+
+Active commitment의 유일한 lifecycle transition은 월간 faction political
+boundary에서 이루어지는 `active -> resolved`다. 시스템은 actor가 현재
+authoritative state에서 여전히 `FUND_MOVEMENT`를 선택하는지 기존 observation과
+기존 `chooseFactionActionType()`으로 다시 계산한다. 이때 자기 자신의 active
+commitment만 duplicate/available-resource projection에서 제외하며, 다른 active
+commitment는 그대로 읽는다. `currentStrategy`, elapsed ticks, duration, timer,
+cooldown, countdown은 resolution 조건이 아니다.
+
+Actor intent가 더는 `FUND_MOVEMENT`가 아니면 commitment에 `resolvedAtTick`과
+`actorIntentCeased` provenance를 기록하고
+`FACTION_FUND_MOVEMENT_RESOLVED` event를 정확히 한 번 배출한다. Resolution은
+`Faction.resources` stock을 쓰지 않는다. 가용 자원은 active earmark 합계를
+제외해 파생하므로 해소 직후 자동 복원된다. Resolved commitment는 이력으로
+남되 active duplicate와 Agenda cause에서는 제외된다. 이후 authoritative
+state가 다시 FUND_MOVEMENT intent를 만들면 새 ActionRecord/source provenance로
+한 번 재진입할 수 있다.
+
+Faction dynamics가 먼저 현재 grievance/organization을 갱신한 뒤 lifecycle과
+새 proposal이 같은 월간 boundary에서 그 결과를 읽는다. 따라서 기존 player
+intervention completion effect를 포함해 그 시점까지 적용된 authoritative
+state만 lifecycle 원인이 된다. Lifecycle 자체는 payoff, faction scalar,
+crisis, Conflict, LandHex, continuity, terminal state를 쓰지 않는다.
+
 ## 10.3 T016A agenda/read-model boundary
 
 T016A의 agenda는 현재 압력을 읽기 쉽게 묶는 **순수 read model**이다. agenda를 `WorldState`에 저장하거나 `RunState`의 진행·완료·다음 단계로 해석하지 않는다. 허용되는 형태는 다음과 같다.
@@ -2252,7 +2283,7 @@ No core control may require experimental APIs.
 
 T024는 authoritative runtime과 이미 커밋된 causal history를 함께 보존하는
 versioned in-memory snapshot boundary를 구현했다. 현재 public contract는
-`SerializedSimulationSnapshotV5`, `serializeSimulationSnapshot()`/
+`SerializedSimulationSnapshotV6`, `serializeSimulationSnapshot()`/
 `serializeSimulationSnapshotJson()`, `deserializeSimulationSnapshot()`,
 `commitSimulationStep()`, `cloneRunRecordViaSnapshot()`이다. 브라우저 파일,
 `localStorage`/IndexedDB, cloud save slot은 이 경계의 책임이 아니다.
@@ -2261,7 +2292,8 @@ snapshot envelope에는 다음만 들어간다.
 
 - `formatVersion`, `scenarioId`, `scenarioVersion`
 - 현재 `WorldState`의 tick/date, Country/Region/Faction/Government/Conflict,
-  policy/institution runtime, intervention commitment, political proposal,
+  policy/institution runtime, intervention commitment, faction fund-movement
+  commitment, political proposal,
   mutable ContactGraph edge state, `LandHexRuntimeState`, `RunState`, `rngState`
 - `RunState.actionLog`의 player/heuristic/LLM 공통 `ActionRecord` history
 - 별도로 보관되는 `EventStore`의 전체 ordered `GameEvent` history
@@ -2274,7 +2306,7 @@ consolidation/dissolution eligibility, UI/presentation state도 저장하지 않
 
 ```text
 static ScenarioDefinition (별도 로드)
-  + SerializedSimulationSnapshotV5
+  + SerializedSimulationSnapshotV6
   -> validated WorldState + EventStore
   -> derived selectors/read models
 ```
@@ -2284,7 +2316,7 @@ static ScenarioDefinition (별도 로드)
 deserialize는 외부/저장 데이터를 `WorldState`로 직접 cast하지 않는다. JSON
 primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unknown key,
 잘못된 format version, 필수 필드 누락, 잘못된 reference를 거부한다. decode 뒤에는
-`assertScenarioRuntimeClosure(scenario, world)`가 현재 V5 시나리오와 runtime 전체가
+`assertScenarioRuntimeClosure(scenario, world)`가 현재 V6 시나리오와 runtime 전체가
 닫혀 있는지 검증한다.
 
 - snapshot top-level identity와 `WorldState.run.scenarioId/version`이 전달된
@@ -2298,7 +2330,7 @@ primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unk
   않는다. 이 static identity/membership/topology는 scenario에서만 읽는다.
 - Region에 `controller`를 만들지 않으며, physical territory authority는 계속
   `WorldState.landHexStates[*].controller` 하나다.
-- V5에는 Country/Region/Faction/PolicyState의 runtime lifecycle이 없으므로
+- V6에는 Country/Region/Faction/PolicyState의 identity lifecycle이 없으므로
   `initialCountries`, `initialRegions`, `initialFactions`,
   `initialCountryPolicies`와 각각의 runtime identity set이 정확히 일치해야
   한다. 후속 state successor나 동적 actor 생성을 도입할 때는 별도 lifecycle
@@ -2313,11 +2345,15 @@ primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unk
   deterministic Action ID와 append-only 중복 금지를 검증한다. Intervention
   commitment는 `sourceActionId`, accepted `START_INTERVENTION` payload, 시작
   tick/country/intervention, deterministic commitment ID가 서로 일치해야 한다.
+- faction fund-movement commitment는 accepted targeted-v2 `FUND_MOVEMENT`
+  ActionRecord와 deterministic ID/actor/target/amount/creation provenance가
+  일치해야 한다. active record에는 resolution field/event가 없어야 하고,
+  resolved record에는 일치하는 `FACTION_FUND_MOVEMENT_RESOLVED` event가 정확히
+  하나 있어야 한다.
 
-현재 format은 `version: 4`만 지원한다. F05_FIX8의 explicit-reject
-reconsideration basis를 누락한 V3와 F05_FIX6/F04D 필드를 누락한 version 1/2,
-unknown version은 명확히 reject한다. migration framework나 과거 format chain은
-만들지 않았다. 별도 content hash는
+현재 format은 `version: 6`만 지원한다. resolved FUND_MOVEMENT lifecycle을
+표현하지 못하는 V5와 그 이전 version, unknown version은 명확히 reject한다.
+migration framework나 과거 format chain은 만들지 않았다. 별도 content hash는
 아직 도입하지 않으며, 정적 ScenarioDefinition 호환성은 `scenarioId`와
 `scenarioVersion`으로 관리한다. 호환되지 않는 content 변경은 version bump를
 요구한다.
@@ -2325,7 +2361,7 @@ unknown version은 명확히 reject한다. migration framework나 과거 format 
 명시적 `REJECT` proposal episode만 현재 Government와 요청된
 InterventionDefinition의 feasibility boolean/이산 failure class를
 `reconsiderationBasis`로 보존한다. 이 basis는 raw treasury/headroom 값이나
-Agenda/read-model 결과를 저장하지 않으며, V5 decoder와 runtime closure가
+Agenda/read-model 결과를 저장하지 않으며, V6 decoder와 runtime closure가
 Government provenance, canonical class ordering, feasible/failed 조합을
 검증한다. 같은 stable demand는 basis가 바뀌기 전에는 다시 열리지 않고,
 Government 또는 named feasibility basis가 바뀐 경우에만 새 episode가 될 수

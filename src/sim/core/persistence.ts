@@ -33,6 +33,7 @@ import type { IdeologyState } from "../state/ideology";
 import type { InterventionCommitment } from "../state/intervention";
 import {
   FACTION_FUND_MOVEMENT_COMMITMENT_STATUSES,
+  FACTION_FUND_MOVEMENT_RESOLUTION_REASONS,
   type FactionFundMovementCommitment,
 } from "../state/factionFundMovement";
 import {
@@ -97,7 +98,7 @@ import {
 import { freezeCanonicalGraph } from "./canonicalFreeze";
 import { claimCanonicalSimulationStepResult } from "./tick";
 
-export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 5 as const;
+export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 6 as const;
 
 const canonicalRunRecords = new WeakMap<RunRecord, ScenarioDefinition>();
 
@@ -118,7 +119,7 @@ function registerCanonicalRunRecord<T extends RunRecord>(
   return record;
 }
 
-export interface SerializedWorldStateV5 {
+export interface SerializedWorldStateV6 {
   readonly tick: number;
   readonly date: SimDate;
   readonly countries: Readonly<Record<string, Country>>;
@@ -145,11 +146,11 @@ export interface SerializedEventStoreV2 {
 }
 
 /** Versioned runtime snapshot. Static ScenarioDefinition content is excluded. */
-export interface SerializedSimulationSnapshotV5 {
+export interface SerializedSimulationSnapshotV6 {
   readonly formatVersion: typeof SIMULATION_SNAPSHOT_FORMAT_VERSION;
   readonly scenarioId: string;
   readonly scenarioVersion: number;
-  readonly world: SerializedWorldStateV5;
+  readonly world: SerializedWorldStateV6;
   readonly eventStore: SerializedEventStoreV2;
 }
 
@@ -441,7 +442,7 @@ function cloneEvent(event: GameEvent): GameEvent {
   };
 }
 
-function cloneWorldState(world: WorldState): SerializedWorldStateV5 {
+function cloneWorldState(world: WorldState): SerializedWorldStateV6 {
   return {
     tick: world.tick,
     date: { ...world.date },
@@ -1348,21 +1349,38 @@ function decodeFactionFundMovementCommitment(
   label: string,
 ): FactionFundMovementCommitment {
   const record = expectRecord(value, label);
+  const status = expectEnum(
+    required(record, "status", label),
+    FACTION_FUND_MOVEMENT_COMMITMENT_STATUSES,
+    `${label}.status`,
+  );
   assertKnownKeys(
     record,
-    [
-      "id",
-      "sourceActionId",
-      "factionId",
-      "targetRegionId",
-      "resourceAmount",
-      "createdAtTick",
-      "status",
-    ],
+    status === "active"
+      ? [
+          "id",
+          "sourceActionId",
+          "factionId",
+          "targetRegionId",
+          "resourceAmount",
+          "createdAtTick",
+          "status",
+        ]
+      : [
+          "id",
+          "sourceActionId",
+          "factionId",
+          "targetRegionId",
+          "resourceAmount",
+          "createdAtTick",
+          "status",
+          "resolvedAtTick",
+          "resolutionReason",
+        ],
     label,
   );
 
-  return {
+  const base = {
     id: asFactionFundMovementCommitmentId(
       expectNonEmptyString(required(record, "id", label), `${label}.id`),
     ),
@@ -1392,10 +1410,23 @@ function decodeFactionFundMovementCommitment(
       required(record, "createdAtTick", label),
       `${label}.createdAtTick`,
     ),
-    status: expectEnum(
-      required(record, "status", label),
-      FACTION_FUND_MOVEMENT_COMMITMENT_STATUSES,
-      `${label}.status`,
+  };
+
+  if (status === "active") {
+    return { ...base, status };
+  }
+
+  return {
+    ...base,
+    status,
+    resolvedAtTick: expectNonNegativeInteger(
+      required(record, "resolvedAtTick", label),
+      `${label}.resolvedAtTick`,
+    ),
+    resolutionReason: expectEnum(
+      required(record, "resolutionReason", label),
+      FACTION_FUND_MOVEMENT_RESOLUTION_REASONS,
+      `${label}.resolutionReason`,
     ),
   };
 }
@@ -2341,6 +2372,9 @@ function assertFactionFundMovementEventProvenance(
   const commitmentEvents = eventStore.events.filter(
     (event) => event.type === "FACTION_FUND_MOVEMENT_COMMITTED",
   );
+  const resolutionEvents = eventStore.events.filter(
+    (event) => event.type === "FACTION_FUND_MOVEMENT_RESOLVED",
+  );
 
   for (const commitment of Object.values(
     world.factionFundMovementCommitments,
@@ -2359,6 +2393,7 @@ function assertFactionFundMovementEventProvenance(
       event.tick !== commitment.createdAtTick ||
       event.actorId !== commitment.factionId ||
       event.targetId !== commitment.targetRegionId ||
+      eventPayloadValue(event, "actionId") !== commitment.sourceActionId ||
       eventPayloadValue(event, "factionId") !== commitment.factionId ||
       eventPayloadValue(event, "targetRegionId") !==
         commitment.targetRegionId ||
@@ -2368,6 +2403,47 @@ function assertFactionFundMovementEventProvenance(
     ) {
       throw new Error(
         `FUND_MOVEMENT commitment ${commitment.id} creation event does not match state.`,
+      );
+    }
+
+    const matchingResolutionEvents = resolutionEvents.filter(
+      (candidate) =>
+        eventPayloadValue(candidate, "commitmentId") === commitment.id,
+    );
+    if (commitment.status === "active") {
+      if (matchingResolutionEvents.length !== 0) {
+        throw new Error(
+          `Active FUND_MOVEMENT commitment ${commitment.id} has a resolution event.`,
+        );
+      }
+      continue;
+    }
+
+    if (matchingResolutionEvents.length !== 1) {
+      throw new Error(
+        `Resolved FUND_MOVEMENT commitment ${commitment.id} must have exactly one resolution event.`,
+      );
+    }
+    const resolutionEvent = matchingResolutionEvents[0]!;
+    if (
+      resolutionEvent.tick !== commitment.resolvedAtTick ||
+      resolutionEvent.actorId !== commitment.factionId ||
+      resolutionEvent.targetId !== commitment.targetRegionId ||
+      eventPayloadValue(resolutionEvent, "sourceActionId") !==
+        commitment.sourceActionId ||
+      eventPayloadValue(resolutionEvent, "factionId") !==
+        commitment.factionId ||
+      eventPayloadValue(resolutionEvent, "targetRegionId") !==
+        commitment.targetRegionId ||
+      eventPayloadValue(resolutionEvent, "resourceAmount") !==
+        commitment.resourceAmount ||
+      eventPayloadValue(resolutionEvent, "resolvedAtTick") !==
+        commitment.resolvedAtTick ||
+      eventPayloadValue(resolutionEvent, "resolutionReason") !==
+        commitment.resolutionReason
+    ) {
+      throw new Error(
+        `FUND_MOVEMENT commitment ${commitment.id} resolution event does not match state.`,
       );
     }
   }
@@ -2382,6 +2458,21 @@ function assertFactionFundMovementEventProvenance(
     ) {
       throw new Error(
         `FUND_MOVEMENT creation event ${event.id} references an unknown commitment.`,
+      );
+    }
+  }
+
+  for (const event of resolutionEvents) {
+    const commitmentId = eventPayloadValue(event, "commitmentId");
+    const commitment =
+      typeof commitmentId === "string"
+        ? world.factionFundMovementCommitments[
+            asFactionFundMovementCommitmentId(commitmentId)
+          ]
+        : undefined;
+    if (commitment?.status !== "resolved") {
+      throw new Error(
+        `FUND_MOVEMENT resolution event ${event.id} references no resolved commitment.`,
       );
     }
   }
@@ -2447,7 +2538,7 @@ function assertRunRecordForPersistence(
 export function serializeSimulationSnapshot(
   scenario: ScenarioDefinition,
   record: RunRecord,
-): SerializedSimulationSnapshotV5 {
+): SerializedSimulationSnapshotV6 {
   assertRunRecordForPersistence(scenario, record);
 
   return {
