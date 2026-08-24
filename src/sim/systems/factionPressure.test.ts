@@ -8,7 +8,11 @@ import { createDefaultInstitutionalRuleState } from "../state/policy";
 import { createIdeologyFixtureScenario } from "../state/ideologyFixture";
 import type { Region } from "../state/region";
 import { createInitialWorldState, type WorldState } from "../state/world";
-import { acceptActionProposals, FACTION_ACTION_TYPES } from "../state/action";
+import {
+  acceptActionProposal,
+  acceptActionProposals,
+  FACTION_ACTION_TYPES,
+} from "../state/action";
 import {
   applyFactionDynamics,
   acceptFactionActionProposal,
@@ -535,6 +539,121 @@ describe("T016 faction pressure", () => {
     ).toBe(false);
     expect(repeated.nextWorld.countries).toBe(changed.nextWorld.countries);
     expect(repeated.nextWorld.regions).toBe(changed.nextWorld.regions);
+  });
+
+  it("keeps all five faction actions strategy-only until a grounded consumer exists", () => {
+    const world = createFixtureWorld();
+    const actionTypes = [
+      "FUND_MOVEMENT",
+      "ORGANIZE",
+      "LOBBY",
+      "BARGAIN",
+      "ACCEPT",
+    ] as const;
+    const expectedStrategies = {
+      FUND_MOVEMENT: "fundMovement",
+      ORGANIZE: "organize",
+      LOBBY: "lobby",
+      BARGAIN: "bargain",
+      ACCEPT: "accept",
+    } as const;
+
+    for (const actionType of actionTypes) {
+      const action = acceptActionProposal(
+        {
+          tick: 1,
+          source: "heuristic",
+          actionType,
+          payload: { factionId: FACTION_IDS.merchant },
+          schemaVersion: 1,
+        },
+        0,
+      );
+      const withoutAction = runSimulationStep(
+        world,
+        { actions: [] },
+        { instability: noInstabilityPhase },
+      );
+      const withAction = runSimulationStep(
+        world,
+        { actions: [action] },
+        { instability: noInstabilityPhase },
+      );
+      const withoutFaction =
+        withoutAction.nextWorld.factions[FACTION_IDS.merchant];
+      const withFaction = withAction.nextWorld.factions[FACTION_IDS.merchant];
+
+      expect(withFaction).toBeDefined();
+      expect(withoutFaction).toBeDefined();
+      expect({ ...withFaction, currentStrategy: "wait" }).toEqual(
+        withoutFaction,
+      );
+      expect(withFaction?.currentStrategy).toBe(expectedStrategies[actionType]);
+      expect(withAction.nextWorld.countries).toEqual(
+        withoutAction.nextWorld.countries,
+      );
+      expect(withAction.nextWorld.regions).toEqual(
+        withoutAction.nextWorld.regions,
+      );
+      expect(withAction.nextWorld.policies).toEqual(
+        withoutAction.nextWorld.policies,
+      );
+      expect(withAction.nextWorld.conflicts).toEqual(
+        withoutAction.nextWorld.conflicts,
+      );
+      expect(withAction.nextWorld.landHexStates).toEqual(
+        withoutAction.nextWorld.landHexStates,
+      );
+      expect(
+        withAction.emittedEvents
+          .filter((event) => event.type !== "TICK_ADVANCED")
+          .map((event) => event.type),
+      ).toEqual(["FACTION_STRATEGY_CHANGED"]);
+
+      const repeated = runSimulationStep(
+        withAction.nextWorld,
+        {
+          actions: [
+            acceptActionProposal(
+              {
+                tick: 2,
+                source: "heuristic",
+                actionType,
+                payload: { factionId: FACTION_IDS.merchant },
+                schemaVersion: 1,
+              },
+              withAction.nextWorld.run.nextActionSequence,
+            ),
+          ],
+        },
+        { instability: noInstabilityPhase },
+      );
+      const repeatedWithoutAction = runSimulationStep(
+        withAction.nextWorld,
+        { actions: [] },
+        { instability: noInstabilityPhase },
+      );
+
+      expect(repeated.nextWorld.factions[FACTION_IDS.merchant]).toEqual(
+        expect.objectContaining({
+          currentStrategy: expectedStrategies[actionType],
+          resources:
+            repeatedWithoutAction.nextWorld.factions[FACTION_IDS.merchant]!
+              .resources,
+          organization:
+            repeatedWithoutAction.nextWorld.factions[FACTION_IDS.merchant]!
+              .organization,
+          grievance:
+            repeatedWithoutAction.nextWorld.factions[FACTION_IDS.merchant]!
+              .grievance,
+        }),
+      );
+      expect(
+        repeated.emittedEvents.some(
+          (event) => event.type === "FACTION_STRATEGY_CHANGED",
+        ),
+      ).toBe(false);
+    }
   });
 
   it("does not mutate country instability, region unrest, or ideology", () => {
