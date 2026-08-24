@@ -40,9 +40,15 @@ F05_FIX6_RESULT_COMMIT: ef87782188de9337661e8d5a54e7845f9bb7e325
 
 F05_FIX7_TASK_COMMIT: 20a9b0e7db45bbec092012456a638fd921009bd5
 
+F05_FIX7_IMPLEMENTATION_COMMIT: 60a4a1d75a631490a23c9e670d60a5dcc473bf18
+
+F05_FIX7_RESULT_COMMIT: d89c3864e8a6a8533a25acc83740ee782521c4c1
+
+F05_FIX8_TASK_COMMIT: dbd39ff9e5fdc22a29cef1157399a634a0fa7701
+
 CURRENT_GATE: Gate 1F
 
-CURRENT_PHASE: F05_FIX7 Political Interaction long-horizon integration measurement
+CURRENT_PHASE: F05_FIX8 Proposal Lifecycle Semantics + Non-Accept Divergence Audit
 
 F04: CLOSED / PASS
 
@@ -100,11 +106,9 @@ F05_FIX6_TARGETED_COUNTERFACTUAL: meaningful
 
 F05_FIX6_OFFICIAL_F05_PACING: unchanged / NOT_READY
 
-F05_FIX7: COMPLETE / AWAITING_CHATGPT_REVIEW
+F05_FIX7: COMPLETE / REVIEWED
 
-F05_FIX7_IMPLEMENTATION_COMMIT: 60a4a1d
-
-F05_FIX7_RESULT_COMMIT: d89c386
+F05_FIX7_TASK: PASS / ACCEPTED
 
 F05_FIX7_CLASSIFICATION: PROPOSAL_RESPONSE_DOMINANCE_OR_CHURN
 
@@ -124,19 +128,23 @@ F05_FIX7_REOPEN_CHURN: PRESENT / 48 identical-key reopens
 
 F05_FIX7_RESPONSE_DOMINANCE: MIXED
 
+F05_FIX7_NON_ACCEPT_DIVERGENCE: 4 IGNORE + 4 REJECT branches differ from matching NO_TEMPLATE and require causal audit
+
 F05_FIX7_READY_FOR_F05_PROMOTION: NO
 
 F05_FIX7_GATE1F_RECOMMENDATION: NOT_READY
 
-F05_FIX7_DIRECTION: preserve historical F05 baseline and run a separate five-year proposal-response integration matrix
+F05_FIX8: AUTHORIZED / NOT STARTED
 
-F05_FIX7_RESPONSE_MODES: NO_TEMPLATE control / PROPOSAL_IGNORE / PROPOSAL_REJECT / PROPOSAL_ACCEPT_IF_FEASIBLE
+F05_FIX8_DIRECTION: audit the 8 non-accept divergences first, then implement only a state-grounded rejected-demand reconsideration contract if the audit is fully resolved
 
-F05_FIX7_REQUIRED_CLEANUP: v1 FactionProposalTemplate trigger contract must be LOBBY-only
+F05_FIX8_DEMAND_IDENTITY: proposerFactionId + countryId + subjectKind + interventionId preferred; Government/action/event/tick are proposal-episode provenance
 
-F05_FIX7_GATE_METRIC_RULE: proposal lifecycle events alone do not count as pacing repair; state-grounded reassessment remains the Gate-relevant comparison
+F05_FIX8_RECONSIDERATION_GUARDRAIL: no cooldown or permanent ban; reopen only after a named relevant authoritative condition such as target Government or requested-intervention feasibility basis materially changes
 
-F05_FIX7_PRIMARY_QUESTION: does proposal-response interaction durably reduce the early/near 1,200-day late steady-state gap after the requested intervention completes?
+F05_FIX8_PERSISTENCE: V4 expected only if authoritative reconsideration basis must be stored; otherwise explain and preserve V3
+
+F05_FIX8_HISTORICAL_F05_BASELINE: MUST REMAIN UNCHANGED
 
 GATE1F_CHATGPT_DECISION: NOT_READY
 
@@ -144,79 +152,70 @@ V02: NOT STARTED
 
 POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
 
-PERSISTENCE: SerializedSimulationSnapshotV3; V2 is explicitly rejected
+PERSISTENCE: SerializedSimulationSnapshotV3 currently; F05_FIX8 may version explicitly if lifecycle state requires it
 
 LAST_COMPLETED_TASK_ID: F05_FIX7
 
-NEXT_AUTHORIZED_TASK_ID: NONE
+NEXT_AUTHORIZED_TASK_ID: F05_FIX8
 
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
+NEXT_TASK_STATUS: AUTHORIZED
 
-CURRENT_TASK_FILE: NONE
+CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX8.md`
 
 LAST_RESULT_FILE: `docs/bridge/results/F05_FIX7_RESULT.md`
 
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
-## ChatGPT acceptance of F05_FIX6
+## ChatGPT acceptance of F05_FIX7
 
-ChatGPT accepts F05_FIX6 as a correct and meaningful Political Interaction Kernel vertical slice.
+ChatGPT accepts F05_FIX7 as a correct long-horizon integration measurement.
 
 Accepted facts:
 
-- explicit scenario-authored `LOBBY -> InterventionId` mapping is used; no demand is inferred from ideology/interests;
-- `PoliticalProposal` is authoritative WorldState with proposer, Country, captured Government, interventionRequest subject, lifecycle, and provenance;
-- player `RESPOND_POLITICAL_PROPOSAL(accept|reject)` is a normal accepted ActionRecord;
-- REJECT preserves the requested-intervention status quo;
-- ACCEPT uses the response ActionRecord itself as the source of the existing intervention feasibility/cost/admin/duration/commitment/effect path;
-- no hidden synthetic `START_INTERVENTION` ActionRecord exists;
-- stale Government targets are rejected without retargeting;
-- infeasible ACCEPT leaves the proposal open and does not start the intervention;
-- proposal state/provenance round-trip under strict snapshot V3 and V2 is rejected;
-- no proposal-owned LandHex, conflict, continuity, Government-transition, or terminal writer was added;
-- the same-seed NO_PROPOSAL / IGNORE / REJECT / ACCEPT counterfactual is meaningful because only ACCEPT reaches the existing bounded intervention consequence;
-- official F05 remains unchanged, so Gate 1F remains NOT_READY.
+- the historical six-strategy / 36-branch F05 baseline remains unchanged and trustworthy;
+- the separate proposal-enabled population contains 108 branches, for 144 total measured branches;
+- proposal lifecycle events remain excluded from Gate-relevant F05 pacing metrics;
+- `PROPOSAL_ACCEPT_IF_FEASIBLE` reaches the existing intervention path in 18 branches and can produce meaningful state-grounded differences;
+- representative early/near WAIT branches improve state-grounded reassessment silence from 510 to 330 days after ACCEPT;
+- nevertheless proposal-enabled worst-case state-grounded reassessment silence remains 1,200 days and post-intervention late silence reaches 1,110 days;
+- `PROPOSAL_REJECT` creates 48 identical-demand reopens without an intervening semantic reconsideration rule;
+- response dominance is MIXED, not a universal ACCEPT best response;
+- therefore the Political Interaction Kernel is meaningful but not ready for official F05 promotion;
+- Gate 1F remains NOT_READY and V02 remains blocked.
 
-Minor accepted cleanup for the next task:
+Independent review also requires the next task to explain why 4 IGNORE and 4 REJECT branches differ from their matching NO_TEMPLATE controls despite no requested intervention being accepted.
 
-- v1 scenario template typing/validation currently permits the full FactionActionType vocabulary while the implemented opener/provenance contract is LOBBY-only; F05_FIX7 must close that configuration footgun without generalizing the political domain.
+## F05_FIX8 direction
 
-## F05_FIX7 integration direction
-
-F05_FIX7 must not add new proposal subjects or new faction effects. It must integrate the accepted kernel into a developer-only long-horizon F05 comparison while preserving the historical official 36-branch F05 result.
-
-Required response policies:
+F05_FIX8 must proceed in this order:
 
 ```text
-NO_TEMPLATE
-PROPOSAL_IGNORE
-PROPOSAL_REJECT
-PROPOSAL_ACCEPT_IF_FEASIBLE
+8-branch non-accept divergence causal audit
+-> if fully resolved, proposal demand identity / episode semantics design
+-> if grounded, rejected-demand reconsideration implementation
+-> long-horizon rerun
 ```
 
-The proposal-enabled matrix must cross the existing six F05 contexts and six existing intervention strategies with IGNORE / REJECT / ACCEPT_IF_FEASIBLE. The historical NO_TEMPLATE 36 branches remain the control.
+The divergence audit must identify the first tick and first authoritative/action/event difference for every affected branch and separate historical-runner effects, F05_FIX7 developer-runner effects, proposal-state effects, and measurement artifacts. An unresolved branch blocks lifecycle implementation.
 
-Measurement must separate:
+Rejected proposal lifecycle must distinguish a stable demand from individual proposal episodes. Pure time passage, monthly LOBBY recurrence, or new ActionIds cannot authorize the same rejected demand again. At the same time, rejection cannot become a permanent gate shutoff: a new Government or a real change in the requested intervention's relevant feasibility basis must be able to justify reconsideration.
 
-1. state-grounded reassessment — existing pacing events, Agenda changes, intervention feasibility/choice changes, and real state consequences;
-2. proposal decision load — proposal open/resolve/actionability changes reported separately.
-
-Proposal lifecycle events must not be added to `PACING_EVENT_TYPES` merely to shorten silence. Repeated identical proposals after rejection must be diagnosed as churn rather than automatically suppressed with a new cooldown or timer.
-
-F05_FIX7 may recommend `READY_FOR_F05_PROMOTION: YES` if the interaction produces robust, non-dominant, state-grounded long-horizon improvement. It must not itself redefine the official F05 strategy matrix, pass Gate 1F, authorize V02, or authorize a follow-up task.
+If this requires new authoritative persisted lifecycle context, persistence must be explicitly versioned and replay-safe. No raw scalar hash may be used merely to manufacture change.
 
 ## Still forbidden
 
-- direct scalar faction bonuses from proposal lifecycle;
-- additional proposal templates for pacing variety;
-- BARGAIN/counteroffer/full settlement systems;
+- arbitrary proposal cooldown/expiry timer;
+- permanent rejected-demand ban without state-grounded reconsideration;
+- raw scalar snapshot/hash used only to permit reopening;
+- Agenda/read-model values as authoritative proposal eligibility;
+- additional proposal subjects/templates or BARGAIN/counteroffers/full settlement;
+- direct faction scalar bonuses from proposal lifecycle;
 - generic utility/political-power/stability meters;
-- probabilistic player response or autonomous production player AI;
+- probabilistic player response or production player AI;
 - Nash/CFR/fictitious-play/PSRO/MCTS/RL/QRE or runtime LLM/MCP NPC decisions;
 - continuity decay/restoration, sovereignty meter, or T023 changes;
 - automatic successor/revolutionary Government creation;
 - direct crisis deletion/conflict resolution/free LandHex/hidden comeback;
-- proposal cooldown/expiry/rejection-memory added only to improve pacing;
 - elections/parties/coalitions/full labor bargaining/transitional justice/military factions/local autonomy;
 - War as Politics / fantasy / V02 / renderer/UI;
 - story nodes/countdowns/filler events;
@@ -224,7 +223,7 @@ F05_FIX7 may recommend `READY_FOR_F05_PROMOTION: YES` if the interaction produce
 
 ## Bridge freshness requirement
 
-Before starting F05_FIX7, Codex must explicitly run:
+Before starting F05_FIX8, Codex must explicitly run:
 
 ```bash
 git status
@@ -234,4 +233,4 @@ git rev-parse origin/master
 git pull --ff-only
 ```
 
-The expected remote chain is the immutable F05_FIX7 task commit followed only by ChatGPT-authored Bridge activation/current-task commits. Do not rely on a stale local `origin/master` tracking ref. Gate 1F remains ChatGPT/user authority.
+The expected remote chain is the immutable F05_FIX8 task commit followed only by ChatGPT-authored Bridge activation/current-task commits. Do not rely on a stale local `origin/master` tracking ref. Gate 1F remains ChatGPT/user authority.
