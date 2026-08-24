@@ -46,9 +46,11 @@ F05_FIX7_RESULT_COMMIT: d89c3864e8a6a8533a25acc83740ee782521c4c1
 
 F05_FIX8_TASK_COMMIT: dbd39ff9e5fdc22a29cef1157399a634a0fa7701
 
+F05_FIX8_IMPLEMENTATION_COMMIT: 89f350bd67ced8e49c161f95fa5e2a1c94066d42
+
 CURRENT_GATE: Gate 1F
 
-CURRENT_PHASE: F05_FIX8 Proposal Lifecycle Semantics + Non-Accept Divergence Audit
+CURRENT_PHASE: F05_FIX8 complete; awaiting ChatGPT review
 
 F04: CLOSED / PASS
 
@@ -134,17 +136,39 @@ F05_FIX7_READY_FOR_F05_PROMOTION: NO
 
 F05_FIX7_GATE1F_RECOMMENDATION: NOT_READY
 
-F05_FIX8: AUTHORIZED / NOT STARTED
+F05_FIX8: COMPLETE / AWAITING_CHATGPT_REVIEW
 
-F05_FIX8_DIRECTION: audit the 8 non-accept divergences first, then implement only a state-grounded rejected-demand reconsideration contract if the audit is fully resolved
+F05_FIX8_DIRECTION: Phase A artifact audit resolved; state-grounded rejected-demand reconsideration implemented and verified
 
 F05_FIX8_DEMAND_IDENTITY: proposerFactionId + countryId + subjectKind + interventionId preferred; Government/action/event/tick are proposal-episode provenance
 
 F05_FIX8_RECONSIDERATION_GUARDRAIL: no cooldown or permanent ban; reopen only after a named relevant authoritative condition such as target Government or requested-intervention feasibility basis materially changes
 
-F05_FIX8_PERSISTENCE: V4 expected only if authoritative reconsideration basis must be stored; otherwise explain and preserve V3
+F05_FIX8_PERSISTENCE: SerializedSimulationSnapshotV4 / format version 4; V3 explicitly rejected
 
-F05_FIX8_HISTORICAL_F05_BASELINE: MUST REMAIN UNCHANGED
+F05_FIX8_NON_ACCEPT_DIVERGENCE: ORCHESTRATION_ARTIFACT_FIXED
+
+F05_FIX8_RECONSIDERATION_MODEL: IMPLEMENTED_STATE_GROUNDED
+
+F05_FIX8_IDENTICAL_REOPEN_CHURN: CLOSED / 0 identical-basis reopens
+
+F05_FIX8_LEGITIMATE_REOPEN_EVIDENCE: YES / 2 named feasibility transitions
+
+F05_FIX8_HISTORICAL_F05_BASELINE: UNCHANGED
+
+F05_FIX8_PROPOSAL_MATRIX: 36 historical + 108 proposal = 144/144
+
+F05_FIX8_STATE_GROUNDED_MAX_REASSESSMENT_SILENCE: 1200 days
+
+F05_FIX8_PROPOSAL_DECISION_MAX_SILENCE: 1800 days
+
+F05_FIX8_POST_INTERVENTION_LATE_SILENCE: 1110 days
+
+F05_FIX8_RESPONSE_DOMINANCE: MIXED
+
+F05_FIX8_READY_FOR_F05_PROMOTION: NO
+
+F05_FIX8_GATE1F_RECOMMENDATION: NOT_READY
 
 GATE1F_CHATGPT_DECISION: NOT_READY
 
@@ -152,17 +176,17 @@ V02: NOT STARTED
 
 POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
 
-PERSISTENCE: SerializedSimulationSnapshotV3 currently; F05_FIX8 may version explicitly if lifecycle state requires it
+PERSISTENCE: SerializedSimulationSnapshotV4 / format version 4; V3 rejected
 
-LAST_COMPLETED_TASK_ID: F05_FIX7
+LAST_COMPLETED_TASK_ID: F05_FIX8
 
-NEXT_AUTHORIZED_TASK_ID: F05_FIX8
+NEXT_AUTHORIZED_TASK_ID: NONE
 
-NEXT_TASK_STATUS: AUTHORIZED
+NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
 
-CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX8.md`
+CURRENT_TASK_FILE: NONE
 
-LAST_RESULT_FILE: `docs/bridge/results/F05_FIX7_RESULT.md`
+LAST_RESULT_FILE: `docs/bridge/results/F05_FIX8_RESULT.md`
 
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
