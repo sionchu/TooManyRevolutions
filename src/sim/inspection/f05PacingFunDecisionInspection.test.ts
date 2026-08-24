@@ -15,6 +15,7 @@ describe("F05 headless pacing and fun decision", () => {
     const result = report.result;
 
     expect(result.horizonYears).toBe(F05_HORIZON_YEARS);
+    expect(result.factionActorLoop).toBe("on");
     expect(result.contexts).toHaveLength(F05_CONTEXTS.length);
     expect(
       result.contexts.filter((context) => context.context.primary),
@@ -48,6 +49,19 @@ describe("F05 headless pacing and fun decision", () => {
     }
 
     expect(result.silenceDiagnosis).toBe("MIXED_GAP");
+    const actorBranches = result.contexts.flatMap(
+      (context) => context.branches,
+    );
+    expect(
+      actorBranches.some((branch) => branch.factionStrategyChanges > 0),
+    ).toBe(true);
+    expect(
+      actorBranches.every((branch) =>
+        branch.eventClusters.every(
+          (cluster) => !cluster.eventTypes.includes("FACTION_STRATEGY_CHANGED"),
+        ),
+      ),
+    ).toBe(true);
     expect(result.repairedReassessmentSilence.maximumDays).toBeLessThan(
       result.previousMajorEventSilence.maximumDays,
     );

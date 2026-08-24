@@ -5,9 +5,11 @@ import {
   F03_DEFAULT_SEED,
   F03_DAYS_PER_YEAR,
   runF03StrategyFromRecord,
+  type F03FactionActorTrace,
   type F03MetricSnapshot,
   type F03StrategyRunResult,
 } from "./f03InterventionCounterfactuals";
+import type { FactionActorLoopMode } from "./factionActorLoop";
 import {
   createF04DValidationScenario,
   F04D_VALIDATION_INTERVENTION_IDS,
@@ -229,6 +231,14 @@ export interface F05BranchMeasurement {
   readonly firstCriticalCoupAgendaRelativeTick: number | null;
   readonly reassessmentSignals: readonly F05ReassessmentSignal[];
   readonly causedPacingEventCount: number;
+  readonly factionActorLoop: FactionActorLoopMode;
+  readonly factionProposalsGenerated: number;
+  readonly factionProposalsAccepted: number;
+  readonly factionProposalsDropped: number;
+  readonly factionStrategyChanges: number;
+  readonly factionProposalSequence: readonly F03FactionActorTrace[];
+  readonly factionActionSequence: readonly F03FactionActorTrace[];
+  readonly finalFactionStrategies: Readonly<Record<string, string>>;
   readonly causalTraceExamples: readonly string[];
   readonly finalPoliticalCompetition: string;
   readonly finalPressFreedom: string;
@@ -270,6 +280,7 @@ export interface F05PacingFunResult {
   readonly scenarioId: string;
   readonly seed: number;
   readonly horizonYears: number;
+  readonly factionActorLoop: FactionActorLoopMode;
   readonly contexts: readonly F05ContextAssessment[];
   readonly adjacentTiming: readonly F05AdjacentTimingAssessment[];
   readonly accommodationClassification: F05AccommodationClassification;
@@ -291,6 +302,11 @@ export interface F05PacingFunResult {
 export interface F05InspectionReport {
   readonly result: F05PacingFunResult;
   readonly output: string;
+}
+
+export interface F05PacingFunOptions {
+  /** Official F05 uses ON; OFF is retained for the actor-loop counterfactual. */
+  readonly factionActorLoop?: FactionActorLoopMode;
 }
 
 interface BranchVector {
@@ -696,6 +712,7 @@ function runBranch(
   context: F05ContextDefinition,
   startingRecord: RunRecord,
   strategyId: F05StrategyId,
+  factionActorLoop: FactionActorLoopMode,
 ): F05BranchMeasurement {
   const interventionId = RESPONSE_INTERVENTIONS[strategyId];
   const feasibility = startFeasibility(
@@ -729,6 +746,7 @@ function runBranch(
         F03_DAYS_PER_YEAR * 4,
         F03_DAYS_PER_YEAR * 5,
       ],
+      factionActorLoop,
       onObservation: ({ relativeTick, world, events }) => {
         if (relativeTick % F05_AGENDA_SAMPLE_DAYS === 0) {
           agendaSamples.push(
@@ -820,6 +838,14 @@ function runBranch(
         event.type === "INTERVENTION_STARTED" ||
         event.type === "INTERVENTION_COMPLETED",
     ).length,
+    factionActorLoop: run.factionActorLoop,
+    factionProposalsGenerated: run.factionProposalsGenerated,
+    factionProposalsAccepted: run.factionProposalsAccepted,
+    factionProposalsDropped: run.factionProposalsDropped,
+    factionStrategyChanges: run.factionStrategyChanges,
+    factionProposalSequence: run.factionProposalSequence,
+    factionActionSequence: run.factionActionSequence,
+    finalFactionStrategies: run.finalFactionStrategies,
     causalTraceExamples: meaningfulEvents
       .slice(0, 8)
       .map((event) => eventTrace(event, run.checkpointTick)),
@@ -882,9 +908,10 @@ function assessContext(
   scenario: ScenarioDefinition,
   context: F05ContextDefinition,
   startingRecord: RunRecord,
+  factionActorLoop: FactionActorLoopMode,
 ): F05ContextAssessment {
   const rawBranches = Object.values(F05_STRATEGY_IDS).map((strategyId) =>
-    runBranch(scenario, context, startingRecord, strategyId),
+    runBranch(scenario, context, startingRecord, strategyId, factionActorLoop),
   );
   const wait = requireBranch(rawBranches, F05_STRATEGY_IDS.wait);
   const branches = rawBranches.map((branch) =>
@@ -1224,7 +1251,9 @@ function silenceRange(values: readonly number[]): F05SilenceRange {
 
 export function runF05PacingFunDecision(
   seed = F05_DEFAULT_SEED,
+  options: F05PacingFunOptions = {},
 ): F05PacingFunResult {
+  const factionActorLoop = options.factionActorLoop ?? "on";
   const scenario = createF04DValidationScenario();
   const contexts = F05_CONTEXTS.map((context) => {
     const startingRecord = createF03StartingRecord(
@@ -1232,7 +1261,7 @@ export function runF05PacingFunDecision(
       seed,
       context.checkpointTick,
     );
-    return assessContext(scenario, context, startingRecord);
+    return assessContext(scenario, context, startingRecord, factionActorLoop);
   });
   const primaryContexts = contexts.filter((context) => context.context.primary);
   const adjacentTiming = assessAdjacentTiming(contexts);
@@ -1259,6 +1288,7 @@ export function runF05PacingFunDecision(
     scenarioId: scenario.id,
     seed,
     horizonYears: F05_HORIZON_YEARS,
+    factionActorLoop,
     contexts,
     adjacentTiming,
     accommodationClassification,
@@ -1300,7 +1330,7 @@ function formatArcPoint(snapshot: F03MetricSnapshot): string {
 export function formatF05Inspection(result: F05PacingFunResult): string {
   const lines: string[] = [
     "F05 HEADLESS PACING / FUN DECISION",
-    `scenario=${result.scenarioId} seed=${result.seed} horizon=${result.horizonYears}y`,
+    `scenario=${result.scenarioId} seed=${result.seed} horizon=${result.horizonYears}y actorLoop=${result.factionActorLoop.toUpperCase()}`,
     `silence diagnosis=${result.silenceDiagnosis}`,
     `old major-event silence=${result.previousMajorEventSilence.minimumDays}-${result.previousMajorEventSilence.maximumDays}d`,
     `repaired reassessment silence=${result.repairedReassessmentSilence.minimumDays}-${result.repairedReassessmentSilence.maximumDays}d`,
@@ -1319,13 +1349,13 @@ export function formatF05Inspection(result: F05PacingFunResult): string {
   lines.push(
     "",
     "Branch evidence",
-    "| context | strategy | feasible | attempts/start/complete/reject | crisis day | critical pressure R/C | agenda changes | old/new silence | strength | benefits | tradeoffs | final arc |",
-    "| --- | --- | --- | --- | ---: | --- | ---: | --- | --- | --- | --- | --- |",
+    "| context | strategy | feasible | attempts/start/complete/reject | faction generated/accepted/changed | crisis day | critical pressure R/C | agenda changes | old/new silence | strength | benefits | tradeoffs | final arc |",
+    "| --- | --- | --- | --- | --- | ---: | --- | ---: | --- | --- | --- | --- | --- |",
   );
   for (const context of result.contexts) {
     for (const branch of context.branches) {
       lines.push(
-        `| ${context.context.id} | ${branch.strategyId} | ${branch.feasibleAtStart ? "YES" : `NO:${branch.startFeasibilityReasons.join(",")}`} | ${branch.actionAttempts}/${branch.actionStarts}/${branch.actionCompletions}/${branch.actionRejections} | ${branch.firstCrisisRelativeTick ?? "none"} | ${branch.firstCriticalRebellionAgendaRelativeTick ?? "none"}/${branch.firstCriticalCoupAgendaRelativeTick ?? "none"} | ${branch.agendaChangeTicks.length} | ${branch.longestPoliticalSilenceDays}d/${branch.longestReassessmentSilenceDays}d | ${branch.actionStrength} | ${branch.benefitsVersusWait.join(", ") || "none"} | ${branch.tradeoffsVersusWait.join(", ") || "none"} | ${formatMetric(branch.final)} |`,
+        `| ${context.context.id} | ${branch.strategyId} | ${branch.feasibleAtStart ? "YES" : `NO:${branch.startFeasibilityReasons.join(",")}`} | ${branch.actionAttempts}/${branch.actionStarts}/${branch.actionCompletions}/${branch.actionRejections} | ${branch.factionProposalsGenerated}/${branch.factionProposalsAccepted}/${branch.factionStrategyChanges} | ${branch.firstCrisisRelativeTick ?? "none"} | ${branch.firstCriticalRebellionAgendaRelativeTick ?? "none"}/${branch.firstCriticalCoupAgendaRelativeTick ?? "none"} | ${branch.agendaChangeTicks.length} | ${branch.longestPoliticalSilenceDays}d/${branch.longestReassessmentSilenceDays}d | ${branch.actionStrength} | ${branch.benefitsVersusWait.join(", ") || "none"} | ${branch.tradeoffsVersusWait.join(", ") || "none"} | ${formatMetric(branch.final)} |`,
       );
     }
   }

@@ -10,6 +10,9 @@ import { runSimulationStep } from "../core/tick";
 import {
   acceptActionProposal,
   createStartInterventionActionProposal,
+  decodeFactionAction,
+  type ActionProposal,
+  type FactionActionType,
 } from "../state/action";
 import {
   deriveAdministrativeHeadroom,
@@ -29,6 +32,11 @@ import {
   GATE1F_VALIDATION_INTERVENTION_IDS,
 } from "../state/gate1fValidationFixture";
 import { createInterventionPhaseHooks } from "../systems/interventionHooks";
+import {
+  getFactionActorProposalDetails,
+  intakeFactionHeuristicProposals,
+  type FactionActorLoopMode,
+} from "./factionActorLoop";
 
 export const F03_DAYS_PER_YEAR = SIMULATION_DAYS_PER_YEAR;
 export const F03_HORIZON_YEARS = 10 as const;
@@ -132,6 +140,15 @@ export type F03StrategyPolicy = (
 export interface F03StrategyRunOptions {
   readonly checkpointOffsets?: readonly number[];
   readonly onObservation?: F03StrategyObservationListener;
+  /** Historical F03/F04 behavior is detached; F05 opts into the actor loop. */
+  readonly factionActorLoop?: FactionActorLoopMode;
+}
+
+export interface F03FactionActorTrace {
+  /** Relative target/execution tick from the strategy checkpoint. */
+  readonly relativeTick: number;
+  readonly factionId: string;
+  readonly actionType: FactionActionType;
 }
 
 /** Generic developer strategy result; it is not gameplay state or authority. */
@@ -150,6 +167,14 @@ export interface F03StrategyRunResult {
   readonly stepEvents: readonly GameEvent[];
   readonly politicalEventSequence: readonly string[];
   readonly semanticEventSequence: readonly string[];
+  readonly factionActorLoop: FactionActorLoopMode;
+  readonly factionProposalsGenerated: number;
+  readonly factionProposalsAccepted: number;
+  readonly factionProposalsDropped: number;
+  readonly factionStrategyChanges: number;
+  readonly factionProposalSequence: readonly F03FactionActorTrace[];
+  readonly factionActionSequence: readonly F03FactionActorTrace[];
+  readonly finalFactionStrategies: Readonly<Record<string, string>>;
   readonly terminal: F03BranchResult["terminal"];
 }
 
@@ -595,11 +620,16 @@ function runRecordStep(
   record: RunRecord,
   actions: Parameters<typeof runSimulationStep>[1]["actions"],
   hooks: Parameters<typeof runSimulationStep>[2],
-): { readonly record: RunRecord; readonly events: readonly GameEvent[] } {
+): {
+  readonly record: RunRecord;
+  readonly events: readonly GameEvent[];
+  readonly actionProposals: readonly ActionProposal[];
+} {
   const result = runSimulationStep(record.world, { actions }, hooks, scenario);
   return {
     record: commitSimulationStep(scenario, record, result),
     events: result.emittedEvents,
+    actionProposals: result.actionProposals,
   };
 }
 
@@ -706,6 +736,14 @@ export function runF03StrategyFromRecord(
   const stepEvents: GameEvent[] = [];
   const politicalEventSequence: string[] = [];
   const semanticEventSequence: string[] = [];
+  const factionActorLoop = options.factionActorLoop ?? "off";
+  let factionProposalsGenerated = 0;
+  let factionProposalsAccepted = 0;
+  let factionProposalsDropped = 0;
+  let factionStrategyChanges = 0;
+  const factionProposalSequence: F03FactionActorTrace[] = [];
+  const factionActionSequence: F03FactionActorTrace[] = [];
+  let pendingFactionProposals: readonly ActionProposal[] = [];
   const hooks = createInterventionPhaseHooks(scenario);
   let record = recordAtStart;
   let lastStepEvents: readonly GameEvent[] = [];
@@ -746,15 +784,64 @@ export function runF03StrategyFromRecord(
             ),
           ];
 
+    const factionIntake =
+      factionActorLoop === "on"
+        ? intakeFactionHeuristicProposals(
+            record.world,
+            pendingFactionProposals,
+            record.world.run.nextActionSequence + actions.length,
+          )
+        : {
+            acceptedActions: [],
+            acceptedProposals: [],
+            droppedProposals: [],
+          };
+    factionProposalsAccepted += factionIntake.acceptedActions.length;
+    factionProposalsDropped += factionIntake.droppedProposals.length;
+    for (const action of factionIntake.acceptedActions) {
+      if (action.source !== "heuristic") continue;
+      const factionAction = decodeFactionAction(action);
+      if (factionAction === null) continue;
+      factionActionSequence.push({
+        relativeTick: action.tick - startingTick,
+        factionId: String(factionAction.factionId),
+        actionType: action.actionType as FactionActionType,
+      });
+    }
+
+    // Player actions receive the first sequence values for the shared target
+    // tick; carried faction records follow in canonical FactionId order. This
+    // is an explicit log order, not a phase-priority rule: factionPressure
+    // resolves the complete accepted input in one normal simulation phase.
+    const stepActions = [...actions, ...factionIntake.acceptedActions];
+
     if (actions.length > 0) {
       actionIds.push(actions[0]!.id);
     }
 
-    const step = runRecordStep(scenario, record, actions, hooks);
+    const step = runRecordStep(scenario, record, stepActions, hooks);
     record = step.record;
     lastStepEvents = step.events;
     stepEvents.push(...step.events);
     addEvents(eventSummary, step.events);
+    factionStrategyChanges += step.events.filter(
+      (event) => event.type === "FACTION_STRATEGY_CHANGED",
+    ).length;
+
+    for (const proposal of step.actionProposals) {
+      const details = getFactionActorProposalDetails(proposal);
+      if (details === null) continue;
+      factionProposalsGenerated += 1;
+      factionProposalSequence.push({
+        relativeTick: proposal.tick - startingTick,
+        factionId: details.factionId,
+        actionType: details.actionType,
+      });
+    }
+    // The buffer is intentionally transient. OFF drops the output for the
+    // historical detached runner; ON carries only this step's output once.
+    pendingFactionProposals =
+      factionActorLoop === "on" ? step.actionProposals : [];
 
     const nextRelativeTick = record.world.tick - startingTick;
     options.onObservation?.({
@@ -790,6 +877,17 @@ export function runF03StrategyFromRecord(
     playerCountryId,
     record.world.tick - startingTick,
   );
+  const finalFactionStrategies = Object.fromEntries(
+    Object.values(record.world.factions)
+      .sort((first, second) =>
+        String(first.id) < String(second.id)
+          ? -1
+          : String(first.id) > String(second.id)
+            ? 1
+            : 0,
+      )
+      .map((faction) => [String(faction.id), faction.currentStrategy]),
+  );
 
   return {
     startingStateId,
@@ -806,6 +904,14 @@ export function runF03StrategyFromRecord(
     stepEvents,
     politicalEventSequence,
     semanticEventSequence,
+    factionActorLoop,
+    factionProposalsGenerated,
+    factionProposalsAccepted,
+    factionProposalsDropped,
+    factionStrategyChanges,
+    factionProposalSequence,
+    factionActionSequence,
+    finalFactionStrategies,
     terminal: terminalAtHorizon(record.world),
   };
 }
