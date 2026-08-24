@@ -34,6 +34,10 @@ F05_FIX5_RESULT_COMMIT: 1bf0542dcd3584ff283d92a00461fdf6f134a416
 
 F05_FIX6_TASK_COMMIT: 4399a7b661075266f6d6d64adc3fdc3b74b3e506
 
+F05_FIX6_IMPLEMENTATION_COMMIT: e8be570
+
+F05_FIX6_RESULT_COMMIT: PENDING_COMPLETION_METADATA_COMMIT
+
 CURRENT_GATE: Gate 1F
 
 CURRENT_PHASE: F05_FIX6 Political Interaction Kernel + one vertical slice
@@ -80,15 +84,29 @@ F05_FIX5_ACTIVE_CONFLICT_CONSUMER: NONE
 
 F05_FIX5_CONCLUSION: action labels alone cannot justify scalar consequences; the missing layer is represented political commitment/proposal/response state
 
-F05_FIX6: AUTHORIZED / NOT STARTED
+F05_FIX6: COMPLETE / AWAITING_CHATGPT_REVIEW
 
-F05_FIX6_DIRECTION: define Political Interaction Kernel first, then implement one proposal-response vertical slice if persistence/resolver contracts support it
+F05_FIX6_DIRECTION: Political Interaction Kernel implemented with one explicit proposal-response vertical slice; awaiting ChatGPT review
 
-F05_FIX6_PREFERRED_TRIGGER: LOBBY with explicit scenario-authored proposal template only
+F05_FIX6_PREFERRED_TRIGGER: LOBBY with explicit scenario-authored proposal template only — implemented
 
-F05_FIX6_PREFERRED_SUBJECT: existing InterventionId request, not a new scalar payoff
+F05_FIX6_PREFERRED_SUBJECT: existing InterventionId request, not a new scalar payoff — implemented as interventionRequest
 
-F05_FIX6_PLAYER_RESPONSE: ACCEPT / REJECT; ACCEPT must reuse normal intervention feasibility/cost/admin/duration/effects
+F05_FIX6_PLAYER_RESPONSE: ACCEPT / REJECT; ACCEPT reuses normal intervention feasibility/cost/admin/duration/effects — implemented
+
+F05_FIX6_CLASSIFICATION: KERNEL_IMPLEMENTED_VERTICAL_SLICE_MEANINGFUL
+
+F05_FIX6_PROPOSAL_SUBJECT_KIND: interventionRequest
+
+F05_FIX6_TRIGGER_ACTION: LOBBY
+
+F05_FIX6_PERSISTENCE_FORMAT: SerializedSimulationSnapshotV3 / format version 3
+
+F05_FIX6_TARGETED_COUNTERFACTUAL: meaningful
+
+F05_FIX6_OFFICIAL_F05_PACING: unchanged / NOT_READY
+
+F05_FIX6_GATE1F_RECOMMENDATION: NOT_READY
 
 GATE1F_CHATGPT_DECISION: NOT_READY
 
@@ -96,17 +114,17 @@ V02: NOT STARTED
 
 POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
 
-PERSISTENCE: SerializedSimulationSnapshotV2 currently; F05_FIX6 must explicitly version persistence if authoritative proposal state is added
+PERSISTENCE: SerializedSimulationSnapshotV3; V2 is explicitly rejected after F05_FIX6 authoritative proposal state
 
-LAST_COMPLETED_TASK_ID: F05_FIX5
+LAST_COMPLETED_TASK_ID: F05_FIX6
 
-NEXT_AUTHORIZED_TASK_ID: F05_FIX6
+NEXT_AUTHORIZED_TASK_ID: NONE
 
-NEXT_TASK_STATUS: AUTHORIZED
+NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
 
-CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX6.md`
+CURRENT_TASK_FILE: NONE
 
-LAST_RESULT_FILE: `docs/bridge/results/F05_FIX5_RESULT.md`
+LAST_RESULT_FILE: `docs/bridge/results/F05_FIX6_RESULT.md`
 
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
