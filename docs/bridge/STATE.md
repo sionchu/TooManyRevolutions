@@ -32,9 +32,13 @@ F05_FIX3_RESULT_COMMIT: 1c7666471bbbb22ee0bb1cb25801c6b9007f2a2d
 
 F05_FIX4_TASK_COMMIT: 406d6dd21561911d1a0c201b13d445d58623bee2
 
+F05_FIX4_IMPLEMENTATION_COMMIT: 557b1327d4f561a24e32aee31f2f7c3c0ad15b15
+
+F05_FIX4_RESULT_COMMIT: PENDING
+
 CURRENT_GATE: Gate 1F
 
-CURRENT_PHASE: F05_FIX4 deterministic faction actor-loop integration
+CURRENT_PHASE: F05_FIX4 complete — deterministic faction actor-loop integration
 
 F04: CLOSED / PASS
 
@@ -58,7 +62,11 @@ F05_FIX3_MEASUREMENT: TRUSTWORTHY_LATE_STEADY_STATE_RETURNED
 
 F05_FIX3_REMAINING_BLOCKER: LATE_STEADY_STATE_RETURNS
 
-F05_FIX4: AUTHORIZED / NOT STARTED
+F05_FIX4: REPAIR_COMPLETE / AWAITING_CHATGPT_REVIEW
+
+F05_FIX4_REMAINING_BLOCKER: ACTOR_ACTION_CONSUMER_GAP
+
+F05_FIX4_GATE1F_RECOMMENDATION: NOT_READY
 
 GATE1F_CHATGPT_DECISION: NOT_READY
 
@@ -68,15 +76,15 @@ POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
 
 PERSISTENCE: SerializedSimulationSnapshotV2
 
-LAST_COMPLETED_TASK_ID: F05_FIX3
+LAST_COMPLETED_TASK_ID: F05_FIX4
 
-NEXT_AUTHORIZED_TASK_ID: F05_FIX4
+NEXT_AUTHORIZED_TASK_ID: NONE
 
-NEXT_TASK_STATUS: AUTHORIZED
+NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
 
-CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX4.md`
+CURRENT_TASK_FILE: NONE
 
-LAST_RESULT_FILE: `docs/bridge/results/F05_FIX3_RESULT.md`
+LAST_RESULT_FILE: `docs/bridge/results/F05_FIX4_RESULT.md`
 
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
@@ -168,3 +176,22 @@ git pull --ff-only
 Do not rely on a stale local `origin/master` tracking ref.
 
 Gate 1F remains ChatGPT/user authority. Repository source, tests, diffs, actual simulation evidence, and the immutable F05_FIX4 task remain the execution authority.
+
+## F05_FIX4 completion evidence
+
+- `F05_FIX4` repaired the detached T016 heuristic proposal hand-off with a
+  transient, source/domain-constrained, canonical next-tick intake helper.
+- OFF/ON actor counterfactual: representative WAIT branches generated 120
+  proposals; OFF accepted 0 and changed 0 strategies; ON accepted 118/120/118
+  and changed 5/5/3 strategies for early/near/recovery.
+- ON actor execution changed only `Faction.currentStrategy` and its event
+  evidence in the active-conflict path. Grievance, organization, resources,
+  Agenda timing, crisis timing, conflict/territory, feasibility, terminal state,
+  and genuine reassessment silence did not change.
+- classification: `ACTOR_ACTION_CONSUMER_GAP`; Gate 1F recommendation remains
+  `NOT_READY`.
+- reference grounding: `docs/F05_FIX4_ACTOR_ADAPTATION_REFERENCE_GROUNDING.md`
+- repair evidence: `docs/F05_GATE1F_REPAIR4_ACTOR_LOOP.md`
+- immutable result: `docs/bridge/results/F05_FIX4_RESULT.md`
+- verification: Node `v25.2.1`, pnpm `11.19.0`; full suite 52 files / 428 tests
+  passed; required T024/F01/F04B/F04D/F05 inspections passed.
