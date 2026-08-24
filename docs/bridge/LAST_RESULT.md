@@ -1,100 +1,78 @@
 # TMR Last Bridge Result
 
-TASK_ID: F05_FIX10
-
+TASK_ID: F05_FIX11
 STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW
-
 START_BRANCH: master
-
-START_COMMIT: c05704eda14916897bfa2f52b731aebef82c37aa
-
-BASE_TASK_COMMIT: 2789279f7ecead1852e325a5a0c19a59e3a3df74
-
-TASK_RESULT_COMMIT: 98985e84a5448e9d2454847f36e11a4c6cfa3732
-
-END_COMMIT: 4d216d72d4f96568b0b5345d82f11af79431f6ae
-
+START_COMMIT: f65056593ff08b73c6296235eba5251dddcfa828
+BASE_TASK_COMMIT: fd8dc4f98a1813a5d0f5848232fbffac3131b600
+TASK_RESULT_COMMIT: PENDING
+END_COMMIT: PENDING
 COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
+COMMIT_CREATED: PENDING
+PUSHED: PENDING
 
-COMMIT_CREATED: YES
+## Outcome
 
-PUSHED: YES
+F05_FIX11 completed the fixed-source grounding/design review for
+`FUND_MOVEMENT` without changing production gameplay. The narrowest defensible
+direction is an explicitly authored single `RegionId` target with an earmark
+of existing actor-owned `Faction.resources`. No concrete target or amount was
+selected, and no production schema, commitment, writer, resolver, event,
+effect, or persistence field was added.
 
-## OUTCOME
+The exact classification is `FUND_MOVEMENT_REQUIRES_NEW_AUTHORING_SEAM`:
+target/amount authoring and authoritative commitment/lifecycle state are still
+missing. `Agenda` is the first safe non-war/non-terminal reassessment boundary;
+T018/T021 remain separate future consumer candidates. Current V4 persistence
+is unchanged, and an authoritative commitment would require a future version.
 
-F05_FIX10 measured the six exact F05_FIX9 late-silence branches without
-changing production gameplay. The audit recorded 372 expanded
-faction-boundary rows, with `FUND_MOVEMENT` selected in all 372 rows,
-`ORGANIZE` in 0, and a second/hypothetical LOBBY selection in 0. The current
-action payload contains only `{ factionId }`, while the late states expose two
-relevant Regions used by existing Region-scoped consumers. The honest next
-direction therefore requires action-schema/targeting work before an internal
-commitment can be implemented.
+Detailed grounding is in
+`docs/F05_FIX11_FUND_MOVEMENT_GROUNDING.md` and the task result is in
+`docs/bridge/results/F05_FIX11_RESULT.md`.
 
-The active-conflict track remains `DEFERRED_BY_GROUNDING_GATE`, the outcome
-track remains `DEFERRED_BY_CONTINUITY_EVIDENCE`, and the exact classification
-is `COVERAGE_REQUIRES_ACTION_SCHEMA_TARGETING`. No FUND_MOVEMENT or ORGANIZE
-consequence, proposal, BARGAIN, second LOBBY template, continuity writer,
-territorial rule, or persistence field was added. The design-only contract is
-`docs/FACTION_INTERNAL_COMMITMENT_KERNEL.md`; the complete gate audit is
-`docs/F05_FIX10_STRUCTURAL_REMEDY_SELECTION.md`.
+## Outcome fields
 
-## OUTCOME FIELDS
-
-PRIMARY_CLASSIFICATION: COVERAGE_REQUIRES_ACTION_SCHEMA_TARGETING
-
-ACTIVE_CONFLICT_TRACK: DEFERRED_BY_GROUNDING_GATE
-
-OUTCOME_TRACK: DEFERRED_BY_CONTINUITY_EVIDENCE
-
-SECOND_LOBBY_REACHABILITY: NOT_REACHABLE
-
-FUND_MOVEMENT_REACHABILITY: REACHABLE
-
-ORGANIZE_REACHABILITY: NOT_REACHABLE
-
-SELECTED_ACTION: FUND_MOVEMENT
-
-TARGET_OBJECT_REQUIRED: YES
-
-ACTION_SCHEMA_CHANGE_REQUIRED: YES
-
-COMMITMENT_MODEL_STATUS: DESIGNABLE_AFTER_ACTION_SCHEMA_TARGETING
-
-MAGNITUDE_GROUNDING_STATUS: BLOCKED_NO_AUTHORED_MAGNITUDE
-
-PERSISTENCE_IMPLICATION: FUTURE_VERSION_REQUIRED_IF_COMMITMENT_STATE_IS_ADDED
-
+PRIMARY_CLASSIFICATION: FUND_MOVEMENT_REQUIRES_NEW_AUTHORING_SEAM
+FUND_MOVEMENT_SEMANTIC: ALLOCATE_EXISTING_ACTOR_RESOURCES
+TARGET_DOMAIN: REGION_SINGLE
+COMMITMENT_SEMANTIC: EARMARK_EXISTING_FACTION_RESOURCES
+AMOUNT_SEAM: SCENARIO_AUTHORED_AMOUNT_REQUIRED
+NUMERIC_MAGNITUDE_STATUS: NOT_GROUNDED
+FIRST_CONSUMER_BOUNDARY: AGENDA_REASSESSMENT
+COMMITMENT_LIFECYCLE_STATUS: TARGET_SCHEMA_ONLY_DESIGNABLE
+REPEAT_BOUNDARY: ACTIVE_SAME_ACTOR_TARGET_BLOCKS_DUPLICATE
+PERSISTENCE_DECISION: FUTURE_VERSION_REQUIRED_FOR_AUTHORITATIVE_COMMITMENT
+NEXT_IMPLEMENTATION_READINESS: NONE
 PRODUCTION_GAMEPLAY_CHANGE: NONE
-
 HISTORICAL_F05_BASELINE: UNCHANGED
-
 F05_FIX9_DIAGNOSIS: UNCHANGED
-
-VITEST_RUNNER_STATUS: ASSERTIONS_PASS_RUNNER_IPC_ERROR
-
+F05_FIX10_REACHABILITY: UNCHANGED
 GATE1F_RECOMMENDATION: NOT_READY
-
 V02: NOT_STARTED
 
-## Verification summary
+SOURCE_PACK_USED: R01–R06 fixed pack in `docs/bridge/tasks/F05_FIX11.md`
+ADDITIONAL_EXTERNAL_RESEARCH: NONE
 
-The required install, format, typecheck, lint, build, F05, F05_FIX8 lifecycle,
-F05_FIX8 audit, F05_FIX9, and focused F05_FIX10 inspection commands completed
-with the outcomes recorded in the detailed result. The focused F05_FIX10 test
-passed its 1 assertion. The full `pnpm test` run passed all 57 files and 449
-assertions, but Vitest reported three known
-`[vitest-worker]: Timeout calling "onTaskUpdate"` runner/IPC errors and exited
-non-zero for runner reporting. `git diff --check` passed.
+## Verification
 
-## NEXT
+Verification entries are updated in the detailed result after execution. No
+focused F05_FIX11 inspection/test is applicable because no code was added.
+
+- `pnpm install --frozen-lockfile` — PASS
+- `pnpm run format` — PASS
+- `pnpm run typecheck` — PASS
+- `pnpm run lint` — PASS
+- `pnpm run build` — PASS
+- `pnpm run inspect:f05` — PASS
+- `pnpm run inspect:f05fix9` — PASS
+- `pnpm run inspect:f05fix10` — PASS
+- `pnpm test` — 57 files / 449 tests passed; exit 1 from 3 known `[vitest-worker]: Timeout calling "onTaskUpdate"` runner errors
+- `git diff --check` — PASS
+
+## Completion boundary
+
+F05_FIX11 does not approve Gate 1F, start V02, or authorize F05_FIX12.
 
 NEXT_AUTHORIZED_TASK_ID: NONE
-
 NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
-
-GATE1F_RECOMMENDATION: NOT_READY
-
-V02: NOT_STARTED
-
-F05_FIX11: NOT_AUTHORIZED
+CURRENT_TASK_FILE: NONE
