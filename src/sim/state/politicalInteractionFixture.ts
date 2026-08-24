@@ -25,3 +25,17 @@ export function createF05Fix6PoliticalInteractionScenario(): ScenarioDefinition 
     ],
   };
 }
+
+/**
+ * F05_FIX7 developer-only long-horizon composition. It deliberately reuses
+ * the accepted FIX6 template verbatim; only the scenario identity changes so
+ * the integration matrix cannot be confused with the eight-day slice.
+ */
+export function createF05Fix7PoliticalInteractionScenario(): ScenarioDefinition {
+  const baseScenario = createF05Fix6PoliticalInteractionScenario();
+
+  return {
+    ...baseScenario,
+    id: asScenarioId("gate1f.f05.fix7.political-interaction"),
+  };
+}

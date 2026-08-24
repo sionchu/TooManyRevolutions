@@ -130,7 +130,8 @@ const CRISIS_EVENT_TYPES = new Set<GameEventType>([
   "CIVIL_WAR_STARTED",
 ]);
 
-const PACING_EVENT_TYPES = new Set<GameEventType>([
+/** Gate-relevant state-grounded events; proposal lifecycle is intentionally absent. */
+export const F05_PACING_EVENT_TYPES = new Set<GameEventType>([
   "INTERVENTION_STARTED",
   "INTERVENTION_COMPLETED",
   "INSTITUTION_RULE_CHANGED",
@@ -364,7 +365,7 @@ function buildEventClusters(
   startTick: number,
 ): readonly F05EventCluster[] {
   const pacingEvents = events
-    .filter((event) => PACING_EVENT_TYPES.has(event.type))
+    .filter((event) => F05_PACING_EVENT_TYPES.has(event.type))
     .sort(
       (first, second) =>
         first.tick - second.tick || first.sequence - second.sequence,
@@ -405,7 +406,7 @@ function longestSilenceDays(
   const ticks = [
     0,
     ...events
-      .filter((event) => PACING_EVENT_TYPES.has(event.type))
+      .filter((event) => F05_PACING_EVENT_TYPES.has(event.type))
       .map((event) => eventRelativeTick(event, startTick)),
     executedTicks,
   ].sort((first, second) => first - second);
@@ -765,7 +766,7 @@ function runBranch(
     },
   );
   const meaningfulEvents = run.stepEvents.filter((event) =>
-    PACING_EVENT_TYPES.has(event.type),
+    F05_PACING_EVENT_TYPES.has(event.type),
   );
   const pacingTicks = meaningfulEvents.map((event) =>
     eventRelativeTick(event, run.checkpointTick),

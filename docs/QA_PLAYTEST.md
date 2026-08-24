@@ -1213,3 +1213,28 @@ Any feature that cannot contribute to this loop is lower priority for competitio
   and terminal outcome remain unchanged by the kernel;
 - `pnpm run inspect:f05fix6` compares NO_PROPOSAL, PROPOSAL_IGNORE,
   PROPOSAL_REJECT, and PROPOSAL_ACCEPT from one seed/state.
+
+## F05_FIX7 political interaction long-horizon integration QA
+
+- v1 `FactionProposalTemplate.triggerAction` accepts and validates `LOBBY`
+  only; the authored fixture still contains exactly one coup/security-faction
+  mapping to the existing coercive-restriction intervention;
+- the historical official F05 run remains a 36-branch regression control and
+  remains `NOT_READY` with the prior 1,200-day maximum state-grounded
+  reassessment silence;
+- the separate matrix contains all 6 contexts × 6 existing strategies ×
+  `PROPOSAL_IGNORE` / `PROPOSAL_REJECT` / `PROPOSAL_ACCEPT_IF_FEASIBLE`;
+- `ACCEPT_IF_FEASIBLE` derives the requested intervention contract after the
+  selected same-tick strategy reservation and submits no infeasible response;
+- same-tick strategy and proposal-response ActionRecords are ordered and
+  tested as strategy first, response second, carried faction actions last;
+- proposal opening/accept/reject/reopen, response feasibility changes,
+  requested intervention start/completion/rejection, concurrent-open count,
+  and action sequence are recorded per branch;
+- proposal lifecycle is excluded from `F05_PACING_EVENT_TYPES`; its decision
+  load is reported separately from state-grounded reassessment;
+- repeated identical proposal keys after explicit rejection are measured as
+  churn, not hiddenly suppressed by a cooldown or rejection-memory rule;
+- the five-year inspection reports post-intervention late state-grounded
+  silence and does not treat frequent proposal prompts as pacing repair;
+- `pnpm run inspect:f05fix7` is the focused deterministic inspection.

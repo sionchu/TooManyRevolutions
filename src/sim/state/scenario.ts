@@ -23,7 +23,6 @@ import type { ScenarioRegion } from "./region";
 import type { SovereignFunction } from "./run";
 import type { Government } from "./government";
 import type { InterventionDefinition } from "./intervention";
-import { FACTION_ACTION_TYPES, type FactionActionType } from "./action";
 import {
   assertScenarioTerritorialTopology,
   type TerritorialTopologyDefinition,
@@ -75,7 +74,8 @@ export interface DissolutionCriteria {
 /** Explicit scenario-authored mapping; never inferred from faction interests. */
 export interface FactionProposalTemplate {
   readonly factionId: FactionId;
-  readonly triggerAction: FactionActionType;
+  /** v1 opens only from an accepted faction LOBBY ActionRecord. */
+  readonly triggerAction: "LOBBY";
   readonly interventionId: InterventionId;
 }
 
@@ -238,7 +238,7 @@ function assertScenarioFactionProposalTemplates(
       );
     }
 
-    if (!FACTION_ACTION_TYPES.includes(template.triggerAction)) {
+    if (template.triggerAction !== "LOBBY") {
       throw new Error(
         `Faction proposal template has invalid trigger action ${template.triggerAction}.`,
       );

@@ -8,9 +8,17 @@ import {
   asRegionId,
   asScenarioId,
 } from "./ids";
-import { FOUNDATION_SCENARIO, type ScenarioDefinition } from "./scenario";
+import {
+  assertScenarioDefinition,
+  FOUNDATION_SCENARIO,
+  type ScenarioDefinition,
+} from "./scenario";
 import { createDefaultInstitutionalRuleState } from "./policy";
 import { createInitialWorldState } from "./world";
+import {
+  createF05Fix6PoliticalInteractionScenario,
+  createF05Fix7PoliticalInteractionScenario,
+} from "./politicalInteractionFixture";
 
 describe("ScenarioDefinition boundary", () => {
   it("creates mutable run state from static initial snapshots", () => {
@@ -105,5 +113,30 @@ describe("ScenarioDefinition boundary", () => {
     });
     expect(world.regions[capitalRegionId]).not.toHaveProperty("controller");
     assertWorldStateInvariants(world);
+  });
+
+  it("closes the v1 proposal trigger contract to LOBBY only", () => {
+    const fix6 = createF05Fix6PoliticalInteractionScenario();
+    const fix7 = createF05Fix7PoliticalInteractionScenario();
+
+    expect(fix6.factionProposalTemplates).toEqual(
+      fix7.factionProposalTemplates,
+    );
+    expect(fix7.factionProposalTemplates).toHaveLength(1);
+    expect(fix7.factionProposalTemplates?.[0]?.triggerAction).toBe("LOBBY");
+
+    const invalid = {
+      ...fix7,
+      factionProposalTemplates: [
+        {
+          ...fix7.factionProposalTemplates![0]!,
+          triggerAction: "BARGAIN" as never,
+        },
+      ],
+    };
+
+    expect(() => assertScenarioDefinition(invalid)).toThrow(
+      "invalid trigger action BARGAIN",
+    );
   });
 });

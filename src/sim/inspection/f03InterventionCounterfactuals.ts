@@ -9,6 +9,7 @@ import type { RunRecord } from "../core/step";
 import { runSimulationStep } from "../core/tick";
 import {
   acceptActionProposal,
+  acceptActionProposals,
   createStartInterventionActionProposal,
   decodeFactionAction,
   type ActionProposal,
@@ -142,7 +143,22 @@ export interface F03StrategyRunOptions {
   readonly onObservation?: F03StrategyObservationListener;
   /** Historical F03/F04 behavior is detached; F05 opts into the actor loop. */
   readonly factionActorLoop?: FactionActorLoopMode;
+  /**
+   * Developer-only extra player proposals for one deterministic tick. The
+   * primary strategy proposal is accepted first, then these proposals, then
+   * carried faction records. This is an action-log order contract, not a
+   * hidden gameplay priority.
+   */
+  readonly additionalActionPolicy?: F03AdditionalActionPolicy;
 }
+
+export interface F03AdditionalActionPolicyContext extends F03StrategyPolicyContext {
+  readonly interventionId: InterventionId | null;
+}
+
+export type F03AdditionalActionPolicy = (
+  context: F03AdditionalActionPolicyContext,
+) => readonly ActionProposal[];
 
 export interface F03FactionActorTrace {
   /** Relative target/execution tick from the strategy checkpoint. */
@@ -163,6 +179,7 @@ export interface F03StrategyRunResult {
   readonly final: F03MetricSnapshot;
   readonly executedTicks: number;
   readonly actionIds: readonly string[];
+  readonly additionalActionIds: readonly string[];
   readonly eventSummary: F03EventSummary;
   readonly stepEvents: readonly GameEvent[];
   readonly politicalEventSequence: readonly string[];
@@ -733,6 +750,7 @@ export function runF03StrategyFromRecord(
   const checkpoints: F03MetricSnapshot[] = [startSnapshot];
   const eventSummary = initialEventSummary();
   const actionIds: string[] = [];
+  const additionalActionIds: string[] = [];
   const stepEvents: GameEvent[] = [];
   const politicalEventSequence: string[] = [];
   const semanticEventSequence: string[] = [];
@@ -784,12 +802,29 @@ export function runF03StrategyFromRecord(
             ),
           ];
 
+    const additionalProposals =
+      options.additionalActionPolicy?.({
+        scenario,
+        startingStateId,
+        strategyId,
+        relativeTick,
+        world: record.world,
+        lastStepEvents,
+        interventionId,
+      }) ?? [];
+    const additionalActions = acceptActionProposals(
+      additionalProposals,
+      record.world.run.nextActionSequence + actions.length,
+    );
+
     const factionIntake =
       factionActorLoop === "on"
         ? intakeFactionHeuristicProposals(
             record.world,
             pendingFactionProposals,
-            record.world.run.nextActionSequence + actions.length,
+            record.world.run.nextActionSequence +
+              actions.length +
+              additionalActions.length,
           )
         : {
             acceptedActions: [],
@@ -809,15 +844,20 @@ export function runF03StrategyFromRecord(
       });
     }
 
-    // Player actions receive the first sequence values for the shared target
-    // tick; carried faction records follow in canonical FactionId order. This
-    // is an explicit log order, not a phase-priority rule: factionPressure
-    // resolves the complete accepted input in one normal simulation phase.
-    const stepActions = [...actions, ...factionIntake.acceptedActions];
+    // Player strategy actions receive the first sequence values, developer
+    // response proposals follow, and carried faction records remain last in
+    // canonical FactionId order. This is an explicit log order, not a phase-
+    // priority rule: normal phases resolve the complete accepted input.
+    const stepActions = [
+      ...actions,
+      ...additionalActions,
+      ...factionIntake.acceptedActions,
+    ];
 
     if (actions.length > 0) {
       actionIds.push(actions[0]!.id);
     }
+    additionalActionIds.push(...additionalActions.map((action) => action.id));
 
     const step = runRecordStep(scenario, record, stepActions, hooks);
     record = step.record;
@@ -900,6 +940,7 @@ export function runF03StrategyFromRecord(
     final,
     executedTicks: record.world.tick - startingTick,
     actionIds,
+    additionalActionIds,
     eventSummary: { ...eventSummary },
     stepEvents,
     politicalEventSequence,

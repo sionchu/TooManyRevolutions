@@ -1820,3 +1820,61 @@ developer fixture without changing the underlying InterventionDefinition seam.
 
 ### Reversal cost
 Low / Medium / High
+
+## ADR-043 — F05_FIX7 long-horizon proposal orchestration remains developer-only
+
+**Date:** 2026-08-24
+**Status:** Accepted for the F05_FIX7 measurement slice; Gate 1F remains `NOT_READY`
+
+### Problem
+
+F05_FIX6 proved one authored political proposal can reach an existing
+intervention. The next question is whether that interaction produces durable
+state-grounded reassessment over five years without changing the historical F05
+baseline or turning proposal notifications into artificial pacing.
+
+### Decision
+
+- Close `FactionProposalTemplate.triggerAction` to `LOBBY` only because the
+  implemented opener/provenance contract is LOBBY-only.
+- Reuse exactly the one FIX6 coup/security-faction template in a separate
+  developer-only F05_FIX7 scenario identity.
+- Measure the historical 36 branches separately from 108 proposal-enabled
+  branches (six contexts × six existing strategies × three response modes).
+- Add only a deterministic developer response seam. It emits normal player
+  ActionProposals; strategy actions are ordered before proposal responses on a
+  shared target tick, with carried faction records after them.
+- Keep state-grounded F05 pacing events separate from proposal decision load.
+  Measure reopening, response feasibility changes, and mode effects instead of
+  adding cooldown, expiry, or rejection memory.
+
+### Alternatives
+
+- add proposal lifecycle events to F05 pacing to shorten silence;
+- make rejection suppress future authored proposals;
+- add more templates or subjects for variety;
+- replace the deterministic seam with production player AI or probabilistic
+  response;
+- rewrite the official F05 strategy matrix around proposals.
+
+### Reason
+
+The matrix preserves a clean historical control and tests the accepted kernel
+against the same F05 contexts, strategies, and five-year horizon. The measured
+run contains 48 identical-key reopens after explicit rejection, while the
+state-grounded maximum reassessment silence remains 1,200 days. That is a
+truthful interaction/churn finding, not evidence for a Gate 1F promotion.
+
+### Consequences
+
+The v1 configuration footgun is closed and same-tick input ordering is
+inspectable. Proposal decision load can be reported without contaminating the
+Gate-relevant pacing metric. F05 remains unchanged and `V02` remains outside
+scope. A later reviewed task would need to decide whether to redesign the
+proposal lifecycle or promote any response policy.
+
+### Reversal cost
+
+Medium. Removing the developer seam and trigger validation affects inspection
+contracts, tests, and measurement docs, but not authoritative proposal state,
+intervention resolution, persistence V3, or production F05 strategy semantics.

@@ -121,3 +121,40 @@ The persistence boundary verifies proposal and Government/Country/Faction/interv
 - Shared intervention path: `src/sim/systems/intervention.ts`.
 - Focused lifecycle/persistence tests: `src/sim/systems/politicalProposal.test.ts`.
 - Controlled same-seed branches: `src/sim/inspection/f05Fix6PoliticalInteraction.ts`.
+
+## F05_FIX7 orchestration boundary
+
+The v1 template contract is now closed to the implemented opener:
+
+```ts
+interface FactionProposalTemplate {
+  factionId: FactionId;
+  triggerAction: "LOBBY";
+  interventionId: InterventionId;
+}
+```
+
+Scenario validation rejects any non-`LOBBY` trigger. The F05_FIX7 fixture reuses
+the single F05_FIX6 mapping (`coup/security faction + LOBBY -> coercive
+restriction`) and changes no political subject or runtime effect.
+
+The developer-only long-horizon seam accepts additional player
+`ActionProposal`s through the normal intake boundary. When a strategy action
+and proposal response share a target tick, the deterministic log order is:
+
+```text
+player strategy START_INTERVENTION
+  -> player RESPOND_POLITICAL_PROPOSAL
+  -> carried heuristic faction ActionRecords
+```
+
+This is input/log ordering, not a new gameplay-priority phase. `ACCEPT_IF_FEASIBLE`
+projects the already-selected strategy reservation when checking the requested
+intervention, and submits no response while the request is infeasible.
+
+F05_FIX7 keeps `F05_PACING_EVENT_TYPES` unchanged. Proposal lifecycle and
+response-actionability changes are measured as a separate proposal-decision
+load, while Agenda, intervention, crisis, conflict, territory, and other
+state-grounded signals remain the Gate-relevant pacing metric. The full
+five-year comparison and churn diagnosis are recorded in
+`docs/F05_GATE1F_REPAIR7_INTERACTION_INTEGRATION.md`.

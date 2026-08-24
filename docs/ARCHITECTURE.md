@@ -2506,3 +2506,29 @@ writer.
 The developer validation slice and controlled counterfactual are documented in
 `docs/POLITICAL_INTERACTION_KERNEL.md` and
 `docs/F05_GATE1F_REPAIR6_POLITICAL_INTERACTION.md`.
+
+## F05_FIX7 long-horizon integration boundary
+
+F05_FIX7 does not promote the Political Interaction Kernel into official F05
+strategy semantics. It composes a separate developer-only scenario identity
+from the same F04D validation state and the one accepted FIX6 template. The
+historical F05 six-strategy / 36-branch run remains the regression control.
+
+The separate matrix is 6 contexts × 6 existing strategies × 3 deterministic
+response modes (`PROPOSAL_IGNORE`, `PROPOSAL_REJECT`,
+`PROPOSAL_ACCEPT_IF_FEASIBLE`) = 108 proposal branches, compared with the 36
+historical `NO_TEMPLATE` branches. The runner emits response proposals through
+the existing ActionProposal → accepted ActionRecord path; it does not mutate
+WorldState directly or become production player AI.
+
+The runner's same-tick input contract is explicit: the selected player
+intervention strategy ActionRecord receives the first sequence value, proposal
+response records follow, and carried faction records remain in canonical
+FactionId order. This is observable action-log order only; phase ownership and
+the existing intervention resolver remain unchanged.
+
+`POLITICAL_PROPOSAL_*` lifecycle events are intentionally absent from the
+official F05 `PACING_EVENT_TYPES`. F05_FIX7 reports state-grounded
+reassessment separately from proposal decision load, then diagnoses repeated
+template-key reopening and response-mode dominance without adding cooldown,
+expiry, rejection memory, or a new suppression rule.
