@@ -5,7 +5,7 @@ UPDATED: 2026-08-24
 REPOSITORY: sionchu/TooManyRevolutions
 BRANCH: master
 CURRENT_GATE: Gate 1F
-CURRENT_PHASE: F05_FIX12 FUND_MOVEMENT authoring seam closure — complete / awaiting ChatGPT review
+CURRENT_PHASE: F05_FIX13 targeted FUND_MOVEMENT commitment vertical slice
 
 ## Key commits
 
@@ -31,6 +31,8 @@ F05_FIX11_RESULT_COMMIT: b8869813f6279572001b3bc17f800f4918c98ad8
 F05_FIX11_END_COMMIT: 534f4f2ac34a857cb2b837c1902d5fe3c80282a6
 F05_FIX12_TASK_COMMIT: 56127d84219be61996000ce03d43c31bd63abc3d
 F05_FIX12_RESULT_COMMIT: c79f71c62f6d0048a504a125b3975a446d2f4013
+F05_FIX12_END_COMMIT: 686df104814f31ef7fad70ab34cee374cc3e98cd
+F05_FIX13_TASK_COMMIT: 005c617bd3a9c79651cc7730992e85a592134706
 
 ## Accepted gate history
 
@@ -100,58 +102,68 @@ F05_FIX11_FIRST_CONSUMER_BOUNDARY: AGENDA_REASSESSMENT
 F05_FIX11_COMMITMENT_LIFECYCLE_STATUS: TARGET_SCHEMA_ONLY_DESIGNABLE
 F05_FIX11_REPEAT_BOUNDARY: ACTIVE_SAME_ACTOR_TARGET_BLOCKS_DUPLICATE
 F05_FIX11_PERSISTENCE_DECISION: FUTURE_VERSION_REQUIRED_FOR_AUTHORITATIVE_COMMITMENT
-F05_FIX11_NEXT_IMPLEMENTATION_READINESS: NONE
 F05_FIX11_PRODUCTION_GAMEPLAY_CHANGE: NONE
+
+## ChatGPT acceptance of F05_FIX12
+
+F05_FIX12: COMPLETE / REVIEWED / PASS / ACCEPTED
+F05_FIX12_PRIMARY_CLASSIFICATION: FUND_MOVEMENT_AUTHORING_SEAM_IMPLEMENTED
+F05_FIX12_AUTHORING_SCOPE: STATIC_SCENARIO_ONLY
+F05_FIX12_AUTHORING_TYPE: FactionFundMovementTemplate
+F05_FIX12_SCENARIO_FIELD: factionFundMovementTemplates
+F05_FIX12_TARGET_DOMAIN: REGION_SINGLE
+F05_FIX12_TARGET_INFERENCE: FORBIDDEN
+F05_FIX12_AMOUNT_OWNERSHIP: SCENARIO_AUTHORED
+F05_FIX12_AMOUNT_DEFAULT: NONE
+F05_FIX12_AMOUNT_DERIVATION: NONE
+F05_FIX12_STATIC_AMOUNT_VALIDATION: finite positive; current-resource feasibility deferred to runtime
+F05_FIX12_PROFILE_UNIQUENESS: at most one per Faction
+F05_FIX12_RUNTIME_ACTION_SCHEMA_CHANGE: NO
+F05_FIX12_AUTHORITATIVE_COMMITMENT_STATE: NO
+F05_FIX12_RUNTIME_RESOURCE_WRITER: NO
+F05_FIX12_PERSISTENCE: V4_UNCHANGED
+F05_FIX12_HISTORICAL_F05_BASELINE: UNCHANGED
+F05_FIX12_F05_FIX9_DIAGNOSIS: UNCHANGED
+F05_FIX12_F05_FIX10_REACHABILITY: UNCHANGED
+F05_FIX12_F05_FIX11_GROUNDING: UNCHANGED
+F05_FIX12_NEXT_IMPLEMENTATION_READINESS: TARGETED_COMMITMENT_VERTICAL_SLICE
+F05_FIX12_GATE1F_RECOMMENDATION: NOT_READY
+F05_FIX12_V02: NOT_STARTED
 
 Accepted interpretation:
 
-- `FUND_MOVEMENT` means allocating existing actor-owned faction resources, not raising a new resource or generic political spending;
-- the only defensible v1 target domain is one explicitly authored Region;
-- no actual Region may be inferred from pressure, ideology, sort order, faction label, conflict front, or fixture layout;
-- existing `Faction.resources` can support an earmark-style commitment concept, but no resource debit/reservation writer is yet authorized;
-- the amount must be explicit scenario/content data; no default or state-derived formula is grounded;
-- `Agenda` is only the first safe visibility/reassessment boundary, not itself an authoritative gameplay consequence;
-- no runtime action schema, commitment state, resource writer, effect, or persistence field was added;
-- further open-ended FUND_MOVEMENT grounding is not authorized: F05_FIX12 must either implement the explicit static authoring seam or reject FUND_MOVEMENT for the current Gate 1F path.
+- the open-ended grounding/authoring stage for FUND_MOVEMENT is closed;
+- a scenario can now explicitly author one Faction, one Region target, and one positive resource amount;
+- target and amount are never inferred at runtime;
+- static validation intentionally does not compare authored amount to mutable current Faction.resources;
+- existing scenarios without profiles remain unchanged;
+- no runtime action payload, commitment state, resource writer, Agenda reader, crisis/conflict effect, territory, continuity, terminal, or persistence change was introduced;
+- the next permitted direction is a targeted commitment runtime vertical slice.
 
-## F05_FIX12 authorization
+## F05_FIX13 authorization
 
-F05_FIX12: AUTHORIZED
-F05_FIX12_TASK_FILE: `docs/bridge/tasks/F05_FIX12.md`
-F05_FIX12_DIRECTION: close the explicit FUND_MOVEMENT target + amount authoring seam.
+F05_FIX13: AUTHORIZED
+F05_FIX13_TASK_FILE: `docs/bridge/tasks/F05_FIX13.md`
+F05_FIX13_DIRECTION: consume scenario-authored FUND_MOVEMENT target+amount through a versioned targeted ActionRecord path into an authoritative actor-owned active commitment, current-resource feasibility, duplicate/resource-availability guard, Agenda visibility, and strict persistence/replay.
 
-Required closure:
-
-```text
-scenario author
--> explicit Faction
--> explicit single Region target
--> explicit resource amount
--> deterministic static validation
--> future runtime intake boundary
-```
-
-F05_FIX12 may implement only static scenario-definition/validation schema. It may not implement runtime faction-action payload changes, commitments, resource writers, Agenda readers, crisis/conflict effects, territory, continuity, terminal outcomes, or persistence changes.
-
-F05_FIX12 has only two valid primary outcomes:
+Required core chain:
 
 ```text
-FUND_MOVEMENT_AUTHORING_SEAM_IMPLEMENTED
-FUND_MOVEMENT_AUTHORING_SEAM_REJECTED_FOR_GATE1F
+FactionFundMovementTemplate
+-> existing chooser selects FUND_MOVEMENT
+-> targeted/versioned ActionProposal
+-> accepted ActionRecord
+-> exact profile-match validation
+-> active Faction FUND_MOVEMENT commitment
+-> derived available resources
+-> active same-actor/target duplicate guard
+-> Agenda evidence without severity bonus
+-> strict next-version persistence/replay
 ```
 
-There is no third "needs more grounding" outcome.
+F05_FIX13 may add the commitment kernel but may not add resource debit/gain, organization/grievance/influence effects, direct T018/T021 effects, Conflict/LandHex/continuity/outcome shortcuts, arbitrary lifecycle timers, new LOBBY/BARGAIN/ORGANIZE content, War-as-Politics, or V02.
 
-## F05_FIX12 completion
-
-F05_FIX12: COMPLETE / AWAITING_CHATGPT_REVIEW
-F05_FIX12_PRIMARY_CLASSIFICATION: FUND_MOVEMENT_AUTHORING_SEAM_IMPLEMENTED
-F05_FIX12_AUTHORING_SCOPE: STATIC_SCENARIO_ONLY
-F05_FIX12_NEXT_IMPLEMENTATION_READINESS: TARGETED_COMMITMENT_VERTICAL_SLICE
-F05_FIX12_RUNTIME_COMMITMENT: NOT_IMPLEMENTED
-F05_FIX12_GATE1F: NOT_READY
-F05_FIX12_V02: NOT_STARTED
-F05_FIX13: NOT_AUTHORIZED
+A developer-only profile-enabled long-horizon diagnostic is required, but official/historical F05 measurement semantics remain unchanged in this task. Repeated Agenda derivation is never pacing.
 
 ## Current architecture constraints
 
@@ -163,9 +175,9 @@ F05_FIX13: NOT_AUTHORIZED
 - no direct crisis scheduling/deletion by interactions;
 - no generic politicalPower/reformPoint/stability/mobilization mana;
 - LLM never directly mutates authoritative state;
-- proposal demand is explicit scenario-authored content, never inferred from faction interests/ideology;
-- no hidden synthetic START_INTERVENTION ActionRecord;
-- rejected-demand reconsideration remains state-grounded V4 lifecycle semantics;
+- proposal/action target/amount content must be explicit, never inferred from labels/interests/ideology;
+- no hidden synthetic START_INTERVENTION or FUND_MOVEMENT ActionRecord;
+- rejected-demand reconsideration remains state-grounded lifecycle semantics;
 - no continuity damage/restoration from occupation/government defeat;
 - no direct terminal shortcut;
 - War-as-Politics implementation remains blocked by `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`;
@@ -176,37 +188,27 @@ F05_FIX13: NOT_AUTHORIZED
 GATE1F_CHATGPT_DECISION: NOT_READY
 V02: NOT STARTED
 POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
-PERSISTENCE: SerializedSimulationSnapshotV4 / format version 4; V3 rejected
+CURRENT_PERSISTENCE_BEFORE_F05_FIX13: SerializedSimulationSnapshotV4 / format version 4; new authoritative commitment state requires explicit next version
 
 LAST_COMPLETED_TASK_ID: F05_FIX12
-NEXT_AUTHORIZED_TASK_ID: NONE
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
-CURRENT_TASK_FILE: NONE
+NEXT_AUTHORIZED_TASK_ID: F05_FIX13
+NEXT_TASK_STATUS: AUTHORIZED
+CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX13.md`
 LAST_RESULT_FILE: `docs/bridge/results/F05_FIX12_RESULT.md`
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
 ## Repository-root / freshness guard
 
-The real repository is the nested `TooManyRevolutions` directory. If Codex starts from parent `Game-TMR` and sees `TooManyRevolutions/` as untracked, it must `cd TooManyRevolutions` before Git/task work.
+The real repository is the nested `TooManyRevolutions` directory.
 
-Preferred freshness check:
-
-```bash
-git status
-git fetch origin
-git rev-parse HEAD
-git rev-parse origin/master
-git pull --ff-only
-```
-
-For Codex Desktop isolated worktrees, the stable operating order is:
+For Codex Desktop isolated worktrees, use this order:
 
 ```text
 1. externally synchronize the real nested repository
-2. verify the expected master SHA
+2. verify exact current master SHA
 3. start a fresh Codex thread/worktree
-4. verify that fresh worktree HEAD/origin-master match CURRENT_TASK activation SHA
-5. execute only the authorized task
+4. verify fresh HEAD/origin-master
+5. execute only CURRENT_TASK
 ```
 
-Do not reset/rebase an old stale Codex worktree to bypass the freshness guard.
+If parent `Game-TMR` shows `TooManyRevolutions/` as untracked, `cd TooManyRevolutions` first and never modify the parent empty repository.
