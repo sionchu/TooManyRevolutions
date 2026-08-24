@@ -79,6 +79,13 @@ export interface FactionProposalTemplate {
   readonly interventionId: InterventionId;
 }
 
+/** Explicit scenario-owned FUND_MOVEMENT authoring; never inferred at runtime. */
+export interface FactionFundMovementTemplate {
+  readonly factionId: FactionId;
+  readonly targetRegionId: RegionId;
+  readonly resourceAmount: number;
+}
+
 /**
  * Immutable scenario input. It owns definitions and initial snapshots;
  * WorldState contains only the mutable state of a particular run.
@@ -100,6 +107,7 @@ export interface ScenarioDefinition {
     Record<FactionId, readonly PoliticalCrisisCapability[]>
   >;
   readonly factionProposalTemplates?: readonly FactionProposalTemplate[];
+  readonly factionFundMovementTemplates?: readonly FactionFundMovementTemplate[];
   readonly initialCountryPolicies: Readonly<Record<CountryId, PolicyState>>;
   readonly ideologyCatalog: Readonly<Record<IdeologyId, IdeologyDefinition>>;
   readonly policyCatalog: Readonly<Record<PolicyId, PolicyDefinition>>;
@@ -252,12 +260,64 @@ function assertScenarioFactionProposalTemplates(
   }
 }
 
+/** Validate explicit, scenario-owned FUND_MOVEMENT profiles only. */
+function assertScenarioFactionFundMovementTemplates(
+  scenario: ScenarioDefinition,
+): void {
+  const factionsById = new Map(
+    scenario.initialFactions.map((faction) => [faction.id, faction]),
+  );
+  const regionsById = new Map(
+    scenario.initialRegions.map((region) => [region.id, region]),
+  );
+  const seenFactionIds = new Set<FactionId>();
+
+  for (const template of scenario.factionFundMovementTemplates ?? []) {
+    const faction = factionsById.get(template.factionId);
+    if (faction === undefined) {
+      throw new Error(
+        `FUND_MOVEMENT template references missing faction ${template.factionId}.`,
+      );
+    }
+
+    const targetRegion = regionsById.get(template.targetRegionId);
+    if (targetRegion === undefined) {
+      throw new Error(
+        `FUND_MOVEMENT template references missing target Region ${template.targetRegionId}.`,
+      );
+    }
+
+    if (targetRegion.ownerCountryId !== faction.countryId) {
+      throw new Error(
+        `FUND_MOVEMENT template for faction ${template.factionId} must target a Region owned by faction country ${faction.countryId}.`,
+      );
+    }
+
+    if (
+      !Number.isFinite(template.resourceAmount) ||
+      template.resourceAmount <= 0
+    ) {
+      throw new Error(
+        `FUND_MOVEMENT template for faction ${template.factionId} must have a finite positive resourceAmount.`,
+      );
+    }
+
+    if (seenFactionIds.has(template.factionId)) {
+      throw new Error(
+        `FUND_MOVEMENT template repeats faction ${template.factionId}.`,
+      );
+    }
+    seenFactionIds.add(template.factionId);
+  }
+}
+
 /** Validate the static topology owned by one ScenarioDefinition. */
 export function assertScenarioDefinition(scenario: ScenarioDefinition): void {
   assertScenarioContactTopology(scenario);
   assertScenarioTerritorialTopology(scenario);
   assertScenarioFactionCapabilities(scenario);
   assertScenarioFactionProposalTemplates(scenario);
+  assertScenarioFactionFundMovementTemplates(scenario);
 }
 
 /** A non-playable bootstrap scenario; T025 supplies the first playable data. */
