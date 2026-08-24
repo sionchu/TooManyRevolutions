@@ -28,9 +28,13 @@ F05_FIX3_TASK_COMMIT: dda5949ba70165dd65ac86c48561d82f69b3a375
 
 F05_FIX3_IMPLEMENTATION_COMMIT: 49511e43d40d39408ad96e31d45109eb79afa63c
 
+F05_FIX3_RESULT_COMMIT: 1c7666471bbbb22ee0bb1cb25801c6b9007f2a2d
+
+F05_FIX4_TASK_COMMIT: 406d6dd21561911d1a0c201b13d445d58623bee2
+
 CURRENT_GATE: Gate 1F
 
-CURRENT_PHASE: F05_FIX3 repair complete / exact F05 remeasurement / ChatGPT review pending
+CURRENT_PHASE: F05_FIX4 deterministic faction actor-loop integration
 
 F04: CLOSED / PASS
 
@@ -40,39 +44,23 @@ F05_FIX1: REPAIR_COMPLETE / REVIEWED
 
 F05_FIX2: REPAIR_COMPLETE / REVIEWED
 
-F05_FIX2_IMPLEMENTATION: PASS
-
 F05_FIX2_MEASUREMENT: TRUSTWORTHY_BUT_TERMINAL_MECHANISM_REJECTED
-
-F05_FIX2_CODEX_RECOMMENDATION: PASS_WITH_NOTES
 
 F05_FIX2_R: REVIEW_COMPLETE / REVIEWED
 
-F05_FIX2_R_COUNTDOWN_CLASSIFICATION: EFFECTIVE_PERMANENCE_TIMER
-
-F05_FIX2_R_RATCHET_CLASSIFICATION: ONE_WAY_CONTINUITY_RATCHET
-
-F05_FIX2_R_DISSOLUTION_EVIDENCE: GOVERNMENT_DEFEAT_ONLY
-
-F05_FIX2_R_SUCCESSION_REVIEW: SUCCESSION_SEAM_EXISTS_BUT_EVIDENCE_MISSING
-
-F05_FIX2_R_WRITER_SEMANTIC_VERDICT: WRITER_TRACKS_GOVERNMENT_CONTROL_NOT_STATE_CONTINUITY
-
 F05_FIX2_R_ARCHITECTURE_VERDICT: REJECT_WRITER_REQUIRES_NEW_CONTINUITY_EVIDENCE
 
-F05_FIX2_R_GATE1F_RECOMMENDATION: NOT_READY
+F05_FIX3: REPAIR_COMPLETE / REVIEWED
 
-GATE1F_CHATGPT_DECISION: NOT_READY
-
-F05_FIX3: REPAIR_COMPLETE / AWAITING_CHATGPT_REVIEW
-
-F05_FIX3_WRITER_REMOVAL: PASS
+F05_FIX3_WRITER_REMOVAL: PASS / ACCEPTED
 
 F05_FIX3_MEASUREMENT: TRUSTWORTHY_LATE_STEADY_STATE_RETURNED
 
 F05_FIX3_REMAINING_BLOCKER: LATE_STEADY_STATE_RETURNS
 
-F05_FIX3_GATE1F_RECOMMENDATION: NOT_READY
+F05_FIX4: AUTHORIZED / NOT STARTED
+
+GATE1F_CHATGPT_DECISION: NOT_READY
 
 V02: NOT STARTED
 
@@ -82,87 +70,92 @@ PERSISTENCE: SerializedSimulationSnapshotV2
 
 LAST_COMPLETED_TASK_ID: F05_FIX3
 
-NEXT_AUTHORIZED_TASK_ID: NONE
+NEXT_AUTHORIZED_TASK_ID: F05_FIX4
 
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
+NEXT_TASK_STATUS: AUTHORIZED
 
-CURRENT_TASK_FILE: NONE
+CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX4.md`
 
 LAST_RESULT_FILE: `docs/bridge/results/F05_FIX3_RESULT.md`
 
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
-## ChatGPT acceptance of F05_FIX2_R
+## ChatGPT acceptance of F05_FIX3
 
-ChatGPT accepts the F05_FIX2_R review as trustworthy and adopts its architecture verdict.
+ChatGPT accepts F05_FIX3 as a correct rollback and truthful remeasurement.
 
-The F05_FIX2 unresolved-internal-rebellion continuity writer is rejected because controlled runtime probes demonstrated all of the following:
+Accepted current facts:
 
-- under persistent qualifying displacement it is an `EFFECTIVE_PERMANENCE_TIMER`;
-- continuity damage is a `ONE_WAY_CONTINUITY_RATCHET` across legitimate recovery and later redisplacement;
-- the terminal branches prove `GOVERNMENT_DEFEAT_ONLY`, not extinction of the state as an independent political community;
-- the existing non-terminal government-transition seam is representable, but current F05 state lacks authoritative successor-selection evidence;
-- the writer tracks incumbent-government physical control rather than the intended semantic meaning of state continuity.
+- the rejected F05_FIX2 weekly `stateContinuity` writer is absent from production;
+- domestic-rebellion displacement alone does not reduce `stateContinuity` or cause elapsed-time dissolution;
+- recovery remains `TRADEOFF` with three meaningful paid responses;
+- political accommodation remains `CONDITIONALLY_STRONG`;
+- early and near-crisis representative branches again contain up to 1,200 days of genuine late steady-state reassessment silence;
+- the remaining blocker is non-terminal active-conflict stalemate, not state dissolution;
+- all current continuity/succession shortcuts remain forbidden.
 
-Therefore F05_FIX2's readable pacing cannot be used as Gate 1F evidence while that writer remains authoritative.
+## F05_FIX4 external/game-AI grounding
 
-## F05_FIX3 repair scope and completion
+Before authorizing the implementation, ChatGPT reviewed current external references and current repository flow.
 
-F05_FIX3 is a narrow correctness rollback plus measurement task.
+Reference conclusions:
 
-It must:
+- OpenSpiel provides best-response, fictitious-play, regret/CFR, PSRO, search and RL algorithms; only the **current-state best-response idea** is relevant to this narrow slice. No OpenSpiel dependency is authorized.
+- Best-response dynamics supports repeated unilateral adaptation and does not require forced convergence; TMR may exhibit cycling/path dependence when caused by actual state.
+- Utility AI repositories demonstrate `candidate actions -> current-context considerations -> selection -> separate execution`; this is compatible conceptually, but arbitrary utility weights are deferred until action-specific consequences/payoffs are grounded.
+- Gambit/Nashpy equilibrium solvers are not appropriate runtime dependencies for the current dynamic political simulation.
+- stochastic QRE-style bounded rationality is deferred; no RNG is added merely to create variety.
+- MCP game-agent examples are useful only as tool/API-boundary references. MCP/LLM is not added as an authoritative NPC decision path.
+- no dedicated game-theory plugin was available in the current plugin environment; this is not a blocker.
 
-1. remove only the rejected F05_FIX2 weekly continuity decrement mechanism;
-2. restore current Architecture documentation to the pre-writer continuity semantics;
-3. add focused regression proof that internal-rebellion displacement alone no longer drains continuity or causes elapsed-boundary dissolution;
-4. preserve the existing non-terminal Government transition seam without automatic successor selection;
-5. preserve F04B recovery, F05_FIX1 response coverage, LandHex authority, and T024 determinism;
-6. rerun the unchanged F05 36-branch / five-year matrix;
-7. report the truthful pacing state after writer removal;
-8. not repair any returning pacing blocker in the same task.
+## F05_FIX4 source diagnosis being tested
 
-A truthful `GATE1F_RECOMMENDATION: NOT_READY` is an acceptable and likely F05_FIX3 result.
+Current source already contains:
 
-F05_FIX3 completed the authorized removal and reran the unchanged matrix. The
-writer is absent from production, displacement-only continuity remains stable,
-and all 36 F05 branches remain active through the five-year horizon. The early
-and near-crisis late steady-state span returns, so Gate 1F remains `NOT_READY`.
-Detailed evidence is recorded in `docs/bridge/results/F05_FIX3_RESULT.md` and
-`docs/F05_GATE1F_REPAIR3_REMOVE_CONTINUITY_WRITER.md`.
+```text
+FactionObservation
+-> deterministic legal faction choice
+-> source="heuristic" FactionActionProposal targeting the next tick
+-> common ActionProposal intake
+-> accepted faction action
+-> Faction.currentStrategy + FACTION_STRATEGY_CHANGED
+```
 
-## External-reference / grounding guardrail
+But `runSimulationStep()` deliberately returns proposals as non-authoritative output and requires the caller to intake them. The current F03/F05 headless orchestration submits player intervention actions but does not carry returned faction heuristic proposals into the next tick.
 
-- `docs/FUTURE_REFERENCE_GROUNDING_GATES.md` is mandatory reading.
-- Use repository contracts and the F04C-R mechanism-first method first.
-- No new external research is expected merely to remove a writer already rejected by repository-grounded review.
-- Do not gather references merely to invent a replacement terminal or succession mechanic.
-- If future continuity or successor-resolution evidence is required, report the grounding gap and defer implementation.
-- War as Politics, Fantasy institutional politics, and Gate 1V visual reference work remain out of scope.
+F05_FIX4 must prove this defect from source/runtime before implementing the smallest deterministic intake seam.
 
-## Forbidden until later authorization
+## F05_FIX4 scope
 
-- replacement continuity decay / restoration / sovereignty meter
-- changing T023 dissolution thresholds
-- automatic revolutionary succession or Government creation
-- intervention / faction / crisis / conflict rebalance
-- F05 scenario or readable-arc tuning to force a pass
-- free territory / direct crisis deletion / hidden comeback state
-- chapters / countdowns / permanence timers / filler events
-- RNG added merely to manufacture diversity
-- elections / parties / coalitions
-- full labor bargaining
-- transitional justice
-- military factions
-- local autonomy
-- War as Politics
-- fantasy / arcane institutions
-- V02 / renderer / UI
-- strategic AI / runtime LLM
-- self-authorizing Gate 1F PASS or another task
+Authorized:
+
+1. create the external reference-grounding artifact required by the task;
+2. inventory actual `currentStrategy` consumers;
+3. connect existing T016 faction heuristic proposals to the common next-tick action intake exactly once in an explicit actor-enabled orchestration mode;
+4. preserve proposals as non-authoritative/transient and accepted ActionRecords as the authoritative input/log;
+5. keep the current deterministic rule-ordered faction chooser;
+6. run OFF-vs-ON actor-loop counterfactuals;
+7. rerun the unchanged F05 36-branch / five-year matrix with faction actor intake ON;
+8. if only strategy labels/events change and no meaningful active-conflict consumer exists, return `ACTOR_ACTION_CONSUMER_GAP` and stop.
+
+Forbidden:
+
+- adding new faction action resource/grievance/organization effects;
+- arbitrary Utility AI payoff weights or a hidden utility score;
+- Nash/CFR/fictitious-play/PSRO/MCTS/RL runtime systems;
+- QRE/random actor choice;
+- MCP/LLM runtime faction decisions;
+- new continuity/dissolution/succession shortcut;
+- counting causally inert `FACTION_STRATEGY_CHANGED` events as pacing merely to shrink silence;
+- V02 / renderer / UI;
+- War as Politics;
+- fantasy institutions;
+- elections/parties, full labor bargaining, transitional justice, military factions, local autonomy;
+- self-authorizing Gate 1F PASS or another task.
 
 ## Bridge freshness requirement
 
-Before starting F05_FIX3, Codex must explicitly run:
+Before starting F05_FIX4, Codex must explicitly run:
 
 ```bash
 git status
@@ -174,4 +167,4 @@ git pull --ff-only
 
 Do not rely on a stale local `origin/master` tracking ref.
 
-Gate 1F remains ChatGPT/user authority. Repository source, tests, diffs, and actual simulation evidence remain the highest authority.
+Gate 1F remains ChatGPT/user authority. Repository source, tests, diffs, actual simulation evidence, and the immutable F05_FIX4 task remain the execution authority.
