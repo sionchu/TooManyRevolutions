@@ -5,7 +5,7 @@ UPDATED: 2026-08-25
 REPOSITORY: sionchu/TooManyRevolutions
 BRANCH: master
 CURRENT_GATE: Gate 1F
-CURRENT_PHASE: F05_FIX16 Coup Coordination Domain Closure — COMPLETE / AWAITING_CHATGPT_REVIEW
+CURRENT_PHASE: F05_FIX17 Coup Coordination Authoring Seam — AUTHORIZED
 
 ## Key commits
 
@@ -24,8 +24,9 @@ F05_FIX15_TASK_COMMIT: 8fd27058c95c75f55efda8612bd40a0befe81d67
 F05_FIX15_RESULT_COMMIT: 3489927c5ba67095b6f58b9292e017affeacf659
 F05_FIX15_END_COMMIT: a38614fbb387c072105d4d7568cb199ef6ff5a87
 F05_FIX16_TASK_COMMIT: 7a75116f74fadeb1fa4cc98f91591b1607999ead
-F05_FIX16_RESULT_COMMIT: f096a84
-F05_FIX16_END_COMMIT: f096a84
+F05_FIX16_RESULT_COMMIT: f096a84573da2f22bdf323f5782ff13841ea9959
+F05_FIX16_END_COMMIT: d3908e1f30390131e12cced6e1b80bd03c5c1a4f
+F05_FIX17_TASK_COMMIT: e40493948335afcfc253dee1dcee5a010166db23
 
 ## Accepted gate history
 
@@ -46,6 +47,7 @@ F05_FIX12: PASS / ACCEPTED `FUND_MOVEMENT_AUTHORING_SEAM_IMPLEMENTED`
 F05_FIX13: PASS / ACCEPTED `TARGETED_COMMITMENT_KERNEL_IMPLEMENTED_BUT_LATE_REASSESSMENT_UNCHANGED`
 F05_FIX14: PASS / ACCEPTED `FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_LATE_SILENCE_PERSISTS`
 F05_FIX15: PASS / ACCEPTED `WAR_POLITICS_REQUIRES_NEW_AUTHORITATIVE_DOMAIN`
+F05_FIX16: PASS / ACCEPTED `COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE`
 
 ## F05 late-state diagnosis preserved
 
@@ -123,48 +125,85 @@ Accepted interpretation:
 - Government transition remains nonterminal and State Dissolution remains under T023 evidence only;
 - no production source, Conflict/WorldState schema, T021/T022/T023, or persistence was changed by F05_FIX15.
 
-## F05_FIX16 authorization
+## ChatGPT acceptance of F05_FIX16
 
-F05_FIX16: COMPLETE / AWAITING_CHATGPT_REVIEW
-F05_FIX16_TASK_FILE: `docs/bridge/tasks/F05_FIX16.md`
-F05_FIX16_DIRECTION: close the coup-coordination domain question for Gate 1F.
+F05_FIX16: COMPLETE / REVIEWED / PASS / ACCEPTED
+F05_FIX16_PRIMARY_CLASSIFICATION: COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE
+F05_FIX16_NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_AUTHORING_SEAM
+F05_FIX16_ACTOR_MODEL: STATIC_SCENARIO_AUTHORED_COUP_COORDINATION_NODES_WITH_AUTHORED_REQUIRED_SET
+F05_FIX16_ALIGNMENT_MODEL: incumbent | coup | uncommitted
+F05_FIX16_TRANSITION_PROVENANCE: accepted typed coup-coordination response by required node with ActionRecord/event provenance
+F05_FIX16_OUTCOME_RULE: all authored required nodes coup => governmentTransition; any explicit required node incumbent => statusQuo; otherwise active
+F05_FIX16_CURRENT_FACTION_REUSE: NO
+F05_FIX16_CURRENT_GOVERNMENT_REUSE: NO
+F05_FIX16_NEW_STATIC_AUTHORING_REQUIRED: YES
+F05_FIX16_NEW_RUNTIME_STATE_REQUIRED: YES
+F05_FIX16_PERSISTENCE_IMPLICATION: FUTURE_VERSION_REQUIRED
+F05_FIX16_PRODUCTION_GAMEPLAY: NONE
+F05_FIX16_PERSISTENCE: V6_UNCHANGED
 
-Research basis:
+Accepted interpretation:
 
-- Singh: coup outcomes are intra-military coordination problems, not conventional territorial battle or popularity contests;
-- Geddes review of Singh: officers' choices depend strongly on beliefs about what other officers will do; grievance alone does not decide alignment;
-- Powell & Thyne: coups are analytically distinct from other anti-regime activity;
-- repository T018 already exposes `militarySympathy` and `leadership` as unimplemented future-evidence placeholders, but these must not become hidden numeric scores.
+- the coup branch can be bounded without a general military/state-apparatus simulation;
+- the minimum actor is a coup-only scenario-authored coordination node, not `Faction`, `Government`, a unit, rank, command hierarchy, or communication graph;
+- node alignment is an observable attempt-local categorical state (`incumbent | coup | uncommitted`), not a loyalty/belief/progress meter;
+- alignment may only come from an explicit typed response with deterministic ActionRecord/event provenance in a future runtime task;
+- the authored `requiredNodeIds` set is a necessary-set contract, not a generic majority/quorum/weighted score;
+- all required nodes aligned `coup` may feed the existing nonterminal `governmentTransition` result sink; any explicit required-node `incumbent` response may feed `statusQuo`; unresolved nodes leave the coup active;
+- `stateDissolved` remains T023-owned and LandHex control is irrelevant to normal coup resolution;
+- the next finite step is static scenario authoring only.
 
-Closure question:
+## F05_FIX17 authorization
+
+F05_FIX17: AUTHORIZED
+F05_FIX17_TASK_FILE: `docs/bridge/tasks/F05_FIX17.md`
+F05_FIX17_DIRECTION: implement only the static scenario-owned coup coordination node/profile authoring seam.
+
+Required static semantic contract:
 
 ```text
-Can TMR represent coup resolution with a bounded coup-only set of explicit decisive coordination actors and categorical observable alignment/action provenance,
-without creating a general military/state-apparatus simulation or hidden coordination score?
+CoupCoordinationNodeDefinition
+  -> stable coup-only node identity
+  -> Country ownership
+  -> authoring/presentation name only
+
+CoupCoordinationProfile
+  -> CountryId
+  -> coup-capable FactionId
+  -> non-empty explicit requiredNodeIds necessary-set
+  -> existing same-Country successor GovernmentId
 ```
 
-Exactly two valid primary outcomes:
+Required preservation:
+
+- existing scenarios without authoring fields remain behaviorally unchanged;
+- no runtime alignment state or initial alignment writer;
+- no `COUP_COORDINATION_RESPONSE` action/event;
+- no coup outcome producer or Government-transition producer;
+- no T018/T021/T022/T023 behavior change;
+- no persistence change; V6 remains current;
+- no production Gate 1F coup-node content merely to manufacture reachability.
+
+Exact allowed classifications:
 
 ```text
-COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE
-COUP_COORDINATION_REJECTED_FOR_GATE1F
+COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED
+COUP_COORDINATION_AUTHORING_SEAM_REJECTED_FOR_GATE1F
 ```
 
-If designable:
+If implemented:
 
 ```text
-NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_AUTHORING_SEAM
+NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE
 ```
 
-If honest implementation requires a broader military/state-apparatus actor, command, communications, hidden-belief, loyalty, or unit system:
+If rejected:
 
 ```text
 NEXT_IMPLEMENTATION_READINESS: PIVOT_TO_REBELLION_PERSISTENCE_GROUNDING
 ```
 
-There is no third `needs more coup grounding` outcome. If rejected, the coup route is closed for the current Gate 1F repair.
-
-F05_FIX16 is grounding/design only. It may not add WorldState/Conflict/Government/Faction fields, actions, coup outcome writers, T018/T021/T022/T023 changes, persistence changes, or production scenario content.
+No third open-ended authoring outcome is allowed.
 
 ## Current architecture constraints
 
@@ -193,11 +232,11 @@ POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
 PERSISTENCE: SerializedSimulationSnapshotV6 / format version 6
 
 LAST_COMPLETED_TASK_ID: F05_FIX16
-NEXT_AUTHORIZED_TASK_ID: NONE
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
-CURRENT_TASK_FILE: NONE
+NEXT_AUTHORIZED_TASK_ID: F05_FIX17
+NEXT_TASK_STATUS: AUTHORIZED
+CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX17.md`
 LAST_RESULT_FILE: `docs/bridge/results/F05_FIX16_RESULT.md`
-F05_FIX17: NOT_AUTHORIZED
+F05_FIX18: NOT_AUTHORIZED
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
 ## Repository-root / freshness guard
