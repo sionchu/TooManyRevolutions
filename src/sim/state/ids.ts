@@ -17,6 +17,7 @@ export type InterventionCommitmentId = Brand<
   string,
   "InterventionCommitmentId"
 >;
+export type PoliticalProposalId = Brand<string, "PoliticalProposalId">;
 export type ActionId = Brand<string, "ActionId">;
 export type EventId = Brand<string, "EventId">;
 
@@ -30,7 +31,8 @@ export type EntityId =
   | ConflictId
   | GovernmentId
   | InterventionId
-  | InterventionCommitmentId;
+  | InterventionCommitmentId
+  | PoliticalProposalId;
 
 export const asCountryId = (value: string): CountryId => value as CountryId;
 export const asRegionId = (value: string): RegionId => value as RegionId;
@@ -49,5 +51,7 @@ export const asInterventionId = (value: string): InterventionId =>
 export const asInterventionCommitmentId = (
   value: string,
 ): InterventionCommitmentId => value as InterventionCommitmentId;
+export const asPoliticalProposalId = (value: string): PoliticalProposalId =>
+  value as PoliticalProposalId;
 export const asActionId = (value: string): ActionId => value as ActionId;
 export const asEventId = (value: string): EventId => value as EventId;

@@ -28,6 +28,7 @@ import type {
   SimulationPhaseResult,
 } from "../core/step";
 import type { WorldState } from "../state/world";
+import { openFactionLobbyProposal } from "./politicalProposal";
 
 /** T016 uses the same monthly political boundary selected by T015C. */
 export const DEFAULT_FACTION_POLITICAL_CADENCE: PoliticalCadence = "monthly";
@@ -768,39 +769,49 @@ function applyAcceptedFactionActions(context: SimulationPhaseContext): {
     }
 
     const nextStrategy = strategyForActionType(action.actionType);
-    if (faction.currentStrategy === nextStrategy) {
-      continue;
+    if (faction.currentStrategy !== nextStrategy) {
+      const event = createGameEvent({
+        tick: context.nextTick,
+        sequence: nextEventSequence,
+        type: "FACTION_STRATEGY_CHANGED",
+        actorId: faction.id,
+        targetId: faction.countryId,
+        causeIds: [],
+        payload: {
+          actionId: action.id,
+          factionId: faction.id,
+          actionType: action.actionType,
+          previousStrategy: faction.currentStrategy,
+          strategy: nextStrategy,
+        },
+        visibility: "world",
+      });
+
+      emittedEvents.push(event);
+      nextEventSequence += 1;
+      currentWorld = {
+        ...currentWorld,
+        factions: {
+          ...currentWorld.factions,
+          [faction.id]: {
+            ...faction,
+            currentStrategy: nextStrategy,
+          },
+        },
+      };
     }
 
-    const event = createGameEvent({
-      tick: context.nextTick,
-      sequence: nextEventSequence,
-      type: "FACTION_STRATEGY_CHANGED",
-      actorId: faction.id,
-      targetId: faction.countryId,
-      causeIds: [],
-      payload: {
-        actionId: action.id,
-        factionId: faction.id,
-        actionType: action.actionType,
-        previousStrategy: faction.currentStrategy,
-        strategy: nextStrategy,
-      },
-      visibility: "world",
-    });
-
-    emittedEvents.push(event);
-    nextEventSequence += 1;
-    currentWorld = {
-      ...currentWorld,
-      factions: {
-        ...currentWorld.factions,
-        [faction.id]: {
-          ...faction,
-          currentStrategy: nextStrategy,
-        },
-      },
-    };
+    const opening = openFactionLobbyProposal(
+      context,
+      currentWorld,
+      action,
+      nextEventSequence,
+    );
+    currentWorld = opening.world;
+    if (opening.event !== null) {
+      emittedEvents.push(opening.event);
+    }
+    nextEventSequence = opening.nextEventSequence;
   }
 
   return { world: currentWorld, emittedEvents, nextEventSequence };

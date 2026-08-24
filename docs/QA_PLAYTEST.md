@@ -365,7 +365,7 @@ T024 is complete as an in-memory typed snapshot/replay contract. It does not add
 save UI, browser storage, cloud saves, replay viewer, or Gate 1V.
 
 - `pnpm test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run format`, and
-  `pnpm run build` must pass with the explicit `SerializedSimulationSnapshotV2`
+  `pnpm run build` must pass with the explicit `SerializedSimulationSnapshotV3`
   decoder, `EventStore` commit boundary, and regression tests
 - `pnpm run inspect:t024` must pass snapshot version/scenario identity,
   authoritative runtime roundtrip, LandHex/contact/conflict/RNG/EventStore
@@ -374,7 +374,7 @@ save UI, browser storage, cloud saves, replay viewer, or Gate 1V.
 - snapshot input must contain no static ScenarioDefinition/topology,
   `Region.controller`, front, agenda, threat, regime, consolidation, dissolution,
   or other derived read model; those are reconstructed after load
-- wrong scenario identity, unsupported format/unknown keys, incomplete/extra V2
+- wrong scenario identity, unsupported format/unknown keys, incomplete/extra V3
   Country/Region/Faction/PolicyState identity sets, incomplete ideology catalog
   coverage, invalid policy/faction/intervention references, Government/Conflict
   outcome references, missing or unknown LandHex runtime state, static LandHex →
@@ -1194,3 +1194,22 @@ A fresh observer should understand within 3 minutes:
 - current victory/defeat direction.
 
 Any feature that cannot contribute to this loop is lower priority for competition build.
+
+## F05_FIX6 political interaction QA
+
+- an explicit authored template is required; an accepted `LOBBY` without one
+  remains strategy-only;
+- proposal opening captures the current Government and preserves CountryId;
+- opening, `IGNORE`, and `REJECT` do not start an intervention or write its
+  institutional/faction effects;
+- `ACCEPT` is a later player response and uses the existing feasibility, treasury,
+  administrative commitment, duration, completion, and typed effect seams;
+- infeasible acceptance stays open with an explicit response-rejected event;
+- a stale Government target is not retargeted and does not create a successor;
+- proposal action/event cause chains are append-only and inspectable;
+- V3 save/load roundtrip covers open, rejected, and accepted proposals, including
+  replay and insertion-order determinism;
+- `WorldState.landHexStates[*].controller`, crisis/conflict writers, continuity,
+  and terminal outcome remain unchanged by the kernel;
+- `pnpm run inspect:f05fix6` compares NO_PROPOSAL, PROPOSAL_IGNORE,
+  PROPOSAL_REJECT, and PROPOSAL_ACCEPT from one seed/state.

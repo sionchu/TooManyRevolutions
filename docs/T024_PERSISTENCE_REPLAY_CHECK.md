@@ -4,6 +4,9 @@
 **Scope:** typed in-memory snapshot, restore validation, atomic EventStore commit,
 and deterministic continuation. Gate 1V/UI/storage backend는 시작하지 않는다.
 
+F05_FIX6 supersedes the V2 envelope with the V3 amendment at the end of this
+document; the earlier V2 bullets remain the historical T024 baseline.
+
 ## Contract
 
 - `SerializedSimulationSnapshotV2` stores `formatVersion`, scenario identity,
@@ -100,3 +103,23 @@ rewind/branching/multiplayer replay, replay viewer, full event-sourced rebuild,
 content hashing, dynamic entity lifecycle, Gate 1V visualization, and UI remain
 future work. F04D raised the format to version 2 so `politicalCompetition` is a
 required validated rule; version 1 is rejected without a hidden default or migration.
+
+## F05_FIX6 V3 amendment
+
+F05_FIX6 adds authoritative `WorldState.politicalProposals`, so the snapshot
+contract is now `SerializedSimulationSnapshotV3` / format version 3. V3 strictly
+serializes and decodes proposal ID, proposer Faction, CountryId, captured target
+GovernmentId, `interventionRequest` subject, requested InterventionId, lifecycle
+status, created/resolved ticks, and opening/response ActionRecord/Event
+provenance. Version 2 is rejected; no hidden migration or default proposal is
+applied.
+
+Runtime closure additionally checks that an opened proposal has a matching
+scenario-authored template and accepted `LOBBY` ActionRecord, that resolved
+proposals carry a later response, and that an accepted proposal's intervention
+commitment points to the actual player response ActionRecord. Save/load replay
+and object insertion-order checks cover open, rejected, and accepted states.
+
+The proposal state is not an event-only read model. Its opening event alone does
+not count as a pacing or downstream result; only the existing intervention
+commitment/completion and typed state effects qualify as an ACCEPT consequence.

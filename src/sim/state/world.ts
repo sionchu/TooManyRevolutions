@@ -10,6 +10,7 @@ import {
   type InterventionCommitment,
 } from "./intervention";
 import type { PolicyState } from "./policy";
+import type { PoliticalProposal } from "./politicalProposal";
 import type { Region } from "./region";
 import type { ScenarioRegion, TerritorialController } from "./region";
 import type { RunState } from "./run";
@@ -25,6 +26,7 @@ import type {
   GovernmentId,
   InterventionCommitmentId,
   LandHexId,
+  PoliticalProposalId,
   RegionId,
 } from "./ids";
 import type { LandHexRuntimeState } from "./territorialControl";
@@ -41,6 +43,10 @@ export interface WorldState {
   readonly conflicts: Readonly<Record<ConflictId, Conflict>>;
   readonly interventionCommitments: Readonly<
     Record<InterventionCommitmentId, InterventionCommitment>
+  >;
+  /** Authoritative proposal lifecycle; absent only on hand-authored legacy test worlds. */
+  readonly politicalProposals?: Readonly<
+    Record<PoliticalProposalId, PoliticalProposal>
   >;
   readonly contactEdgeStates: ContactEdgeRuntimeStateMap;
   readonly policies: Readonly<Record<CountryId, PolicyState>>;
@@ -242,6 +248,7 @@ export function createInitialWorldState(
     factions: indexFactions(scenario.initialFactions),
     conflicts: indexConflicts(scenario.initialConflicts),
     interventionCommitments: {},
+    politicalProposals: {},
     contactEdgeStates: {},
     policies: copyPolicyStates(scenario.initialCountryPolicies),
     rngState,

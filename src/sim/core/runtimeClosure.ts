@@ -1,6 +1,9 @@
 import {
   createDeterministicActionId,
+  decodeFactionAction,
+  decodeRespondPoliticalProposalAction,
   decodeStartInterventionAction,
+  RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE,
   START_INTERVENTION_ACTION_TYPE,
   type ActionRecord,
   type ValidatedActionRecord,
@@ -355,29 +358,64 @@ function assertActionCommitmentProvenance(
     }
 
     const startAction = sourceAction as ValidatedActionRecord;
-    if (startAction.actionType !== START_INTERVENTION_ACTION_TYPE) {
+    if (startAction.actionType === START_INTERVENTION_ACTION_TYPE) {
+      const payload = decodeStartInterventionAction(startAction);
+      if (payload === null) {
+        throw new Error(
+          `Intervention commitment ${commitment.id} has an invalid source action payload.`,
+        );
+      }
+
+      const sourceCountryId = payload.countryId ?? scenario.playerCountryId;
+      if (sourceCountryId === null || sourceCountryId === undefined) {
+        throw new Error(
+          `Intervention commitment ${commitment.id} cannot resolve its source country.`,
+        );
+      }
+
+      if (sourceCountryId !== commitment.countryId) {
+        throw new Error(
+          `Intervention commitment ${commitment.id} source country does not match the commitment.`,
+        );
+      }
+
+      if (sourceAction.tick !== commitment.startedTick) {
+        throw new Error(
+          `Intervention commitment ${commitment.id} does not start on its source action tick.`,
+        );
+      }
+
+      if (payload.interventionId !== commitment.interventionId) {
+        throw new Error(
+          `Intervention commitment ${commitment.id} does not match its source intervention.`,
+        );
+      }
+      continue;
+    }
+
+    if (startAction.actionType !== RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE) {
       throw new Error(
         `Intervention commitment ${commitment.id} has a non-intervention source action.`,
       );
     }
 
-    const payload = decodeStartInterventionAction(startAction);
-    if (payload === null) {
+    const response = decodeRespondPoliticalProposalAction(startAction);
+    const proposal =
+      response === null
+        ? undefined
+        : world.politicalProposals?.[response.proposalId];
+    if (
+      response === null ||
+      proposal === undefined ||
+      response.response !== "accept" ||
+      proposal.status !== "accepted" ||
+      proposal.responseActionId !== sourceAction.id ||
+      proposal.resolvedAtTick !== sourceAction.tick ||
+      proposal.interventionId !== commitment.interventionId ||
+      proposal.countryId !== commitment.countryId
+    ) {
       throw new Error(
-        `Intervention commitment ${commitment.id} has an invalid source action payload.`,
-      );
-    }
-
-    const sourceCountryId = payload.countryId ?? scenario.playerCountryId;
-    if (sourceCountryId === null || sourceCountryId === undefined) {
-      throw new Error(
-        `Intervention commitment ${commitment.id} cannot resolve its source country.`,
-      );
-    }
-
-    if (sourceCountryId !== commitment.countryId) {
-      throw new Error(
-        `Intervention commitment ${commitment.id} source country does not match the commitment.`,
+        `Intervention commitment ${commitment.id} has invalid proposal response provenance.`,
       );
     }
 
@@ -386,10 +424,102 @@ function assertActionCommitmentProvenance(
         `Intervention commitment ${commitment.id} does not start on its source action tick.`,
       );
     }
+  }
+}
 
-    if (payload.interventionId !== commitment.interventionId) {
+function assertPoliticalProposalProvenance(
+  scenario: ScenarioDefinition,
+  world: WorldState,
+): void {
+  const actionsById = new Map<string, ActionRecord>();
+  for (const action of world.run.actionLog) {
+    actionsById.set(action.id, action);
+  }
+
+  const templates = scenario.factionProposalTemplates ?? [];
+  const proposals = world.politicalProposals ?? {};
+  for (const proposal of Object.values(proposals)) {
+    const faction = world.factions[proposal.proposerFactionId];
+    if (faction === undefined || faction.countryId !== proposal.countryId) {
       throw new Error(
-        `Intervention commitment ${commitment.id} does not match its source intervention.`,
+        `Political proposal ${proposal.id} has invalid faction/country provenance.`,
+      );
+    }
+
+    const template = templates.find(
+      (candidate) =>
+        candidate.factionId === proposal.proposerFactionId &&
+        candidate.triggerAction === "LOBBY" &&
+        candidate.interventionId === proposal.interventionId,
+    );
+    if (template === undefined) {
+      throw new Error(
+        `Political proposal ${proposal.id} has no authored LOBBY template.`,
+      );
+    }
+
+    const openingAction = actionsById.get(proposal.openingActionId);
+    if (
+      openingAction === undefined ||
+      openingAction.validationOutcome.kind !== "accepted" ||
+      openingAction.actionType !== "LOBBY" ||
+      openingAction.tick !== proposal.createdAtTick
+    ) {
+      throw new Error(
+        `Political proposal ${proposal.id} has invalid opening action provenance.`,
+      );
+    }
+    const openingPayload = decodeFactionAction(
+      openingAction as ValidatedActionRecord,
+    );
+    if (openingPayload?.factionId !== proposal.proposerFactionId) {
+      throw new Error(
+        `Political proposal ${proposal.id} opening faction does not match.`,
+      );
+    }
+
+    if (proposal.status === "open") {
+      continue;
+    }
+
+    const responseAction =
+      proposal.responseActionId === undefined
+        ? undefined
+        : actionsById.get(proposal.responseActionId);
+    const response =
+      responseAction === undefined ||
+      responseAction.validationOutcome.kind !== "accepted"
+        ? null
+        : decodeRespondPoliticalProposalAction(
+            responseAction as ValidatedActionRecord,
+          );
+    if (
+      responseAction === undefined ||
+      responseAction.source !== "player" ||
+      responseAction.tick !== proposal.resolvedAtTick ||
+      response === null ||
+      response.proposalId !== proposal.id
+    ) {
+      throw new Error(
+        `Political proposal ${proposal.id} has invalid response provenance.`,
+      );
+    }
+    if (
+      proposal.status === "accepted" &&
+      (response.response !== "accept" ||
+        proposal.resolutionReason !== "accepted")
+    ) {
+      throw new Error(
+        `Political proposal ${proposal.id} accepted status is not backed by ACCEPT.`,
+      );
+    }
+    if (
+      proposal.status === "rejected" &&
+      proposal.resolutionReason === "explicitReject" &&
+      response.response !== "reject"
+    ) {
+      throw new Error(
+        `Political proposal ${proposal.id} explicit rejection is not backed by REJECT.`,
       );
     }
   }
@@ -522,6 +652,10 @@ export function assertScenarioRuntimeClosure(
     "WorldState.interventionCommitments",
     world.interventionCommitments,
   );
+  assertRecordIdentityKeys(
+    "WorldState.politicalProposals",
+    world.politicalProposals ?? {},
+  );
 
   assertPolicyRuntimeCoverage(scenario, world, countryIds);
   assertRegionIdeologyRuntimeCoverage(scenario, world);
@@ -538,6 +672,7 @@ export function assertScenarioRuntimeClosure(
 
   assertLandHexRuntimeStateInvariants(scenario, world);
   assertActionCommitmentProvenance(scenario, world);
+  assertPoliticalProposalProvenance(scenario, world);
   assertConflictOutcomeReferences(world);
 }
 
@@ -581,6 +716,10 @@ export function assertScenarioRuntimeClosureIncremental(
     "WorldState.interventionCommitments",
     nextWorld.interventionCommitments,
   );
+  assertRecordIdentityKeys(
+    "WorldState.politicalProposals",
+    nextWorld.politicalProposals ?? {},
+  );
 
   assertPolicyRuntimeCoverage(scenario, nextWorld, countryIds);
   assertRegionIdeologyRuntimeCoverage(scenario, nextWorld);
@@ -598,5 +737,6 @@ export function assertScenarioRuntimeClosureIncremental(
   assertLandHexRuntimeStateInvariants(scenario, nextWorld);
   assertActionRecordDelta(previousWorld, nextWorld);
   assertInterventionCommitmentDelta(scenario, previousWorld, nextWorld);
+  assertPoliticalProposalProvenance(scenario, nextWorld);
   assertConflictOutcomeReferences(nextWorld);
 }

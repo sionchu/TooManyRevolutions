@@ -1742,6 +1742,65 @@ Faction pressure availability, intervention effects, event histories, validation
 fixtures, and counterfactual baselines, but it does not change territory, conflict,
 or Government authority.
 
+## ADR-042 — F05_FIX6 authored political proposal and shared intervention response
+
+**Date:** 2026-08-24
+**Status:** Accepted for the developer validation slice; Gate 1F remains `NOT_READY`
+
+### Problem
+
+F05_FIX5 showed that faction action labels alone do not identify a demand,
+recipient, commitment, or outcome. `LOBBY` had no represented interaction, while
+the existing InterventionDefinition already had a bounded authoritative resolver.
+
+### Decision
+
+- Add an optional scenario-authored `(FactionId, triggerAction) -> InterventionId`
+  template. The first slice uses one explicit coup-faction `LOBBY` template for
+  the existing F04D coercive restriction intervention.
+- Add authoritative `PoliticalProposal` runtime state with captured Country and
+  current Government, one `interventionRequest` subject, open/accepted/rejected
+  lifecycle, and opening/response provenance.
+- Add typed player `RESPOND_POLITICAL_PROPOSAL` with `accept | reject` on a later
+  tick. Rejection preserves the measured status quo. Acceptance reuses the
+  existing intervention feasibility, treasury, administrative load, duration,
+  completion, and typed effect path with the response ActionRecord as source.
+- Reject stale Government targets without retargeting and leave infeasible
+  acceptance open with an explicit response-rejected event.
+- Raise snapshots to V3 and reject V2 rather than silently migrating or defaulting
+  proposal state.
+
+### Alternatives
+
+- infer demands from faction interests or ideology;
+- apply a scalar grievance/organization/resource bonus on `LOBBY`;
+- create a hidden synthetic `START_INTERVENTION` action;
+- auto-accept or auto-reject in the official F05 matrix;
+- add probabilistic bargaining, counteroffers, or an equilibrium solver.
+
+### Reason
+
+The proposal/status-quo and veto-response structure is grounded by Romer &
+Rosenthal, veto-player/veto-bargaining summaries, and minimal offer/accept-reject
+work. The implementation keeps those references at the grammar level and uses
+existing TMR contracts for the actual consequence. The controlled same-seed
+experiment shows that only ACCEPT reaches an existing intervention and produces
+measured institutional/faction downstream change.
+
+### Consequences
+
+The snapshot trust boundary, action/event causality, runtime closure, and focused
+replay tests now include proposal state. Production F04D/F05 scenarios remain
+template-free; integrating proposal-response policy into F05 pacing requires a
+separate reviewed task. Bargaining, parties, elections, crisis writers, territory,
+continuity, V02, and UI remain outside this decision.
+
+### Reversal cost
+
+Medium-high. Removing this layer would require reverting V3 persistence, action
+and event vocabulary, runtime provenance checks, focused tests, and the explicit
+developer fixture without changing the underlying InterventionDefinition seam.
+
 # Template
 
 ## ADR-XXX — Title

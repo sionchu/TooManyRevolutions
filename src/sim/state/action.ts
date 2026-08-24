@@ -5,11 +5,13 @@ import {
   asFactionId,
   asInterventionId,
   asPolicyId,
+  asPoliticalProposalId,
   type ActionId,
   type CountryId,
   type FactionId,
   type InterventionId,
   type PolicyId,
+  type PoliticalProposalId,
 } from "./ids";
 
 export type ActionSource = "player" | "heuristic" | "llm";
@@ -158,6 +160,19 @@ export interface StartInterventionActionPayload {
   readonly countryId?: CountryId;
 }
 
+export const RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE =
+  "RESPOND_POLITICAL_PROPOSAL" as const;
+export const RESPOND_POLITICAL_PROPOSAL_ACTION_SCHEMA_VERSION = 1 as const;
+
+export const POLITICAL_PROPOSAL_RESPONSES = ["accept", "reject"] as const;
+export type PoliticalProposalResponse =
+  (typeof POLITICAL_PROPOSAL_RESPONSES)[number];
+
+export interface RespondPoliticalProposalActionPayload {
+  readonly proposalId: PoliticalProposalId;
+  readonly response: PoliticalProposalResponse;
+}
+
 /** Typed payload for the policy action; absent countryId means the player state. */
 export interface EnactPolicyActionPayload {
   readonly policyId: PolicyId;
@@ -245,6 +260,56 @@ export function decodeStartInterventionAction(
   return {
     interventionId: asInterventionId(interventionId),
     ...(countryId === undefined ? {} : { countryId: asCountryId(countryId) }),
+  };
+}
+
+/** Decode the explicit player response for an authoritative proposal. */
+export function decodeRespondPoliticalProposalAction(
+  action: ValidatedActionRecord,
+): RespondPoliticalProposalActionPayload | null {
+  if (
+    action.actionType !== RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE ||
+    action.schemaVersion !== RESPOND_POLITICAL_PROPOSAL_ACTION_SCHEMA_VERSION ||
+    !isJsonObject(action.payload)
+  ) {
+    return null;
+  }
+
+  const keys = Object.keys(action.payload).sort();
+  if (keys.length !== 2 || keys[0] !== "proposalId" || keys[1] !== "response") {
+    return null;
+  }
+
+  const proposalId = action.payload.proposalId;
+  const response = action.payload.response;
+  if (
+    typeof proposalId !== "string" ||
+    proposalId.length === 0 ||
+    typeof response !== "string" ||
+    !POLITICAL_PROPOSAL_RESPONSES.includes(
+      response as PoliticalProposalResponse,
+    )
+  ) {
+    return null;
+  }
+
+  return {
+    proposalId: asPoliticalProposalId(proposalId),
+    response: response as PoliticalProposalResponse,
+  };
+}
+
+export function createRespondPoliticalProposalActionProposal(
+  tick: number,
+  proposalId: PoliticalProposalId,
+  response: PoliticalProposalResponse,
+): ActionProposal {
+  return {
+    tick,
+    source: "player",
+    actionType: RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE,
+    payload: { proposalId, response },
+    schemaVersion: RESPOND_POLITICAL_PROPOSAL_ACTION_SCHEMA_VERSION,
   };
 }
 

@@ -6,6 +6,7 @@ import type {
 } from "../core/step";
 import type { GameEvent } from "../events/event";
 import { runInterventionResolutionPhase } from "./intervention";
+import { RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE } from "../state/action";
 import { runPolicyPhase } from "./policy";
 import type { ScenarioDefinition } from "../state/scenario";
 
@@ -31,7 +32,8 @@ export function runPolicyAndInterventionResolutionPhase(
   for (const action of context.input.actions) {
     if (
       action.actionType !== "ENACT_POLICY" &&
-      action.actionType !== "START_INTERVENTION"
+      action.actionType !== "START_INTERVENTION" &&
+      action.actionType !== RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE
     ) {
       continue;
     }

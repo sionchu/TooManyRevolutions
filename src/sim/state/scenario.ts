@@ -23,6 +23,7 @@ import type { ScenarioRegion } from "./region";
 import type { SovereignFunction } from "./run";
 import type { Government } from "./government";
 import type { InterventionDefinition } from "./intervention";
+import { FACTION_ACTION_TYPES, type FactionActionType } from "./action";
 import {
   assertScenarioTerritorialTopology,
   type TerritorialTopologyDefinition,
@@ -71,6 +72,13 @@ export interface DissolutionCriteria {
   readonly sovereignFunctionsRequiredForContinuity: readonly SovereignFunction[];
 }
 
+/** Explicit scenario-authored mapping; never inferred from faction interests. */
+export interface FactionProposalTemplate {
+  readonly factionId: FactionId;
+  readonly triggerAction: FactionActionType;
+  readonly interventionId: InterventionId;
+}
+
 /**
  * Immutable scenario input. It owns definitions and initial snapshots;
  * WorldState contains only the mutable state of a particular run.
@@ -91,6 +99,7 @@ export interface ScenarioDefinition {
   readonly factionCapabilities?: Readonly<
     Record<FactionId, readonly PoliticalCrisisCapability[]>
   >;
+  readonly factionProposalTemplates?: readonly FactionProposalTemplate[];
   readonly initialCountryPolicies: Readonly<Record<CountryId, PolicyState>>;
   readonly ideologyCatalog: Readonly<Record<IdeologyId, IdeologyDefinition>>;
   readonly policyCatalog: Readonly<Record<PolicyId, PolicyDefinition>>;
@@ -206,11 +215,49 @@ function assertScenarioFactionCapabilities(scenario: ScenarioDefinition): void {
   }
 }
 
+/** Validate only explicit faction/action/intervention mappings authored by a scenario. */
+function assertScenarioFactionProposalTemplates(
+  scenario: ScenarioDefinition,
+): void {
+  const factionIds = new Set(
+    scenario.initialFactions.map((faction) => faction.id),
+  );
+  const interventionIds = new Set(Object.keys(scenario.interventionCatalog));
+  const seen = new Set<string>();
+
+  for (const template of scenario.factionProposalTemplates ?? []) {
+    if (!factionIds.has(template.factionId)) {
+      throw new Error(
+        `Faction proposal template references missing faction ${template.factionId}.`,
+      );
+    }
+
+    if (!interventionIds.has(template.interventionId)) {
+      throw new Error(
+        `Faction proposal template references missing intervention ${template.interventionId}.`,
+      );
+    }
+
+    if (!FACTION_ACTION_TYPES.includes(template.triggerAction)) {
+      throw new Error(
+        `Faction proposal template has invalid trigger action ${template.triggerAction}.`,
+      );
+    }
+
+    const key = `${template.factionId}:${template.triggerAction}`;
+    if (seen.has(key)) {
+      throw new Error(`Faction proposal template repeats ${key}.`);
+    }
+    seen.add(key);
+  }
+}
+
 /** Validate the static topology owned by one ScenarioDefinition. */
 export function assertScenarioDefinition(scenario: ScenarioDefinition): void {
   assertScenarioContactTopology(scenario);
   assertScenarioTerritorialTopology(scenario);
   assertScenarioFactionCapabilities(scenario);
+  assertScenarioFactionProposalTemplates(scenario);
 }
 
 /** A non-playable bootstrap scenario; T025 supplies the first playable data. */

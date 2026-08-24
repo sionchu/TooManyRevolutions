@@ -5,6 +5,11 @@ import {
   POLITICAL_COMPETITIONS,
 } from "../state/policy";
 import { RESOURCE_TYPES } from "../state/region";
+import {
+  POLITICAL_PROPOSAL_RESOLUTION_REASONS,
+  POLITICAL_PROPOSAL_STATUSES,
+  POLITICAL_PROPOSAL_SUBJECT_KINDS,
+} from "../state/politicalProposal";
 import type { WorldState } from "../state/world";
 import type { SimDate } from "./clock";
 import type { SeedState } from "./rng";
@@ -289,6 +294,107 @@ function assertInterventionCommitments(world: WorldState): void {
   }
 }
 
+function assertPoliticalProposals(world: WorldState): void {
+  for (const [proposalId, proposal] of Object.entries(
+    world.politicalProposals ?? {},
+  )) {
+    if (proposalId !== proposal.id) {
+      throw new Error(
+        `Political proposal key ${proposalId} does not match ${proposal.id}.`,
+      );
+    }
+
+    assertStringEnum(
+      proposal.subjectKind,
+      POLITICAL_PROPOSAL_SUBJECT_KINDS,
+      `${proposal.id}.subjectKind`,
+    );
+    assertStringEnum(
+      proposal.status,
+      POLITICAL_PROPOSAL_STATUSES,
+      `${proposal.id}.status`,
+    );
+
+    if (world.factions[proposal.proposerFactionId] === undefined) {
+      throw new Error(`${proposal.id} references a missing proposer faction.`);
+    }
+    if (world.countries[proposal.countryId] === undefined) {
+      throw new Error(`${proposal.id} references a missing country.`);
+    }
+    const targetGovernment = world.governments[proposal.targetGovernmentId];
+    if (targetGovernment === undefined) {
+      throw new Error(`${proposal.id} references a missing target government.`);
+    }
+    if (targetGovernment.countryId !== proposal.countryId) {
+      throw new Error(
+        `${proposal.id} target government belongs to another country.`,
+      );
+    }
+
+    for (const [tick, label] of [
+      [proposal.createdAtTick, "createdAtTick"],
+      [proposal.resolvedAtTick, "resolvedAtTick"],
+    ] as const) {
+      if (
+        tick !== undefined &&
+        (!Number.isInteger(tick) || tick < 0 || tick > world.tick)
+      ) {
+        throw new Error(`${proposal.id}.${label} is invalid.`);
+      }
+    }
+    if (
+      !Number.isInteger(proposal.createdAtTick) ||
+      proposal.createdAtTick < 0 ||
+      proposal.createdAtTick > world.tick
+    ) {
+      throw new Error(`${proposal.id}.createdAtTick is invalid.`);
+    }
+    if (
+      proposal.openingActionId.length === 0 ||
+      proposal.openingEventId.length === 0
+    ) {
+      throw new Error(`${proposal.id} must retain opening provenance.`);
+    }
+
+    if (proposal.status === "open") {
+      if (
+        proposal.resolvedAtTick !== undefined ||
+        proposal.responseActionId !== undefined ||
+        proposal.resolutionReason !== undefined
+      ) {
+        throw new Error(`${proposal.id} open status has resolution data.`);
+      }
+      continue;
+    }
+
+    if (
+      proposal.resolvedAtTick === undefined ||
+      proposal.resolvedAtTick <= proposal.createdAtTick ||
+      proposal.responseActionId === undefined ||
+      proposal.resolutionReason === undefined
+    ) {
+      throw new Error(`${proposal.id} resolved status is incomplete.`);
+    }
+    assertStringEnum(
+      proposal.resolutionReason,
+      POLITICAL_PROPOSAL_RESOLUTION_REASONS,
+      `${proposal.id}.resolutionReason`,
+    );
+    if (
+      proposal.status === "accepted" &&
+      proposal.resolutionReason !== "accepted"
+    ) {
+      throw new Error(`${proposal.id} accepted status has a wrong reason.`);
+    }
+    if (
+      proposal.status === "rejected" &&
+      proposal.resolutionReason === "accepted"
+    ) {
+      throw new Error(`${proposal.id} rejected status has an accepted reason.`);
+    }
+  }
+}
+
 function assertRunState(
   world: WorldState,
   options: { readonly validateActionHistory?: boolean } = {},
@@ -465,6 +571,7 @@ export function assertWorldStateInvariants(
   }
 
   assertInterventionCommitments(world);
+  assertPoliticalProposals(world);
 
   for (const government of Object.values(world.governments)) {
     if (world.countries[government.countryId] === undefined) {

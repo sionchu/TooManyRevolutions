@@ -30,6 +30,7 @@
     "inspect:f04b": "vite-node src/sim/inspection/f04bActiveConflictRecoveryAgency.cli.ts",
     "inspect:f04d": "vitest run src/sim/inspection/f04dInstitutionActionCounterfactualsInspection.test.ts --pool=forks --testTimeout=30000 --reporter=verbose --silent=false",
     "inspect:f05": "vite-node src/sim/inspection/f05PacingFunDecision.cli.ts",
+    "inspect:f05fix6": "vite-node src/sim/inspection/f05Fix6PoliticalInteraction.cli.ts",
     "inspect:v01": "vitest run src/presentation/v01PresentationInspection.test.ts --reporter=verbose --silent=false",
     "test:watch": "vitest",
     "typecheck": "tsc -b --pretty false",

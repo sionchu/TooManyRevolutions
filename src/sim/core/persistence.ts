@@ -31,6 +31,12 @@ import type {
 import type { Government } from "../state/government";
 import type { IdeologyState } from "../state/ideology";
 import type { InterventionCommitment } from "../state/intervention";
+import type { PoliticalProposal } from "../state/politicalProposal";
+import {
+  POLITICAL_PROPOSAL_RESOLUTION_REASONS,
+  POLITICAL_PROPOSAL_STATUSES,
+  POLITICAL_PROPOSAL_SUBJECT_KINDS,
+} from "../state/politicalProposal";
 import {
   asActionId,
   asConflictId,
@@ -41,6 +47,7 @@ import {
   asInterventionCommitmentId,
   asInterventionId,
   asPolicyId,
+  asPoliticalProposalId,
   asRegionId,
   asScenarioId,
   type CountryId,
@@ -77,7 +84,7 @@ import {
 import { freezeCanonicalGraph } from "./canonicalFreeze";
 import { claimCanonicalSimulationStepResult } from "./tick";
 
-export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 2 as const;
+export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 3 as const;
 
 const canonicalRunRecords = new WeakMap<RunRecord, ScenarioDefinition>();
 
@@ -98,7 +105,7 @@ function registerCanonicalRunRecord<T extends RunRecord>(
   return record;
 }
 
-export interface SerializedWorldStateV2 {
+export interface SerializedWorldStateV3 {
   readonly tick: number;
   readonly date: SimDate;
   readonly countries: Readonly<Record<string, Country>>;
@@ -110,6 +117,7 @@ export interface SerializedWorldStateV2 {
   readonly interventionCommitments: Readonly<
     Record<string, InterventionCommitment>
   >;
+  readonly politicalProposals: Readonly<Record<string, PoliticalProposal>>;
   readonly contactEdgeStates: Readonly<Record<string, ContactEdgeRuntimeState>>;
   readonly policies: Readonly<Record<string, PolicyState>>;
   readonly rngState: SeedState;
@@ -121,11 +129,11 @@ export interface SerializedEventStoreV2 {
 }
 
 /** Versioned runtime snapshot. Static ScenarioDefinition content is excluded. */
-export interface SerializedSimulationSnapshotV2 {
+export interface SerializedSimulationSnapshotV3 {
   readonly formatVersion: typeof SIMULATION_SNAPSHOT_FORMAT_VERSION;
   readonly scenarioId: string;
   readonly scenarioVersion: number;
-  readonly world: SerializedWorldStateV2;
+  readonly world: SerializedWorldStateV3;
   readonly eventStore: SerializedEventStoreV2;
 }
 
@@ -319,6 +327,12 @@ function cloneInterventionCommitment(
   return { ...commitment };
 }
 
+function clonePoliticalProposal(
+  proposal: PoliticalProposal,
+): PoliticalProposal {
+  return { ...proposal };
+}
+
 function cloneContactEdgeRuntimeState(
   state: ContactEdgeRuntimeState,
 ): ContactEdgeRuntimeState {
@@ -335,8 +349,17 @@ function clonePolicyState(policyState: PolicyState): PolicyState {
 
 function cloneActionRecord(action: ActionRecord): ActionRecord {
   return {
-    ...action,
+    // Keep action-log JSON canonical across encode/decode.  Action proposals
+    // are authored in proposal-field order, while the strict decoder rebuilds
+    // records in identity/order-field order; spelling that order here avoids
+    // semantically identical snapshots differing only by object key order.
+    id: action.id,
+    tick: action.tick,
+    sequence: action.sequence,
+    source: action.source,
+    actionType: action.actionType,
     payload: cloneJsonValue(action.payload),
+    schemaVersion: action.schemaVersion,
     validationOutcome:
       action.validationOutcome.kind === "accepted"
         ? { kind: "accepted" }
@@ -382,7 +405,7 @@ function cloneEvent(event: GameEvent): GameEvent {
   };
 }
 
-function cloneWorldState(world: WorldState): SerializedWorldStateV2 {
+function cloneWorldState(world: WorldState): SerializedWorldStateV3 {
   return {
     tick: world.tick,
     date: { ...world.date },
@@ -397,6 +420,10 @@ function cloneWorldState(world: WorldState): SerializedWorldStateV2 {
     interventionCommitments: cloneRecord(
       world.interventionCommitments,
       cloneInterventionCommitment,
+    ),
+    politicalProposals: cloneRecord(
+      world.politicalProposals ?? {},
+      clonePoliticalProposal,
     ),
     contactEdgeStates: cloneRecord(
       world.contactEdgeStates,
@@ -1276,6 +1303,115 @@ function decodeInterventionCommitment(
   };
 }
 
+function decodePoliticalProposal(
+  value: unknown,
+  label: string,
+): PoliticalProposal {
+  const record = expectRecord(value, label);
+  assertKnownKeys(
+    record,
+    [
+      "id",
+      "proposerFactionId",
+      "countryId",
+      "targetGovernmentId",
+      "subjectKind",
+      "interventionId",
+      "status",
+      "createdAtTick",
+      "openingActionId",
+      "openingEventId",
+      "resolvedAtTick",
+      "responseActionId",
+      "resolutionReason",
+    ],
+    label,
+  );
+  const resolvedAtTick = optional(record, "resolvedAtTick", label);
+  const responseActionId = optional(record, "responseActionId", label);
+  const resolutionReason = optional(record, "resolutionReason", label);
+
+  return {
+    id: asPoliticalProposalId(
+      expectNonEmptyString(required(record, "id", label), `${label}.id`),
+    ),
+    proposerFactionId: asFactionId(
+      expectNonEmptyString(
+        required(record, "proposerFactionId", label),
+        `${label}.proposerFactionId`,
+      ),
+    ),
+    countryId: asCountryId(
+      expectNonEmptyString(
+        required(record, "countryId", label),
+        `${label}.countryId`,
+      ),
+    ),
+    targetGovernmentId: asGovernmentId(
+      expectNonEmptyString(
+        required(record, "targetGovernmentId", label),
+        `${label}.targetGovernmentId`,
+      ),
+    ),
+    subjectKind: expectEnum(
+      required(record, "subjectKind", label),
+      POLITICAL_PROPOSAL_SUBJECT_KINDS,
+      `${label}.subjectKind`,
+    ),
+    interventionId: asInterventionId(
+      expectNonEmptyString(
+        required(record, "interventionId", label),
+        `${label}.interventionId`,
+      ),
+    ),
+    status: expectEnum(
+      required(record, "status", label),
+      POLITICAL_PROPOSAL_STATUSES,
+      `${label}.status`,
+    ),
+    createdAtTick: expectNonNegativeInteger(
+      required(record, "createdAtTick", label),
+      `${label}.createdAtTick`,
+    ),
+    openingActionId: asActionId(
+      expectNonEmptyString(
+        required(record, "openingActionId", label),
+        `${label}.openingActionId`,
+      ),
+    ),
+    openingEventId: asEventId(
+      expectNonEmptyString(
+        required(record, "openingEventId", label),
+        `${label}.openingEventId`,
+      ),
+    ),
+    ...(resolvedAtTick === undefined
+      ? {}
+      : {
+          resolvedAtTick: expectNonNegativeInteger(
+            resolvedAtTick,
+            `${label}.resolvedAtTick`,
+          ),
+        }),
+    ...(responseActionId === undefined
+      ? {}
+      : {
+          responseActionId: asActionId(
+            expectNonEmptyString(responseActionId, `${label}.responseActionId`),
+          ),
+        }),
+    ...(resolutionReason === undefined
+      ? {}
+      : {
+          resolutionReason: expectEnum(
+            resolutionReason,
+            POLITICAL_PROPOSAL_RESOLUTION_REASONS,
+            `${label}.resolutionReason`,
+          ),
+        }),
+  };
+}
+
 function decodeContactEdgeRuntimeState(
   value: unknown,
   label: string,
@@ -1688,6 +1824,7 @@ function decodeWorldState(value: unknown, label: string): WorldState {
       "factions",
       "conflicts",
       "interventionCommitments",
+      "politicalProposals",
       "contactEdgeStates",
       "policies",
       "rngState",
@@ -1739,6 +1876,11 @@ function decodeWorldState(value: unknown, label: string): WorldState {
       required(record, "interventionCommitments", label),
       `${label}.interventionCommitments`,
       decodeInterventionCommitment,
+    ),
+    politicalProposals: decodeEntityRecord(
+      required(record, "politicalProposals", label),
+      `${label}.politicalProposals`,
+      decodePoliticalProposal,
     ),
     contactEdgeStates: decodeEntityMap(
       expectRecord(
@@ -1854,6 +1996,70 @@ function decodeEventStore(value: unknown, label: string): EventStore {
   return createEventStore(events);
 }
 
+function eventPayloadValue(event: GameEvent, key: string): unknown {
+  if (
+    typeof event.payload !== "object" ||
+    event.payload === null ||
+    Array.isArray(event.payload)
+  ) {
+    return undefined;
+  }
+  return (event.payload as Readonly<Record<string, unknown>>)[key];
+}
+
+function assertPoliticalProposalEventProvenance(
+  world: WorldState,
+  eventStore: EventStore,
+): void {
+  const eventsById = new Map(
+    eventStore.events.map((event) => [event.id, event]),
+  );
+  for (const proposal of Object.values(world.politicalProposals ?? {})) {
+    const openingEvent = eventsById.get(proposal.openingEventId);
+    if (
+      openingEvent === undefined ||
+      openingEvent.type !== "POLITICAL_PROPOSAL_OPENED" ||
+      openingEvent.tick !== proposal.createdAtTick ||
+      eventPayloadValue(openingEvent, "proposalId") !== proposal.id ||
+      eventPayloadValue(openingEvent, "openingActionId") !==
+        proposal.openingActionId
+    ) {
+      throw new Error(
+        `Political proposal ${proposal.id} has invalid opening event provenance.`,
+      );
+    }
+
+    if (proposal.status === "open") {
+      continue;
+    }
+
+    const responseEvent = eventStore.events.find(
+      (event) =>
+        (event.type === "POLITICAL_PROPOSAL_ACCEPTED" ||
+          event.type === "POLITICAL_PROPOSAL_REJECTED") &&
+        event.tick === proposal.resolvedAtTick &&
+        eventPayloadValue(event, "proposalId") === proposal.id &&
+        eventPayloadValue(event, "actionId") === proposal.responseActionId,
+    );
+    if (responseEvent === undefined) {
+      throw new Error(
+        `Political proposal ${proposal.id} has no matching response event.`,
+      );
+    }
+
+    if (
+      (proposal.status === "accepted" &&
+        responseEvent.type !== "POLITICAL_PROPOSAL_ACCEPTED") ||
+      (proposal.status === "rejected" &&
+        responseEvent.type !== "POLITICAL_PROPOSAL_REJECTED")
+    ) {
+      throw new Error(
+        `Political proposal ${proposal.id} response event type does not match status.`,
+      );
+    }
+  }
+}
+
 function assertEventStoreMatchesWorld(
   world: WorldState,
   eventStore: EventStore,
@@ -1871,6 +2077,8 @@ function assertEventStoreMatchesWorld(
       "World nextEventSequence does not match the persisted EventStore cursor.",
     );
   }
+
+  assertPoliticalProposalEventProvenance(world, eventStore);
 
   const outcome = world.run.outcome;
   if (outcome.status === "active") {
@@ -1911,7 +2119,7 @@ function assertRunRecordForPersistence(
 export function serializeSimulationSnapshot(
   scenario: ScenarioDefinition,
   record: RunRecord,
-): SerializedSimulationSnapshotV2 {
+): SerializedSimulationSnapshotV3 {
   assertRunRecordForPersistence(scenario, record);
 
   return {
@@ -2010,6 +2218,8 @@ function assertIncrementalEventStoreMatchesWorld(
       "World nextEventSequence does not match the committed EventStore cursor.",
     );
   }
+
+  assertPoliticalProposalEventProvenance(world, eventStore);
 
   const outcome = world.run.outcome;
   if (outcome.status === "active") {

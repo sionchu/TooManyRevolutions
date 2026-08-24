@@ -1,5 +1,8 @@
 import {
+  decodeRespondPoliticalProposalAction,
   decodeStartInterventionAction,
+  RESPOND_POLITICAL_PROPOSAL_ACTION_SCHEMA_VERSION,
+  RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE,
   START_INTERVENTION_ACTION_SCHEMA_VERSION,
   START_INTERVENTION_ACTION_TYPE,
   type ValidatedActionRecord,
@@ -16,6 +19,8 @@ import {
   type ActionId,
   type CountryId,
   type EventId,
+  type InterventionId,
+  type PoliticalProposalId,
 } from "../state/ids";
 import {
   assertScenarioInterventionCatalog,
@@ -26,6 +31,7 @@ import {
   type InterventionDefinition,
   type InterventionEffect,
 } from "../state/intervention";
+import type { PoliticalProposal } from "../state/politicalProposal";
 import type { ScenarioDefinition } from "../state/scenario";
 import type { WorldState } from "../state/world";
 
@@ -33,6 +39,15 @@ export type InterventionRejectionReason =
   | "invalidPayload"
   | "unsupportedSchemaVersion"
   | "missingPlayerCountry"
+  | "notFeasible";
+
+type PoliticalProposalResponseRejectionReason =
+  | "invalidPayload"
+  | "unsupportedSchemaVersion"
+  | "nonPlayerSource"
+  | "missingProposal"
+  | "proposalNotOpen"
+  | "staleTargetGovernment"
   | "notFeasible";
 
 function assertScenarioMatchesWorld(
@@ -89,6 +104,20 @@ function rejectionPayload(
     reasons,
     ...(interventionId === undefined ? {} : { interventionId }),
     ...(countryId === undefined ? {} : { countryId }),
+  };
+}
+
+function proposalResponseRejectionPayload(
+  action: ValidatedActionRecord,
+  reason: PoliticalProposalResponseRejectionReason,
+  reasons: readonly JsonValue[] = [],
+  proposalId?: PoliticalProposalId,
+): { readonly [key: string]: JsonValue } {
+  return {
+    actionId: action.id,
+    reason,
+    reasons,
+    ...(proposalId === undefined ? {} : { proposalId }),
   };
 }
 
@@ -238,7 +267,7 @@ function interventionEffectToJson(
   };
 }
 
-/** Resolve one accepted START_INTERVENTION action at the action phase. */
+/** Resolve direct interventions and proposal responses at the action phase. */
 export function runInterventionResolutionPhase(
   context: SimulationPhaseContext,
   scenario: ScenarioDefinition,
@@ -298,35 +327,61 @@ export function runInterventionResolutionPhase(
     });
   };
 
-  for (const action of context.input.actions) {
-    if (action.actionType !== START_INTERVENTION_ACTION_TYPE) {
-      continue;
-    }
-
-    const payload = decodeStartInterventionAction(action);
-    if (payload === null) {
-      reject(
+  const rejectProposalResponse = (
+    action: ValidatedActionRecord,
+    reason: PoliticalProposalResponseRejectionReason,
+    reasons: readonly JsonValue[] = [],
+    proposal?: PoliticalProposal,
+    proposalId?: PoliticalProposalId,
+  ): void => {
+    emit({
+      type: "POLITICAL_PROPOSAL_RESPONSE_REJECTED",
+      ...(proposal === undefined
+        ? {}
+        : { actorId: proposal.proposerFactionId }),
+      ...(proposalId === undefined ? {} : { targetId: proposalId }),
+      causeIds: proposal === undefined ? [] : [proposal.openingEventId],
+      payload: proposalResponseRejectionPayload(
         action,
-        action.schemaVersion === START_INTERVENTION_ACTION_SCHEMA_VERSION
-          ? "invalidPayload"
-          : "unsupportedSchemaVersion",
-      );
-      continue;
-    }
+        reason,
+        reasons,
+        proposalId,
+      ),
+      visibility: "important",
+    });
+  };
 
-    const countryId = payload.countryId ?? scenario.playerCountryId;
-    if (countryId === null || countryId === undefined) {
-      reject(action, "missingPlayerCountry", [], payload.interventionId);
-      continue;
-    }
+  const setProposal = (
+    proposal: PoliticalProposal,
+    updates: Partial<PoliticalProposal>,
+  ): PoliticalProposal => {
+    const nextProposal = { ...proposal, ...updates };
+    currentWorld = {
+      ...currentWorld,
+      politicalProposals: {
+        ...(currentWorld.politicalProposals ?? {}),
+        [proposal.id]: nextProposal,
+      },
+    };
+    return nextProposal;
+  };
 
+  const startIntervention = (
+    action: ValidatedActionRecord,
+    interventionId: InterventionId,
+    countryId: CountryId,
+    causeIds: readonly EventId[],
+  ): {
+    readonly started: boolean;
+    readonly feasibility: ReturnType<typeof evaluateInterventionFeasibility>;
+  } => {
     const availableTreasury =
       projectedTreasury.get(countryId) ??
       currentWorld.countries[countryId]?.treasury;
     const feasibility = evaluateInterventionFeasibility({
       scenario,
       world: currentWorld,
-      interventionId: payload.interventionId,
+      interventionId,
       countryId,
       options:
         availableTreasury === undefined
@@ -335,14 +390,7 @@ export function runInterventionResolutionPhase(
     });
 
     if (!feasibility.feasible || feasibility.definition === undefined) {
-      reject(
-        action,
-        "notFeasible",
-        feasibility.reasons.map(interventionFailureToJson),
-        payload.interventionId,
-        countryId,
-      );
-      continue;
+      return { started: false, feasibility };
     }
 
     const definition = feasibility.definition;
@@ -374,7 +422,7 @@ export function runInterventionResolutionPhase(
       type: "INTERVENTION_STARTED",
       actorId: countryId,
       targetId: definition.id,
-      causeIds: [],
+      causeIds,
       payload: {
         actionId: action.id,
         commitmentId,
@@ -389,6 +437,202 @@ export function runInterventionResolutionPhase(
       },
       visibility: "world",
     });
+
+    return { started: true, feasibility };
+  };
+
+  for (const action of context.input.actions) {
+    if (
+      action.actionType !== START_INTERVENTION_ACTION_TYPE &&
+      action.actionType !== RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE
+    ) {
+      continue;
+    }
+
+    if (action.actionType === RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE) {
+      const response = decodeRespondPoliticalProposalAction(action);
+      if (response === null) {
+        rejectProposalResponse(
+          action,
+          action.schemaVersion ===
+            RESPOND_POLITICAL_PROPOSAL_ACTION_SCHEMA_VERSION
+            ? "invalidPayload"
+            : "unsupportedSchemaVersion",
+        );
+        continue;
+      }
+
+      const proposal = currentWorld.politicalProposals?.[response.proposalId];
+      if (action.source !== "player") {
+        rejectProposalResponse(
+          action,
+          "nonPlayerSource",
+          [],
+          proposal,
+          response.proposalId,
+        );
+        continue;
+      }
+      if (proposal === undefined) {
+        rejectProposalResponse(
+          action,
+          "missingProposal",
+          [],
+          undefined,
+          response.proposalId,
+        );
+        continue;
+      }
+      if (proposal.status !== "open") {
+        rejectProposalResponse(
+          action,
+          "proposalNotOpen",
+          [],
+          proposal,
+          proposal.id,
+        );
+        continue;
+      }
+
+      const currentGovernmentId =
+        currentWorld.countries[proposal.countryId]?.currentGovernmentId;
+      if (currentGovernmentId !== proposal.targetGovernmentId) {
+        setProposal(proposal, {
+          status: "rejected",
+          resolvedAtTick: context.nextTick,
+          responseActionId: action.id,
+          resolutionReason: "staleTargetGovernment",
+        });
+        emit({
+          type: "POLITICAL_PROPOSAL_REJECTED",
+          actorId: proposal.proposerFactionId,
+          targetId: proposal.id,
+          causeIds: [proposal.openingEventId],
+          payload: {
+            actionId: action.id,
+            proposalId: proposal.id,
+            response: response.response,
+            reason: "staleTargetGovernment",
+            targetGovernmentId: proposal.targetGovernmentId,
+            currentGovernmentId: currentGovernmentId ?? null,
+          },
+          visibility: "important",
+        });
+        continue;
+      }
+
+      if (response.response === "reject") {
+        setProposal(proposal, {
+          status: "rejected",
+          resolvedAtTick: context.nextTick,
+          responseActionId: action.id,
+          resolutionReason: "explicitReject",
+        });
+        emit({
+          type: "POLITICAL_PROPOSAL_REJECTED",
+          actorId: proposal.proposerFactionId,
+          targetId: proposal.id,
+          causeIds: [proposal.openingEventId],
+          payload: {
+            actionId: action.id,
+            proposalId: proposal.id,
+            response: response.response,
+            reason: "explicitReject",
+          },
+          visibility: "world",
+        });
+        continue;
+      }
+
+      const feasibility = evaluateInterventionFeasibility({
+        scenario,
+        world: currentWorld,
+        interventionId: proposal.interventionId,
+        countryId: proposal.countryId,
+        options: {
+          treasuryAvailable:
+            projectedTreasury.get(proposal.countryId) ??
+            currentWorld.countries[proposal.countryId]?.treasury,
+        },
+      });
+      if (!feasibility.feasible || feasibility.definition === undefined) {
+        rejectProposalResponse(
+          action,
+          "notFeasible",
+          feasibility.reasons.map(interventionFailureToJson),
+          proposal,
+          proposal.id,
+        );
+        continue;
+      }
+
+      const acceptedEvent = emit({
+        type: "POLITICAL_PROPOSAL_ACCEPTED",
+        actorId: proposal.proposerFactionId,
+        targetId: proposal.id,
+        causeIds: [proposal.openingEventId],
+        payload: {
+          actionId: action.id,
+          proposalId: proposal.id,
+          response: response.response,
+          interventionId: proposal.interventionId,
+          countryId: proposal.countryId,
+          targetGovernmentId: proposal.targetGovernmentId,
+        },
+        visibility: "world",
+      });
+      setProposal(proposal, {
+        status: "accepted",
+        resolvedAtTick: context.nextTick,
+        responseActionId: action.id,
+        resolutionReason: "accepted",
+      });
+      const started = startIntervention(
+        action,
+        proposal.interventionId,
+        proposal.countryId,
+        [acceptedEvent.id],
+      );
+      if (!started.started) {
+        throw new Error(
+          "Political proposal feasibility changed while accepting the proposal.",
+        );
+      }
+      continue;
+    }
+
+    const payload = decodeStartInterventionAction(action);
+    if (payload === null) {
+      reject(
+        action,
+        action.schemaVersion === START_INTERVENTION_ACTION_SCHEMA_VERSION
+          ? "invalidPayload"
+          : "unsupportedSchemaVersion",
+      );
+      continue;
+    }
+
+    const countryId = payload.countryId ?? scenario.playerCountryId;
+    if (countryId === null || countryId === undefined) {
+      reject(action, "missingPlayerCountry", [], payload.interventionId);
+      continue;
+    }
+
+    const started = startIntervention(
+      action,
+      payload.interventionId,
+      countryId,
+      [],
+    );
+    if (!started.started) {
+      reject(
+        action,
+        "notFeasible",
+        started.feasibility.reasons.map(interventionFailureToJson),
+        payload.interventionId,
+        countryId,
+      );
+    }
   }
 
   return {

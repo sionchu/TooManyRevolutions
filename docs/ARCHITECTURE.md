@@ -2252,7 +2252,7 @@ No core control may require experimental APIs.
 
 T024는 authoritative runtime과 이미 커밋된 causal history를 함께 보존하는
 versioned in-memory snapshot boundary를 구현했다. 현재 public contract는
-`SerializedSimulationSnapshotV2`, `serializeSimulationSnapshot()`/
+`SerializedSimulationSnapshotV3`, `serializeSimulationSnapshot()`/
 `serializeSimulationSnapshotJson()`, `deserializeSimulationSnapshot()`,
 `commitSimulationStep()`, `cloneRunRecordViaSnapshot()`이다. 브라우저 파일,
 `localStorage`/IndexedDB, cloud save slot은 이 경계의 책임이 아니다.
@@ -2261,8 +2261,8 @@ snapshot envelope에는 다음만 들어간다.
 
 - `formatVersion`, `scenarioId`, `scenarioVersion`
 - 현재 `WorldState`의 tick/date, Country/Region/Faction/Government/Conflict,
-  policy/institution runtime, intervention commitment, mutable ContactGraph edge
-  state, `LandHexRuntimeState`, `RunState`, `rngState`
+  policy/institution runtime, intervention commitment, political proposal,
+  mutable ContactGraph edge state, `LandHexRuntimeState`, `RunState`, `rngState`
 - `RunState.actionLog`의 player/heuristic/LLM 공통 `ActionRecord` history
 - 별도로 보관되는 `EventStore`의 전체 ordered `GameEvent` history
 
@@ -2274,7 +2274,7 @@ consolidation/dissolution eligibility, UI/presentation state도 저장하지 않
 
 ```text
 static ScenarioDefinition (별도 로드)
-  + SerializedSimulationSnapshotV2
+  + SerializedSimulationSnapshotV3
   -> validated WorldState + EventStore
   -> derived selectors/read models
 ```
@@ -2284,7 +2284,7 @@ static ScenarioDefinition (별도 로드)
 deserialize는 외부/저장 데이터를 `WorldState`로 직접 cast하지 않는다. JSON
 primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unknown key,
 잘못된 format version, 필수 필드 누락, 잘못된 reference를 거부한다. decode 뒤에는
-`assertScenarioRuntimeClosure(scenario, world)`가 현재 V2 시나리오와 runtime 전체가
+`assertScenarioRuntimeClosure(scenario, world)`가 현재 V3 시나리오와 runtime 전체가
 닫혀 있는지 검증한다.
 
 - snapshot top-level identity와 `WorldState.run.scenarioId/version`이 전달된
@@ -2298,7 +2298,7 @@ primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unk
   않는다. 이 static identity/membership/topology는 scenario에서만 읽는다.
 - Region에 `controller`를 만들지 않으며, physical territory authority는 계속
   `WorldState.landHexStates[*].controller` 하나다.
-- V2에는 Country/Region/Faction/PolicyState의 runtime lifecycle이 없으므로
+- V3에는 Country/Region/Faction/PolicyState의 runtime lifecycle이 없으므로
   `initialCountries`, `initialRegions`, `initialFactions`,
   `initialCountryPolicies`와 각각의 runtime identity set이 정확히 일치해야
   한다. 후속 state successor나 동적 actor 생성을 도입할 때는 별도 lifecycle
@@ -2314,8 +2314,8 @@ primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unk
   commitment는 `sourceActionId`, accepted `START_INTERVENTION` payload, 시작
   tick/country/intervention, deterministic commitment ID가 서로 일치해야 한다.
 
-현재 format은 `version: 2`만 지원한다. F04D의 required
-`politicalCompetition`을 누락한 version 1과 unknown version은 명확히
+현재 format은 `version: 3`만 지원한다. F05_FIX6의 political proposal과 F04D의 required
+`politicalCompetition`을 누락한 version 1/2와 unknown version은 명확히
 reject한다. migration framework나 과거 format chain은 만들지 않았다. 별도 content hash는
 아직 도입하지 않으며, 정적 ScenarioDefinition 호환성은 `scenarioId`와
 `scenarioVersion`으로 관리한다. 호환되지 않는 content 변경은 version bump를
@@ -2465,3 +2465,44 @@ Browser:
 - game playable without experimental APIs
 
 See `QA_PLAYTEST.md`.
+
+---
+
+# F05_FIX6 Political Interaction Kernel
+
+F05_FIX6 adds one narrow interaction layer without changing the existing F05
+strategy matrix. `ScenarioDefinition.factionProposalTemplates` is optional,
+static content that maps an explicit `(FactionId, triggerAction)` pair to an
+existing `InterventionId`. No mapping is inferred from interests, ideology,
+grievance, organization, or strategy labels.
+
+`WorldState.politicalProposals` is authoritative runtime lifecycle state. Each
+record captures the proposer Faction, its CountryId, the current GovernmentId at
+opening, one `interventionRequest` subject, deterministic proposal identity,
+status, opening provenance, and response provenance. The authoritative path is:
+
+```text
+accepted LOBBY ActionRecord
+ -> POLITICAL_PROPOSAL_OPENED
+ -> later player RESPOND_POLITICAL_PROPOSAL(accept | reject)
+ -> proposal response event
+ -> existing intervention resolver on ACCEPT only
+```
+
+Opening and rejection do not write intervention effects, faction scalar values,
+policy rules, crisis/conflict/territory state, continuity, or terminal outcome.
+Acceptance reuses the existing feasibility, treasury reservation, administrative
+commitment, duration, completion, and typed effect seams. A stale captured
+Government is rejected without automatic retargeting; an infeasible acceptance
+emits an explicit response-rejected event and leaves the proposal open. No hidden
+synthetic `START_INTERVENTION` action is created.
+
+Because proposals are authoritative, the snapshot contract is now
+`SerializedSimulationSnapshotV3`. V3 strictly decodes proposal references and
+provenance and rejects V2; no hidden migration is present. `LandHex` remains the
+sole physical territorial authority and the proposal kernel has no territorial
+writer.
+
+The developer validation slice and controlled counterfactual are documented in
+`docs/POLITICAL_INTERACTION_KERNEL.md` and
+`docs/F05_GATE1F_REPAIR6_POLITICAL_INTERACTION.md`.
