@@ -5,7 +5,7 @@ UPDATED: 2026-08-24
 REPOSITORY: sionchu/TooManyRevolutions
 BRANCH: master
 CURRENT_GATE: Gate 1F
-CURRENT_PHASE: F05_FIX11 FUND_MOVEMENT target & commitment grounding — complete; awaiting ChatGPT review
+CURRENT_PHASE: F05_FIX12 FUND_MOVEMENT authoring seam closure — authorized
 
 ## Key commits
 
@@ -28,7 +28,8 @@ F05_FIX10_RESULT_COMMIT: 98985e84a5448e9d2454847f36e11a4c6cfa3732
 F05_FIX10_END_COMMIT: 5d8ae1805bff76609a9b9370cb23b52672574e47
 F05_FIX11_TASK_COMMIT: fd8dc4f98a1813a5d0f5848232fbffac3131b600
 F05_FIX11_RESULT_COMMIT: b8869813f6279572001b3bc17f800f4918c98ad8
-F05_FIX11_FINAL_METADATA_COMMIT: a15196a8acab64a7712c76d6d65f387652524488
+F05_FIX11_END_COMMIT: 534f4f2ac34a857cb2b837c1902d5fe3c80282a6
+F05_FIX12_TASK_COMMIT: 56127d84219be61996000ce03d43c31bd63abc3d
 
 ## Accepted gate history
 
@@ -76,72 +77,18 @@ F05_FIX9_GATE1F_RECOMMENDATION: NOT_READY
 
 F05_FIX10: COMPLETE / REVIEWED / PASS / ACCEPTED
 F05_FIX10_PRIMARY_CLASSIFICATION: COVERAGE_REQUIRES_ACTION_SCHEMA_TARGETING
-F05_FIX10_ACTIVE_CONFLICT_TRACK: DEFERRED_BY_GROUNDING_GATE
-F05_FIX10_OUTCOME_TRACK: DEFERRED_BY_CONTINUITY_EVIDENCE
-F05_FIX10_SECOND_LOBBY_REACHABILITY: NOT_REACHABLE / 0 of 372 late-state faction boundaries
+F05_FIX10_SECOND_LOBBY_REACHABILITY: NOT_REACHABLE / 0 of 372
 F05_FIX10_FUND_MOVEMENT_REACHABILITY: REACHABLE / 372 of 372
 F05_FIX10_ORGANIZE_REACHABILITY: NOT_REACHABLE / 0 of 372
 F05_FIX10_SELECTED_ACTION: FUND_MOVEMENT
 F05_FIX10_TARGET_OBJECT_REQUIRED: YES
 F05_FIX10_ACTION_SCHEMA_CHANGE_REQUIRED: YES
-F05_FIX10_COMMITMENT_MODEL_STATUS: DESIGNABLE_AFTER_ACTION_SCHEMA_TARGETING
-F05_FIX10_MAGNITUDE_GROUNDING_STATUS: BLOCKED_NO_AUTHORED_MAGNITUDE
-F05_FIX10_PERSISTENCE_IMPLICATION: FUTURE_VERSION_REQUIRED_IF_COMMITMENT_STATE_IS_ADDED
 F05_FIX10_PRODUCTION_GAMEPLAY_CHANGE: NONE
-F05_FIX10_HISTORICAL_F05_BASELINE: UNCHANGED
-F05_FIX10_F05_FIX9_DIAGNOSIS: UNCHANGED
 F05_FIX10_GATE1F_RECOMMENDATION: NOT_READY
 
-Accepted interpretation:
+## ChatGPT acceptance of F05_FIX11
 
-- the exact six F05_FIX9 late branches were replayed at monthly faction boundaries;
-- every one of the 372 measured blocker-state rows naturally selected `FUND_MOVEMENT`;
-- a second LOBBY template is not a current remedy because LOBBY was not naturally selected and was legally unavailable in the measured state;
-- `FUND_MOVEMENT` currently carries only `{ factionId }`, so a target cannot be inferred from the two relevant Regions without new semantics;
-- F05_FIX10 correctly stopped at the schema/targeting seam and made no production simulation change;
-- `RegionId` is a candidate target domain, not yet an accepted target contract;
-- no numeric debit/effect/duration/conversion ratio is grounded;
-- the next task must ground target domain and actor-owned commitment semantics before implementation.
-
-## F05_FIX11 authorization
-
-F05_FIX11: AUTHORIZED
-F05_FIX11_TASK_FILE: `docs/bridge/tasks/F05_FIX11.md`
-F05_FIX11_DIRECTION: ground the smallest honest `FUND_MOVEMENT` target + commitment contract before any runtime schema/effect implementation.
-
-F05_FIX11_SOURCE_PACK:
-
-- McCarthy & Zald (1977), DOI `10.1086/226464`;
-- Jenkins (1983), DOI `10.1146/annurev.so.09.080183.002523`;
-- McCarthy & Wolfson (1996), DOI `10.2307/2096309`;
-- Hunter & Staggenborg (1986), DOI `10.1016/0362-3319(86)90033-9`;
-- Cress & Snow (1996), DOI `10.2307/2096310`;
-- Ganz (2000), DOI `10.1086/210398`.
-
-Source-pack interpretation boundary:
-
-```text
-resources / organization / effort / local organizational context can matter
-!=
-more resources automatically produce more political action or success
-!=
-resource spend automatically creates crisis/conflict/combat strength
-```
-
-F05_FIX11 must decide, without production implementation:
-
-- exact `FUND_MOVEMENT` semantic meaning;
-- explicit target domain, including whether one Region / Region set / Country-wide / other existing object is defensible;
-- whether existing `Faction.resources` can honestly be reserve/spend/earmark commitment or a new unsupported effort domain would be required;
-- amount-authoring seam without inventing a number;
-- first legitimate non-war/non-terminal consumer boundary;
-- state-grounded lifecycle/repeat rule without cooldown/countdown;
-- persistence implications;
-- implementation readiness for a later ChatGPT-authorized task.
-
-## F05_FIX11 completion
-
-F05_FIX11: COMPLETE / AWAITING_CHATGPT_REVIEW
+F05_FIX11: COMPLETE / REVIEWED / PASS / ACCEPTED
 F05_FIX11_PRIMARY_CLASSIFICATION: FUND_MOVEMENT_REQUIRES_NEW_AUTHORING_SEAM
 F05_FIX11_FUND_MOVEMENT_SEMANTIC: ALLOCATE_EXISTING_ACTOR_RESOURCES
 F05_FIX11_TARGET_DOMAIN: REGION_SINGLE
@@ -154,9 +101,45 @@ F05_FIX11_REPEAT_BOUNDARY: ACTIVE_SAME_ACTOR_TARGET_BLOCKS_DUPLICATE
 F05_FIX11_PERSISTENCE_DECISION: FUTURE_VERSION_REQUIRED_FOR_AUTHORITATIVE_COMMITMENT
 F05_FIX11_NEXT_IMPLEMENTATION_READINESS: NONE
 F05_FIX11_PRODUCTION_GAMEPLAY_CHANGE: NONE
-F05_FIX11_ADDITIONAL_EXTERNAL_RESEARCH: NONE
-F05_FIX11_RESULT_FILE: `docs/bridge/results/F05_FIX11_RESULT.md`
-F05_FIX11_DESIGN_FILE: `docs/F05_FIX11_FUND_MOVEMENT_GROUNDING.md`
+
+Accepted interpretation:
+
+- `FUND_MOVEMENT` means allocating existing actor-owned faction resources, not raising a new resource or generic political spending;
+- the only defensible v1 target domain is one explicitly authored Region;
+- no actual Region may be inferred from pressure, ideology, sort order, faction label, conflict front, or fixture layout;
+- existing `Faction.resources` can support an earmark-style commitment concept, but no resource debit/reservation writer is yet authorized;
+- the amount must be explicit scenario/content data; no default or state-derived formula is grounded;
+- `Agenda` is only the first safe visibility/reassessment boundary, not itself an authoritative gameplay consequence;
+- no runtime action schema, commitment state, resource writer, effect, or persistence field was added;
+- further open-ended FUND_MOVEMENT grounding is not authorized: F05_FIX12 must either implement the explicit static authoring seam or reject FUND_MOVEMENT for the current Gate 1F path.
+
+## F05_FIX12 authorization
+
+F05_FIX12: AUTHORIZED
+F05_FIX12_TASK_FILE: `docs/bridge/tasks/F05_FIX12.md`
+F05_FIX12_DIRECTION: close the explicit FUND_MOVEMENT target + amount authoring seam.
+
+Required closure:
+
+```text
+scenario author
+-> explicit Faction
+-> explicit single Region target
+-> explicit resource amount
+-> deterministic static validation
+-> future runtime intake boundary
+```
+
+F05_FIX12 may implement only static scenario-definition/validation schema. It may not implement runtime faction-action payload changes, commitments, resource writers, Agenda readers, crisis/conflict effects, territory, continuity, terminal outcomes, or persistence changes.
+
+F05_FIX12 has only two valid primary outcomes:
+
+```text
+FUND_MOVEMENT_AUTHORING_SEAM_IMPLEMENTED
+FUND_MOVEMENT_AUTHORING_SEAM_REJECTED_FOR_GATE1F
+```
+
+There is no third "needs more grounding" outcome.
 
 ## Current architecture constraints
 
@@ -184,9 +167,9 @@ POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
 PERSISTENCE: SerializedSimulationSnapshotV4 / format version 4; V3 rejected
 
 LAST_COMPLETED_TASK_ID: F05_FIX11
-NEXT_AUTHORIZED_TASK_ID: NONE
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
-CURRENT_TASK_FILE: NONE
+NEXT_AUTHORIZED_TASK_ID: F05_FIX12
+NEXT_TASK_STATUS: AUTHORIZED
+CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX12.md`
 LAST_RESULT_FILE: `docs/bridge/results/F05_FIX11_RESULT.md`
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
@@ -204,4 +187,14 @@ git rev-parse origin/master
 git pull --ff-only
 ```
 
-If outbound HTTPS is unavailable inside Codex, proceed only after the nested repository has been externally synchronized and local `HEAD == origin/master ==` the exact activation SHA recorded in `CURRENT_TASK.md`, with a clean working tree.
+For Codex Desktop isolated worktrees, the stable operating order is:
+
+```text
+1. externally synchronize the real nested repository
+2. verify the expected master SHA
+3. start a fresh Codex thread/worktree
+4. verify that fresh worktree HEAD/origin-master match CURRENT_TASK activation SHA
+5. execute only the authorized task
+```
+
+Do not reset/rebase an old stale Codex worktree to bypass the freshness guard.
