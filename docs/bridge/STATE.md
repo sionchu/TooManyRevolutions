@@ -1,11 +1,11 @@
 # TMR Bridge State
 
-UPDATED: 2026-08-24
+UPDATED: 2026-08-25
 
 REPOSITORY: sionchu/TooManyRevolutions
 BRANCH: master
 CURRENT_GATE: Gate 1F
-CURRENT_PHASE: F05_FIX13 targeted FUND_MOVEMENT commitment vertical slice
+CURRENT_PHASE: F05_FIX13 COMPLETE / AWAITING_CHATGPT_REVIEW
 
 ## Key commits
 
@@ -33,6 +33,8 @@ F05_FIX12_TASK_COMMIT: 56127d84219be61996000ce03d43c31bd63abc3d
 F05_FIX12_RESULT_COMMIT: c79f71c62f6d0048a504a125b3975a446d2f4013
 F05_FIX12_END_COMMIT: 686df104814f31ef7fad70ab34cee374cc3e98cd
 F05_FIX13_TASK_COMMIT: 005c617bd3a9c79651cc7730992e85a592134706
+F05_FIX13_IMPLEMENTATION_COMMIT: 69f857fdb9036725014e676c8633977c421b19df
+F05_FIX13_END_COMMIT: 69f857fdb9036725014e676c8633977c421b19df
 
 ## Accepted gate history
 
@@ -165,6 +167,21 @@ F05_FIX13 may add the commitment kernel but may not add resource debit/gain, org
 
 A developer-only profile-enabled long-horizon diagnostic is required, but official/historical F05 measurement semantics remain unchanged in this task. Repeated Agenda derivation is never pacing.
 
+## F05_FIX13 execution status
+
+F05_FIX13: COMPLETE / AWAITING_CHATGPT_REVIEW
+F05_FIX13_PRIMARY_CLASSIFICATION: TARGETED_COMMITMENT_KERNEL_IMPLEMENTED_BUT_LATE_REASSESSMENT_UNCHANGED
+F05_FIX13_NEXT_IMPLEMENTATION_READINESS: COMMITMENT_CONSEQUENCE_OR_LIFECYCLE_REVIEW
+F05_FIX13_PERSISTENCE: SerializedSimulationSnapshotV5 / format version 5
+F05_FIX13_HISTORICAL_F05_BASELINE: UNCHANGED
+F05_FIX13_LONG_HORIZON: 2 commitments; first tick 31; duplicate success events 0; Agenda exposure 1170 ticks; F05_FIX9 reference branches 108/108
+F05_FIX13_RESOURCE_DEBIT: NOT OBSERVED
+F05_FIX13_FORBIDDEN_EFFECT_EVENTS: NONE
+F05_FIX13_LATE_REASSESSMENT_CHANGED: NO
+F05_FIX13_GATE1F_RECOMMENDATION: NOT_READY
+F05_FIX13_V02: NOT_STARTED
+F05_FIX13_NEXT_AUTHORIZED_TASK: NONE
+
 ## Current architecture constraints
 
 - player = CountryId continuity, not Government;
@@ -188,13 +205,14 @@ A developer-only profile-enabled long-horizon diagnostic is required, but offici
 GATE1F_CHATGPT_DECISION: NOT_READY
 V02: NOT STARTED
 POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
-CURRENT_PERSISTENCE_BEFORE_F05_FIX13: SerializedSimulationSnapshotV4 / format version 4; new authoritative commitment state requires explicit next version
+CURRENT_PERSISTENCE_BEFORE_F05_FIX13: SerializedSimulationSnapshotV4 / format version 4
+CURRENT_PERSISTENCE_AFTER_F05_FIX13: SerializedSimulationSnapshotV5 / format version 5
 
-LAST_COMPLETED_TASK_ID: F05_FIX12
-NEXT_AUTHORIZED_TASK_ID: F05_FIX13
-NEXT_TASK_STATUS: AUTHORIZED
-CURRENT_TASK_FILE: `docs/bridge/tasks/F05_FIX13.md`
-LAST_RESULT_FILE: `docs/bridge/results/F05_FIX12_RESULT.md`
+LAST_COMPLETED_TASK_ID: F05_FIX13
+NEXT_AUTHORIZED_TASK_ID: NONE
+NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
+CURRENT_TASK_FILE: NONE
+LAST_RESULT_FILE: `docs/bridge/results/F05_FIX13_RESULT.md`
 FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
 
 ## Repository-root / freshness guard
