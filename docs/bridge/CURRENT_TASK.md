@@ -1,49 +1,111 @@
 # TMR Current Bridge Task
 
-TASK_ID: NONE
-STATUS: WAITING_FOR_USER_NEXT
-BASE_BRANCH: master
+TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
+STATUS: AUTHORIZED
+BASE_IMPLEMENTATION_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
+BASE_IMPLEMENTATION_BRANCH: gamebuilders-demo-sprint-01
+WORK_BRANCH: gamebuilders-product-surface-p0
+TASK_FILE: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0.md
+RESULT_PATH: docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md
 
-## Last reviewed GameBuilders task
+## Accepted predecessor
 
 ```text
 GAMEBUILDERS_DEMO_SPRINT_01: COMPLETE / REVIEWED / TECHNICAL_PASS / ACCEPTED_AS_VERTICAL_SLICE
-WORK_BRANCH: gamebuilders-demo-sprint-01
-REVIEW_BASE: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
 REVIEWED_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
-DEPLOYED_SOURCE_HEAD: 2a454a9b3f539cc7a74c1beb724af7c4b170004d
-PLAYABLE_LOCAL: YES
 SITES_STATUS: DEPLOYED
-SITES_URL: https://too-many-revolutions-gamebuilders.leeje92.chatgpt.site
 TIME_FLOW_STATUS: PASS
 DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
-TECHNICAL_PLAYABILITY: PASS
 SUBMISSION_READY: CONDITIONAL_POLISH_REQUIRED
 PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
 GATE1F: NOT_READY
 V02: NOT_STARTED
 ```
 
-ChatGPT independently reviewed the seven-commit demo lineage, changed-file scope, product shell, deterministic demo scenario, common ActionRecord intake, daily SimulationStep/commit path, pause/play/speed scheduler, optional major-event auto-pause, HUD, SVG LandHex map, Agenda/EventStore presentation, demo runtime tests, 0–20y deterministic horizon audit, QA/result/shot-list documents, and Sites project/deployment metadata.
+## P0 mission
 
-The demo is a real thin client over the accepted FIX23 simulation core. No direct UI WorldState mutation, scripted crisis, fake Agenda/EventStore facts, persistence V9, new F05 runtime writer, or Three.js pipeline was introduced.
+The current build is technically playable but visually/product-wise still reads too much like a text-heavy debug web app. The authorized P0 converts it into a coherent political-fantasy strategy-game surface.
 
-The demo is technically playable and deployed, but it is not yet considered final-submission polished. Immediate product-QC follow-up is required before capture/submission:
-
-1. remove remaining developer/architecture jargon from player-facing UI (`Renderer-neutral read model`, `authoritative history`, `LandHex projection`, `ActionRecord`, `T018`, `RunOutcome`) and replace raw ideology IDs with player-facing ideology names;
-2. fix the factual `RESOURCE_SHORTAGE_CHANGED` feed mapping to read the actual `scarcity` payload rather than `nextScarcity`;
-3. revise the 3-minute capture path so it deliberately follows a deterministic real trajectory that shows an actual rebellion/coup if possible, without scripting or forcing it. The current shot list explicitly permits a no-crisis video, which undersells the game's core hook.
-
-The horizon audit is honest: the slice is active and interactive through the short/medium window, but the accepted-core late-state stall remains. At the current 3x presentation speed, Day 720 is reachable in roughly 3.6 minutes and Day 1080 in roughly 5.4 minutes of uninterrupted wall-clock play, so long hands-on sessions can expose the quiet late-state behavior. Do not claim Gate 1F completion.
-
-## Overnight continuation status
+Mandatory areas:
 
 ```text
-F05_FIX24: COMPLETE / AWAITING_CHATGPT_REVIEW
-F05_FIX24_REVIEW_BRANCH_HEAD: 4553ac1029803cb01b821c3c78db64978d1c1b98
-F05_FIX25_CONDITIONAL_DESIGN_MEMO: CREATED / NON_AUTHORITATIVE
-F05_FIX25_IMPLEMENTATION: NOT_AUTHORIZED
-NEXT_AUTHORIZED_TASK_ID: NONE
+locked title / brand identity
++ title -> opening briefing -> main-game build-up
++ anti-AI-slop visual bible
++ DB-like design registry / naming / layer hierarchy
++ replaceable asset manifest with provenance / generation recipes
++ unified AI-generated or procedural asset package
++ real neighboring Country/Region/LandHex entities in the GameBuilders scenario
++ layered political atlas where raw hexes are not the dominant look
++ responsive UI across desktop/laptop/tablet/mobile
++ player-facing copy cleanup and factual event fix
++ game-theoretic decision UX using actual declared costs/effects
++ external commercial UX references + vetted GitHub repo/license audit
++ Sites redeploy and responsive browser QA
 ```
 
-F05_FIX24 and the conditional FIX25 design memo were completed on the separate `f05-fix24-review` branch without production code, test, or persistence changes. They remain separate from the accepted GameBuilders demo branch until independently reviewed/accepted.
+## Design architecture rule
+
+Visual work must remain partially replaceable. Do not create one monolithic AI background or one giant App/CSS implementation.
+
+Required conceptual hierarchy:
+
+```text
+Design Tokens
+-> Semantic Tokens
+-> Design / Asset Registry
+-> Layer Registry
+-> Components
+-> Screen Composition
+-> State / Crisis Overlays
+```
+
+Stable IDs must identify assets/components/layers independent of filenames and array order. AI-generated assets require style-family/prompt/provenance records. Map layers must have explicit stable z-order and be independently renderable in development-only design debug mode.
+
+## External references
+
+Commercial game assets are inspiration only. Benchmark at minimum Suzerain, Papers Please, Crusader Kings III, and Frostpunk 2 for hook/map/political-pressure hierarchy.
+
+Vetted implementation references include:
+
+- Azgaar/Fantasy-Map-Generator — MIT; map data/render/editor separation and political atlas structure.
+- Hellenic/react-hexgrid — MIT; optional hex rendering/coordinate reference.
+- freeciv/freeciv-web — AGPL; UX reference only, no code copying by default.
+
+Codex must audit additional reputable repos/skills with explicit license/use decisions before adopting them.
+
+## Game-theory rule
+
+Use game theory as a decision-design lens: opportunity costs, strategic response, externalities, credible commitment, signaling uncertainty, coordination/collective action, and principal-agent tension should be legible where supported by real current state and declared intervention effects.
+
+Do NOT add a Nash/CFR/MCTS/RL/QRE/LLM solver, universal utility score, fake response percentages, or hidden strategy score.
+
+Decision UI must distinguish:
+
+```text
+확정 비용
+확정 변화
+현재 관측
+미확정 반응
+```
+
+Never present uncertain future behavior as guaranteed.
+
+## Architecture boundaries
+
+- accepted FIX23 simulation core remains authoritative;
+- no direct UI WorldState mutation;
+- no scripted/scheduled coup/rebellion;
+- no fake Agenda/EventStore facts;
+- neighboring countries shown on the map must be real authored scenario entities, not decorative labels;
+- physical territorial authority remains LandHex controller state;
+- fronts remain derived;
+- no new F05 evidence/settlement runtime;
+- no persistence V9;
+- no Gate1F PASS;
+- no V02;
+- no commercial-game asset copying;
+- no unvetted copyleft code import;
+- no successor task self-authorization.
+
+Execute every checkpoint in `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0.md`, committing/pushing safe checkpoints without waiting for intermediate review. Stop after the final P0 result and Sites status are published.
