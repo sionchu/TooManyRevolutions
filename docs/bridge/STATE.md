@@ -3,7 +3,7 @@
 UPDATED: 2026-08-26
 REPOSITORY: sionchu/TooManyRevolutions
 BRANCH: master
-CURRENT_GATE: Gate 1F / TEMPORARILY_PAUSED_FOR_GAMEBUILDERS_DEMO
+CURRENT_GATE: Gate 1F / TEMPORARILY_PAUSED_FOR_GAMEBUILDERS_PRODUCT_P0
 GATE1F_CHATGPT_DECISION: NOT_READY
 V02: NOT_STARTED
 PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
@@ -13,103 +13,122 @@ PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
 ```text
 F04: CLOSED / PASS
 F05: measurement complete; Gate 1F NOT_READY
-F05_FIX1..F05_FIX14: accepted progression; FUND_MOVEMENT route closed as pacing remedy
-F05_FIX15: War-as-Politics requires new authoritative domain
-F05_FIX16: COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE / PASS / ACCEPTED
-F05_FIX17: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED / PASS / ACCEPTED
-F05_FIX18: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE_IMPLEMENTED / PASS / ACCEPTED
-F05_FIX19: COUP_RESPONSE_SOURCE_EXTERNAL_INPUT_ONLY_AT_CURRENT_SCOPE / PASS / ACCEPTED
-F05_FIX20: REBELLION_PERSISTENCE_AND_SETTLEMENT_REQUIRE_SEPARATE_DOMAINS / PASS / ACCEPTED
-F05_FIX21: REBELLION_SPLIT_MINIMAL_DOMAINS_DESIGNABLE / PASS / ACCEPTED
-F05_FIX22: REBELLION_PERSISTENCE_AUTHORING_SEAM_IMPLEMENTED / PASS / ACCEPTED
-F05_FIX23: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE_IMPLEMENTED / PASS / ACCEPTED
+F05_FIX1..F05_FIX23: accepted progression through rebellion persistence bootstrap episode
 GAMEBUILDERS_DEMO_SPRINT_01: TECHNICAL_PASS / ACCEPTED_AS_VERTICAL_SLICE
 ```
 
-## Accepted core freeze point
+## Stable core / reviewed demo base
 
 ```text
 CORE_IMPLEMENTATION_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
-PRIMARY_CLASSIFICATION: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE_IMPLEMENTED
+GAMEBUILDERS_REVIEWED_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
 PERSISTENCE_FORMAT: V8
+TIME_FLOW_STATUS: PASS
+DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
 GATE1F: NOT_READY
 V02: NOT_STARTED
 ```
 
-The GameBuilders branch is a presentation/client/scenario overlay on this accepted core. It does not alter accepted persistence or claim Gate 1F completion.
-
-## GameBuilders reviewed result
-
-```text
-WORK_BRANCH: gamebuilders-demo-sprint-01
-REVIEW_BASE: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
-REVIEWED_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
-DEPLOYED_SOURCE_HEAD: 2a454a9b3f539cc7a74c1beb724af7c4b170004d
-PLAYABLE_LOCAL: YES
-SITES_STATUS: DEPLOYED
-SITES_URL: https://too-many-revolutions-gamebuilders.leeje92.chatgpt.site
-TIME_FLOW_STATUS: PASS
-DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
-TECHNICAL_PLAYABILITY: PASS
-SUBMISSION_READY: CONDITIONAL_POLISH_REQUIRED
-```
-
-Independent review confirmed seven commits over the FIX23 base and a focused change set: product shell/UI, deterministic GameBuilders scenario, demo runtime helpers/tests, time-flow controls, 0–20y audit, Sites packaging, QA and capture docs. The browser client submits interventions through the common ActionProposal/ActionRecord path and advances every simulated day through `runSimulationStep -> commitSimulationStep`.
-
-No direct UI WorldState mutation, scripted/scheduled crisis, fake Agenda/EventStore facts, new F05 evidence/settlement runtime, persistence V9, Three.js, server/LLM dependency, or unlicensed external media was added.
-
-## Product-QC findings before final submission
-
-The vertical slice is technically playable, but three short follow-up fixes are required before treating it as final-submission polished:
-
-- remove player-facing developer jargon and raw domain IDs. Current UI still exposes phrases such as `Renderer-neutral read model`, `authoritative history`, `LandHex projection`, `ActionRecord`, `T018`, and `RunOutcome`, and the region inspector displays raw ideology IDs rather than catalog names;
-- correct `RESOURCE_SHORTAGE_CHANGED` display to read the authoritative payload field `scarcity`; the current UI asks for `nextScarcity`, which does not exist in the event producer and can display a false zero;
-- revise the 3-minute capture route to intentionally follow a deterministic real crisis trajectory when feasible. The current shot list allows a no-crisis capture even though the horizon audit demonstrates real rebellion/coup emergence in deterministic trajectories.
-
-## Horizon / pacing status
-
-The deterministic audit used the same daily authoritative pipeline and seed across no-action, material relief, political accommodation, legalization, and coercive trajectories at Days 0/90/180/360/720/1080/1800/3600/7200.
-
-```text
-DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
-```
-
-Short/medium play is active and meaningful, but late conflicts can become structurally stalled. With the shipped presentation scheduler, 3x means roughly 300 ms per simulated day, so uninterrupted play can reach Day 720 in about 3.6 minutes and Day 1080 in about 5.4 minutes. This is a real hands-on demo risk for long continuous sessions and must not be hidden by UI speed or fake resolution. Gate 1F remains NOT_READY.
-
-## Overnight continuation
-
-```text
-F05_FIX24: COMPLETE / AWAITING_CHATGPT_REVIEW
-F05_FIX24_REVIEW_BRANCH_HEAD: 4553ac1029803cb01b821c3c78db64978d1c1b98
-F05_FIX24_PRIMARY_CLASSIFICATION_REPORTED: REBELLION_EVIDENCE_REQUIRES_NEW_OPERATIONAL_SUPPORT_DOMAINS
-F05_FIX25_CONDITIONAL_DESIGN_MEMO: CREATED / NON_AUTHORITATIVE
-F05_FIX25_IMPLEMENTATION: NOT_AUTHORIZED
-```
-
-The F05_FIX24 branch is three commits ahead of FIX23 and changes only the grounding document, result document, and conditional F05_FIX25 design memo. No production/test/persistence changes were made on that branch. F05_FIX24 remains awaiting independent acceptance; the memo is planning only.
+The reviewed GameBuilders demo is a real thin client over the accepted simulation core, but product review found that the title/build-up/world-map/art/asset/UI surface is still not convincing enough for final submission. The next authorized work is therefore a P0 product-surface sprint rather than deeper F05 implementation.
 
 ## Current authorization
 
 ```text
-CURRENT_TASK_ID: NONE
-CURRENT_TASK_STATUS: WAITING_FOR_USER_NEXT
-NEXT_AUTHORIZED_TASK_ID: NONE
+CURRENT_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
+CURRENT_TASK_STATUS: AUTHORIZED
+TASK_FILE: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0.md
+BASE_IMPLEMENTATION_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
+WORK_BRANCH: gamebuilders-product-surface-p0
+RESULT_PATH: docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md
+NEXT_AUTHORIZED_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
 ```
+
+## P0 product direction
+
+Locked player-facing identity:
+
+```text
+내 왕국에 혁명이 너무 많다
+TOO MANY REVOLUTIONS
+정권은 무너져도, 국가는 계속된다.
+```
+
+The P0 must deliver an intentional title -> opening briefing -> main-game flow, a visually dominant political atlas with real neighboring scenario Countries, coherent generated/procedural asset language, responsive screen composition, and decision UX that makes strategic trade-offs legible without inventing future outcomes.
+
+## Design system / partial-edit contract
+
+Visual implementation must be modular and DB-like rather than a one-shot AI composition.
+
+Required conceptual stack:
+
+```text
+Design Tokens
+-> Semantic Tokens
+-> Design Registry
+-> Asset Manifest
+-> Layer Registry
+-> Component Registry
+-> Screen Composition
+-> State / Crisis Overlay
+```
+
+Asset, layer, component, copy, and country visual identities use stable semantic IDs. AI-generated assets must carry style-family/prompt/provenance/version metadata and remain individually replaceable. Map/UI layers require explicit stable z-order. Normal player UI must not expose design/debug vocabulary.
+
+## External reference policy
+
+Commercial games are reference-only: Suzerain, Papers Please, Crusader Kings III, Frostpunk 2.
+
+Vetted GitHub references:
+
+```text
+Azgaar/Fantasy-Map-Generator: MIT; political-map and data/render separation reference
+Hellenic/react-hexgrid: MIT; optional coordinate/rendering reference
+freeciv/freeciv-web: AGPL; UX reference only, no code copying by default
+```
+
+Additional GitHub repositories/agent skills may be inspected only with explicit license/reputation/use decisions. Do not adopt random AI design skill repositories merely from search ranking.
+
+## Game theory design lens
+
+Use opportunity cost, externalities, strategic response, credible commitment, signaling/uncertainty, coordination/collective action, and principal-agent tension only where existing authoritative state or declared intervention effects support them.
+
+Player-facing decisions should distinguish certain cost/effect from current observations and uncertain response. No solver, universal utility score, response probability fabrication, or hidden strategy meter is authorized.
+
+## Product-QC items carried forward
+
+The P0 must also correct the reviewed demo issues:
+
+- remove `Renderer-neutral`, `LandHex projection`, `ActionRecord`, `authoritative history`, `T018`, `RunOutcome`, fixture IDs and raw ideology IDs from player UI;
+- fix `RESOURCE_SHORTAGE_CHANGED` display to use actual payload field `scarcity`;
+- rebuild the 3-minute capture path around the improved title/briefing/world map and a deterministic real crisis trajectory when feasible without scripting.
 
 ## Preserved architecture constraints
 
-- player = CountryId continuity, not Government;
+- player = CountryId continuity, not ruler/government;
 - Government transition remains nonterminal;
-- physical territorial authority remains only LandHex controller state;
+- physical territorial authority remains only `WorldState.landHexStates[*].controller`;
 - Region.stateControl is not territorial ownership;
 - fronts remain derived;
+- presentation may not invent armies/crowds/fronts or fake countries;
+- neighboring countries displayed in the world atlas must be valid authored scenario entities;
 - no direct UI WorldState mutation;
-- no fake/scheduled coup, rebellion, Agenda, EventStore history, or story progression;
-- no `0 LandHex -> defeat/dissolution`;
-- no `NO_ACTIVE_FRONT_EDGE -> peace`;
-- State Dissolution remains T023-owned;
-- no generic political/persistence/pacing score;
-- no timer/RNG cheat to shorten the demo;
-- no unreviewed F05 operational-evidence or settlement implementation;
-- accepted persistence remains V8;
-- no V02 until Gate 1F PASS.
+- actions use existing common action/simulation boundary;
+- no fake/scheduled coup, rebellion, Agenda, or EventStore history;
+- no hidden pacing mechanic;
+- no F05 operational-evidence/settlement implementation in P0;
+- no persistence V9;
+- no commercial-game asset copying;
+- no unvetted copyleft code import;
+- Gate 1F remains NOT_READY;
+- V02 remains NOT_STARTED;
+- no successor task self-authorization.
+
+## Deferred core work
+
+```text
+F05_FIX24: COMPLETE / AWAITING_CHATGPT_REVIEW on separate branch
+F05_FIX25_CONDITIONAL_DESIGN_MEMO: NON_AUTHORITATIVE
+F05_FIX25_IMPLEMENTATION: NOT_AUTHORIZED
+```
+
+Do not resume these until the GameBuilders P0 is independently reviewed or explicitly paused.
