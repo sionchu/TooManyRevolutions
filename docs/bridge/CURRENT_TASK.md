@@ -20,19 +20,21 @@ ChatGPT has **not** independently reviewed the actual FIX17 source diff/result o
 
 ## Codex Desktop action
 
-Do not reimplement, reset, or rewrite F05_FIX17.
+Do not reimplement, reset, rewrite, rebase, or force-update F05_FIX17.
 
-Publish the existing local FIX17 implementation/result to GitHub so ChatGPT can review the actual diff. A review branch already exists on GitHub:
+Use the repository's normal Git remote. **Normal `git fetch` and `git push` are allowed and expected here.** Do not use web search, browser cache, GitHub raw URL lookup, or `git ls-remote` as a substitute for the repository remote.
+
+If the local Bridge metadata is stale, fetch `origin/master` only to refresh the remote-tracking ref and read the latest Bridge metadata from `origin/master`. This must not merge, reset, or rewrite the completed local FIX17 implementation.
+
+Publish the existing completed local FIX17 HEAD to the already-created GitHub review branch:
 
 ```text
 f05-fix17-review
 ```
 
-It starts from the reviewed F05_FIX16 predecessor `d3908e1f30390131e12cced6e1b80bd03c5c1a4f`, matching the lineage of the existing local FIX17 implementation.
+That branch is rooted at the reviewed F05_FIX16 predecessor `d3908e1f30390131e12cced6e1b80bd03c5c1a4f`, matching the lineage of the local FIX17 implementation. Do not merge Bridge-only master metadata into FIX17 merely to publish it.
 
-Push the current completed FIX17 local HEAD to `f05-fix17-review` using the normal GitHub workflow available in Codex Desktop. Do not fetch/pull/merge Bridge-only master metadata into the implementation merely to publish it. Do not force-push or rewrite history.
-
-After the branch is published, stop. Do not start F05_FIX18, Gate 1F PASS, or V02.
+After the review branch is published, stop. Do not start F05_FIX18, Gate 1F PASS, or V02.
 
 ## Review sequence
 
