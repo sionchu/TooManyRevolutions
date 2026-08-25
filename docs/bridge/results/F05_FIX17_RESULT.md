@@ -43,8 +43,8 @@ V02: NOT_STARTED
   meaning and no majority, quorum, weight, score, timer, cooldown, or
   countdown interpretation is introduced.
 - Added focused tests covering valid authoring, insertion-order independence,
-  invalid references, duplicate/empty/unsorted authoring, and the absence of
-  runtime Coup Coordination fields.
+  invalid references, duplicate/empty/order-independent authoring, and the
+  absence of runtime Coup Coordination fields.
 - Added the design contract in
   `docs/F05_FIX17_COUP_COORDINATION_AUTHORING_SEAM.md`.
 
