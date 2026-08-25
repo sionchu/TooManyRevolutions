@@ -358,7 +358,7 @@ export function PoliticalAtlas({
             })}
           </g>
           <g
-            data-layer-id="tmr.layer.map.terrain"
+            data-layer-id="tmr.layer.map.political"
             className="atlas-border-layer"
           >
             {presentation.landHexes.flatMap((hex) => {
