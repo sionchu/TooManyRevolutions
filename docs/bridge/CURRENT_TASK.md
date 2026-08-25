@@ -1,92 +1,49 @@
 # TMR Current Bridge Task
 
-TASK_ID: GAMEBUILDERS_DEMO_SPRINT_01
-STATUS: AUTHORIZED
-BASE_IMPLEMENTATION_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
-BASE_IMPLEMENTATION_BRANCH: f05-fix23-review
-WORK_BRANCH: gamebuilders-demo-sprint-01
-TASK_FILE: docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01.md
-TIMEFLOW_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01_TIMEFLOW_ADDENDUM.md
-DEPLOYMENT_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01_DEPLOYMENT_ADDENDUM.md
-OVERNIGHT_CONTINUATION: docs/bridge/tasks/GAMEBUILDERS_OVERNIGHT_CONTINUATION_01.md
-RESULT_PATH: docs/bridge/results/GAMEBUILDERS_DEMO_SPRINT_01_RESULT.md
+TASK_ID: NONE
+STATUS: WAITING_FOR_USER_NEXT
+BASE_BRANCH: master
 
-## Event sprint override
-
-GameBuilders submission is imminent. Normal Gate 1F/F05 progression is temporarily paused so the accepted simulation core can be turned into a playable vertical slice.
+## Last reviewed GameBuilders task
 
 ```text
-F05_FIX23: COMPLETE / REVIEWED / PASS / ACCEPTED
+GAMEBUILDERS_DEMO_SPRINT_01: COMPLETE / REVIEWED / TECHNICAL_PASS / ACCEPTED_AS_VERTICAL_SLICE
+WORK_BRANCH: gamebuilders-demo-sprint-01
+REVIEW_BASE: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
+REVIEWED_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
+DEPLOYED_SOURCE_HEAD: 2a454a9b3f539cc7a74c1beb724af7c4b170004d
+PLAYABLE_LOCAL: YES
+SITES_STATUS: DEPLOYED
+SITES_URL: https://too-many-revolutions-gamebuilders.leeje92.chatgpt.site
+TIME_FLOW_STATUS: PASS
+DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
+TECHNICAL_PLAYABILITY: PASS
+SUBMISSION_READY: CONDITIONAL_POLISH_REQUIRED
 PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
 GATE1F: NOT_READY
 V02: NOT_STARTED
 ```
 
-`F05_FIX24` was authorized previously but is deferred while the GameBuilders P0 demo is built. The overnight continuation explicitly permits F05_FIX24 to resume **docs-only** after the playable/deployed demo, horizon audit, and product QA are safely committed.
+ChatGPT independently reviewed the seven-commit demo lineage, changed-file scope, product shell, deterministic demo scenario, common ActionRecord intake, daily SimulationStep/commit path, pause/play/speed scheduler, optional major-event auto-pause, HUD, SVG LandHex map, Agenda/EventStore presentation, demo runtime tests, 0–20y deterministic horizon audit, QA/result/shot-list documents, and Sites project/deployment metadata.
 
-## Mission
+The demo is a real thin client over the accepted FIX23 simulation core. No direct UI WorldState mutation, scripted crisis, fake Agenda/EventStore facts, persistence V9, new F05 runtime writer, or Three.js pipeline was introduced.
 
-Execute the full authorized overnight queue in this order:
+The demo is technically playable and deployed, but it is not yet considered final-submission polished. Immediate product-QC follow-up is required before capture/submission:
 
-1. `docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01.md`
-2. `docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01_TIMEFLOW_ADDENDUM.md`
-3. `docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01_DEPLOYMENT_ADDENDUM.md`
-4. `docs/bridge/tasks/GAMEBUILDERS_OVERNIGHT_CONTINUATION_01.md`
+1. remove remaining developer/architecture jargon from player-facing UI (`Renderer-neutral read model`, `authoritative history`, `LandHex projection`, `ActionRecord`, `T018`, `RunOutcome`) and replace raw ideology IDs with player-facing ideology names;
+2. fix the factual `RESOURCE_SHORTAGE_CHANGED` feed mapping to read the actual `scarcity` payload rather than `nextScarcity`;
+3. revise the 3-minute capture path so it deliberately follows a deterministic real trajectory that shows an actual rebellion/coup if possible, without scripting or forcing it. The current shot list explicitly permits a no-crisis video, which undersells the game's core hook.
 
-This is one unattended 4–5 hour work window. Codex Desktop is explicitly authorized to continue through all internal checkpoints and the bounded continuation queue without waiting for human review, committing and pushing at safe checkpoints.
+The horizon audit is honest: the slice is active and interactive through the short/medium window, but the accepted-core late-state stall remains. At the current 3x presentation speed, Day 720 is reachable in roughly 3.6 minutes and Day 1080 in roughly 5.4 minutes of uninterrupted wall-clock play, so long hands-on sessions can expose the quiet late-state behavior. Do not claim Gate 1F completion.
 
-Target outcome:
+## Overnight continuation status
 
 ```text
-product title/start/reset
-+ deterministic curated demo scenario
-+ continuous pause/play/speed-controlled daily simulation
-+ optional (not forced) important-event auto-pause
-+ actual policy/intervention actions through common intake
-+ state HUD
-+ SVG hex map
-+ Agenda UI
-+ factual EventStore feed and crisis presentation
-+ coherent 2D art direction
-+ presentation-only sound if stable
-+ deterministic 0–20y demo-scenario horizon audit
-+ demo QA / repair pass
-+ exact 3-minute capture shot list
-+ ChatGPT Sites deployment / real Site URL or maximum available preview
-+ if time remains: F05_FIX24 docs-only grounding and conditional next-FIX design memo only
+F05_FIX24: COMPLETE / AWAITING_CHATGPT_REVIEW
+F05_FIX24_REVIEW_BRANCH_HEAD: 4553ac1029803cb01b821c3c78db64978d1c1b98
+F05_FIX25_CONDITIONAL_DESIGN_MEMO: CREATED / NON_AUTHORITATIVE
+F05_FIX25_IMPLEMENTATION: NOT_AUTHORIZED
+NEXT_AUTHORIZED_TASK_ID: NONE
 ```
 
-## Critical pacing rule
-
-Fast-forward is not a substitute for Gate 1F. Faster wall-clock time can expose the known late-state interaction stall earlier. Therefore speed presets must be selected after the actual GameBuilders demo scenario horizon audit, and the final result must report `DEMO_HORIZON_STATUS` honestly.
-
-Do not hide a core stall merely by reducing speed. If the likely 3–8 minute judging session can reach a structural stall, treat that as a demo blocker and first tune only safe GameBuilders scenario authoring/presentation. If authoritative core semantics are required, record the blocker for F05 rather than smuggling in a hidden mechanic.
-
-## Time-flow rule
-
-The player controls time flow through pause/play and speed presets. Every simulated day still runs one authoritative daily SimulationStep in order. Major-event automatic pause is a user-configurable presentation option, not a mandatory game rule.
-
-## Sites
-
-The deployment target is ChatGPT Sites from Codex Desktop. Deploy/preview the actual playable application, not a mock. Verify the available Site URL/preview itself where tooling permits. If public publishing is blocked by account/workspace settings, record the maximum available Sites state and exact blocker without derailing the rest of the sprint.
-
-## Hard boundaries
-
-- thin client over accepted FIX23 core;
-- no direct UI WorldState mutation;
-- no scripted/scheduled crisis or story progression;
-- no fake Agenda/EventStore facts;
-- no fake/mock simulation for Sites;
-- no new hidden pacing score/timer/RNG mechanic;
-- no unreviewed new F05 evidence/settlement runtime writer;
-- no persistence V9;
-- no Three.js/new 3D pipeline;
-- no LLM/server dependency;
-- no copyrighted/unlicensed downloaded media;
-- accepted persistence remains V8;
-- Gate 1F remains NOT_READY;
-- V02 remains NOT_STARTED;
-- F05_FIX24 may only resume in its existing docs-only scope after demo safety work;
-- no F05_FIX25 implementation/self-authorization; at most the explicitly permitted conditional design memo.
-
-Stop only after the applicable overnight queue is exhausted or a documented stop condition in `GAMEBUILDERS_OVERNIGHT_CONTINUATION_01.md` is reached.
+F05_FIX24 and the conditional FIX25 design memo were completed on the separate `f05-fix24-review` branch without production code, test, or persistence changes. They remain separate from the accepted GameBuilders demo branch until independently reviewed/accepted.
