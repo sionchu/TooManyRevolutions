@@ -3,7 +3,7 @@
 UPDATED: 2026-08-26
 REPOSITORY: sionchu/TooManyRevolutions
 BRANCH: master
-CURRENT_GATE: Gate 1F
+CURRENT_GATE: Gate 1F / TEMPORARILY_PAUSED_FOR_GAMEBUILDERS_DEMO
 GATE1F_CHATGPT_DECISION: NOT_READY
 V02: NOT_STARTED
 PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
@@ -25,62 +25,72 @@ F05_FIX22: REBELLION_PERSISTENCE_AUTHORING_SEAM_IMPLEMENTED / PASS / ACCEPTED
 F05_FIX23: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE_IMPLEMENTED / PASS / ACCEPTED
 ```
 
-## F05_FIX23 accepted result
+## Accepted implementation freeze point
 
 ```text
-REVIEWED_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
+IMPLEMENTATION_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
 PRIMARY_CLASSIFICATION: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE_IMPLEMENTED
-RUNTIME_STATE: CONFLICT_SCOPED_BOOTSTRAP_EPISODE
-BOOTSTRAP_SOURCE: EXISTING_REBELLION_STARTED_EVENT
-BOOTSTRAP_PROVES_CONTINUED_CAPACITY: NO
-PROFILE_BINDING: EXACT_COUNTRY_FACTION_PROFILE
-OPERATIONAL_EVIDENCE_WRITER: NOT_IMPLEMENTED
-OPERATIONAL_COLLAPSE_WRITER: NOT_IMPLEMENTED
-SETTLEMENT_DOMAIN: NOT_IMPLEMENTED
 PERSISTENCE_FORMAT: V8
-NEXT_IMPLEMENTATION_READINESS: REBELLION_OPERATIONAL_EVIDENCE_SOURCE_GROUNDING
+GATE1F: NOT_READY
+V02: NOT_STARTED
 ```
 
-The accepted bootstrap episode is Conflict-scoped identity/provenance only. It is not positive evidence of organizational continuity, command continuity, logistics access, external support, or any other continuing operational capacity.
+This FIX23 head is the stable core base for the GameBuilders vertical slice. The demo sprint must layer presentation/client/scenario authoring on top of it and must not manufacture a Gate 1F pass.
+
+## GameBuilders emergency sprint override
+
+The current browser app at the accepted base still exposes a foundation/developer scaffold while renderer-neutral PresentationState, Agenda, deterministic simulation, EventStore, policy/intervention, ideology, faction, crisis, conflict, and persistence systems already exist behind it.
+
+Submission priorities therefore temporarily change from deeper F05 architecture to a playable product surface.
+
+`F05_FIX24` status:
+
+```text
+PREVIOUSLY_AUTHORIZED: YES
+CURRENTLY_AUTHORIZED: NO
+STATUS: DEFERRED_FOR_GAMEBUILDERS
+IMPLEMENTATION/RESULT_ACCEPTED: NO
+REVIEW_BRANCH: f05-fix24-review (left untouched as audit/work branch)
+```
+
+Do not continue F05_FIX24/F05_FIX25 until the GameBuilders sprint is reviewed or explicitly ended.
 
 ## Current authorization
 
 ```text
-CURRENT_TASK_ID: F05_FIX24
+CURRENT_TASK_ID: GAMEBUILDERS_DEMO_SPRINT_01
 CURRENT_TASK_STATUS: AUTHORIZED
-TASK_FILE: docs/bridge/tasks/F05_FIX24.md
+TASK_FILE: docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01.md
 IMPLEMENTATION_BASE: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
-REVIEW_BRANCH: f05-fix24-review
-NEXT_AUTHORIZED_TASK_ID: F05_FIX24
+WORK_BRANCH: gamebuilders-demo-sprint-01
+RESULT_PATH: docs/bridge/results/GAMEBUILDERS_DEMO_SPRINT_01_RESULT.md
+NEXT_AUTHORIZED_TASK_ID: GAMEBUILDERS_DEMO_SPRINT_01
 ```
 
-F05_FIX24 is docs-only operational-evidence source grounding. It must evaluate each of the four authored channel kinds independently and determine whether current typed state/events are sufficient, only explicit external input is defensible, or new authoritative operational-support domains are required before any positive evidence writer is implemented.
+This is one long authorized task with internal checkpoints. Codex may continue through all checkpoints without intermediate human authorization, committing and pushing after each checkpoint.
 
-## Preserved architecture constraints
+Target: convert the accepted simulation into an honest deterministic vertical slice with title/start/reset, curated demo scenario, actual player actions through the common pipeline, state HUD, SVG map, Agenda, factual EventStore storytelling, crisis presentation, coherent 2D art direction, presentation-only sound if stable, QA checklist, and 3-minute capture shot list.
+
+## Preserved architecture constraints during demo sprint
 
 - player = CountryId continuity, not Government;
-- Government transition is nonterminal;
-- physical territorial authority only through LandHex controller state;
+- Government transition remains nonterminal;
+- physical territorial authority remains only LandHex controller state;
 - Region.stateControl is not territorial ownership;
-- fronts are derived, not authoritative;
+- fronts remain derived;
+- no direct UI WorldState mutation;
+- player actions use existing validation/action/simulation boundaries;
+- no fake/scheduled coup, rebellion, Agenda, EventStore history, or story progression;
 - no `0 LandHex -> defeat/dissolution`;
 - no `NO_ACTIVE_FRONT_EDGE -> peace`;
 - State Dissolution remains T023-owned;
-- no random/timer hidden conflict resolution;
-- no generic rebellion persistence/strength/progress/suppression score;
-- no hidden scalar threshold, quorum, weight, or automatic decay;
-- persistence authoring is not runtime evidence;
-- FIX23 bootstrap episode is not positive operational evidence;
-- Faction organization/resources/grievance/influence are not operational evidence by threshold;
-- currentStrategy is not command continuity;
-- foreignLinks is not external-support evidence;
-- ContactGraph connectivity is not logistics evidence;
-- LandHex/front observations are not persistence evidence;
-- existing Intervention/FUND_MOVEMENT/Political Proposal events may not be relabeled without exact semantic support;
-- settlement acceptance is not implementation or completed peace;
-- no direct crisis deletion by intervention;
-- no LLM direct state mutation;
-- coup autonomous response remains ungrounded at current scope;
-- persistence remains V8 in F05_FIX24;
-- no V02 until Gate 1F PASS;
-- no F05_FIX25 self-authorization.
+- no new generic political/persistence/pacing score;
+- no timer/RNG cheat to shorten the demo;
+- no F05 operational-evidence or settlement implementation in the sprint;
+- no persistence V9; accepted persistence remains V8;
+- no LLM/server dependency;
+- no Three.js/new 3D pipeline for the emergency sprint;
+- no unlicensed external media;
+- Gate 1F remains NOT_READY;
+- V02 remains NOT_STARTED;
+- no successor task self-authorization.
