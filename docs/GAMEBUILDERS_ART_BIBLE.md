@@ -66,9 +66,18 @@ crop policy, responsive usage, `replaceable: true`를 기록한다.
 AI raster를 추가할 때 사용할 공통 recipe prefix는
 `tmr-royal-revolution-v1`이다. 생성 결과에 글자 오류나 문장 흔적이 있으면
 폐기하고 DOM/SVG copy를 유지한다. `v1`을 조용히 덮어쓰지 않고 새 variant
-ID를 발급한다. 현재 P0-A의 crest와 faction mark는 프로젝트가 직접 만든
-벡터이며, 이후 hero raster가 추가되어도 동일한 palette/material/layer
-계약을 따른다.
+ID를 발급한다. 현재 crest와 faction mark는 프로젝트가 직접 만든 벡터이며,
+`tmr.asset.title.hero.arken-crisis.v1`은 같은 palette/material/layer 계약으로
+생성한 무문자 title vignette다. 생성 recipe ID와 provenance는 manifest에
+고정하고, hero를 바꿔도 title copy·map·HUD는 바꾸지 않는다.
+
+Hero recipe의 공통 지시는 다음과 같다: `tmr-royal-revolution-v1`, late
+19th-century/early-industrial constitutional crisis, engraved political atlas,
+lithographic newspaper plate, restrained gouache, aged parchment/charcoal/
+oxblood/desaturated indigo/muted brass/moss palette, right-weighted 16:9
+composition with calm left copy space, no text/letters/numbers/logos/watermark,
+no purple glow/glossy UI/anime/photorealistic portrait/neon cyberpunk. 이
+recipe는 이미지의 분위기만 담당하고 필수 UI 문장은 DOM/SVG가 담당한다.
 
 ## Layer contract
 

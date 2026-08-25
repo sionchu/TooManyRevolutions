@@ -116,16 +116,23 @@ export const TMR_ASSET_MANIFEST: readonly AssetManifestEntry[] = [
     responsiveUsage: "Crisis and faction pressure chips.",
   },
   {
-    ...procedural,
     id: "tmr.asset.title.hero.arken-crisis.v1",
-    path: "procedural://tmr/title/arken-crisis-v1",
-    type: "procedural",
+    path: "/assets/tmr/generated/arken-crisis-hero-v1.png",
+    type: "png",
     role: "layered title vignette",
-    layerId: "tmr.layer.map.atmosphere",
+    layerId: "tmr.layer.ui.overlay",
     version: "v1",
+    source: "generated",
+    licenseOrProvenance:
+      "Codex built-in image generation output, generated 2026-08-26; no third-party asset copied.",
+    styleFamily: "tmr-royal-revolution",
+    promptRecipeId: "tmr-royal-revolution-v1.title-hero.arken-crisis",
+    transparentBackground: false,
     aspectRatio: "16:9",
+    cropPolicy: "cover",
     responsiveUsage:
-      "CSS vignette behind DOM title copy; never contains UI text.",
+      "Title hero on wide screens; center-right crop on mobile; never contains UI text.",
+    replaceable: true,
   },
   {
     ...procedural,
@@ -198,6 +205,17 @@ export const TMR_ASSET_MANIFEST: readonly AssetManifestEntry[] = [
 export const TMR_ASSETS_BY_ID = new Map(
   TMR_ASSET_MANIFEST.map((asset) => [asset.id, asset]),
 );
+
+export function getAssetPath(assetId: string): string {
+  const asset = TMR_ASSETS_BY_ID.get(assetId);
+  if (asset === undefined) {
+    throw new Error(`Design asset ${assetId} is not registered.`);
+  }
+  if (!asset.path.startsWith("/")) {
+    throw new Error(`Design asset ${assetId} is not a browser file asset.`);
+  }
+  return asset.path;
+}
 
 export const COUNTRY_CREST_ASSET_IDS = {
   arken: "tmr.asset.country.arken.crest",

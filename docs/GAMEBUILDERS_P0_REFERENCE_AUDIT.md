@@ -35,7 +35,9 @@
 - `@openai/sites-vite-plugin`은 기존 lockfile의 build dependency이며, 이번
   P0에서 새 package를 추가하지 않는다. 실제 package metadata의 license는
   최종 dependency audit command 결과에 기록한다.
-- 모든 P0 crest/faction mark는 TMR repository에서 직접 작성한 SVG다. 외부
+- 모든 P0 crest/faction mark는 TMR repository에서 직접 작성한 SVG다. title
+  hero 하나는 2026-08-26 Codex built-in image generation으로 생성했고,
+  `tmr-royal-revolution-v1` recipe와 provenance를 manifest에 기록했다. 외부
   이미지 검색 결과나 상용 게임 asset은 production bundle에 넣지 않는다.
 
 ## Adoption guardrail

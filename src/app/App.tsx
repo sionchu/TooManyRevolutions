@@ -13,6 +13,10 @@ import {
 } from "../sim/readModels/agenda";
 import type { GameEvent } from "../sim/events/event";
 import { type RunRecord } from "../sim/core/step";
+import { BrandMark } from "./BrandMark";
+import { OpeningBriefing } from "./OpeningBriefing";
+import { TitleScreen } from "./TitleScreen";
+import { transitionProductScreen, type ProductScreen } from "./screenFlow";
 import {
   evaluateInterventionFeasibility,
   type InterventionEffect,
@@ -491,38 +495,6 @@ function RegionInspector({
   );
 }
 
-function TitleScreen({ onStart }: { readonly onStart: () => void }) {
-  return (
-    <main className="title-shell">
-      <div className="title-ornament" aria-hidden="true">
-        ✦
-      </div>
-      <p className="eyebrow">아르켄 왕국 · 1897년</p>
-      <h1>
-        내 왕국에
-        <br />
-        혁명이 너무 많다
-      </h1>
-      <p className="title-tagline">정권은 무너져도, 국가는 계속된다.</p>
-      <p className="title-copy">
-        국고는 줄고, 철산 공업주는 흔들립니다. 법과 제도를 바꾸고 시간을
-        진행하며, 실제 세력과 국가의 반응을 지켜보세요.
-      </p>
-      <button
-        className="primary-button title-start"
-        type="button"
-        onClick={onStart}
-      >
-        새 게임 시작 <span aria-hidden="true">→</span>
-      </button>
-      <div className="title-rule" />
-      <p className="title-footnote">
-        결정은 행동으로 기록되고, 위기는 조건에서 발생합니다.
-      </p>
-    </main>
-  );
-}
-
 function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const [record, setRecord] = useState<RunRecord>(() => createDemoRunRecord());
   const [isPlaying, setIsPlaying] = useState(false);
@@ -716,9 +688,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     <main className="game-shell">
       <header className="game-header">
         <div className="brand-lockup">
-          <span className="brand-mark" aria-hidden="true">
-            ✦
-          </span>
+          <BrandMark compact />
           <div>
             <p className="eyebrow">국가 연속성 기록</p>
             <h1>내 왕국에 혁명이 너무 많다</h1>
@@ -1013,10 +983,36 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
 }
 
 export function App() {
-  const [started, setStarted] = useState(false);
-  return started ? (
-    <GameScreen onReset={() => setStarted(false)} />
-  ) : (
-    <TitleScreen onStart={() => setStarted(true)} />
+  const [screen, setScreen] = useState<ProductScreen>("title");
+  if (screen === "title") {
+    return (
+      <TitleScreen
+        onStart={() =>
+          setScreen((current) =>
+            transitionProductScreen(current, "start-new-game"),
+          )
+        }
+      />
+    );
+  }
+  if (screen === "opening-briefing") {
+    return (
+      <OpeningBriefing
+        onComplete={() =>
+          setScreen((current) =>
+            transitionProductScreen(current, "finish-opening"),
+          )
+        }
+      />
+    );
+  }
+  return (
+    <GameScreen
+      onReset={() =>
+        setScreen((current) =>
+          transitionProductScreen(current, "return-to-title"),
+        )
+      }
+    />
   );
 }

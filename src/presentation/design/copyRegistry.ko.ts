@@ -12,6 +12,9 @@ export const PLAYER_COPY = {
     hook: "국가의 연속성을 맡아, 흔들리는 질서의 다음 수를 결정하십시오.",
     action: "새 게임",
     secondary: "이 세계는?",
+    worldNoteTitle: "연속성의 무대",
+    worldNote:
+      "아르켄 왕국과 두 접경국의 국경, 도시, 생산 경로가 하나의 정치 지도로 이어집니다. 보이는 변화는 현재 국가 기록에서 읽어냅니다.",
     footer: "법을 바꾸면 이해관계가 움직입니다. 기다림도 하나의 선택입니다.",
   },
   briefing: {
