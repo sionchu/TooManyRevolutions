@@ -1,39 +1,53 @@
 # TMR Current Bridge Task
 
-TASK_ID: NONE
-STATUS: WAITING_FOR_USER_NEXT
-BASE_BRANCH: master
+TASK_ID: F05_FIX24
+STATUS: AUTHORIZED
+BASE_IMPLEMENTATION_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
+BASE_IMPLEMENTATION_BRANCH: f05-fix23-review
+REVIEW_BRANCH: f05-fix24-review
+TASK_FILE: docs/bridge/tasks/F05_FIX24.md
+RESULT_PATH: docs/bridge/results/F05_FIX24_RESULT.md
 
-## Last reviewed task
+## Accepted predecessor
 
 ```text
 F05_FIX23: COMPLETE / REVIEWED / PASS / ACCEPTED
-REVIEW_BRANCH: f05-fix23-review
-REVIEW_BASE: e6912f2ac643079ed8347fb496b7d1d10033aa41
-REVIEWED_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
 PRIMARY_CLASSIFICATION: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE_IMPLEMENTED
 RUNTIME_STATE: CONFLICT_SCOPED_BOOTSTRAP_EPISODE
-BOOTSTRAP_SOURCE: EXISTING_REBELLION_STARTED_EVENT
 BOOTSTRAP_PROVES_CONTINUED_CAPACITY: NO
-PROFILE_BINDING: EXACT_COUNTRY_FACTION_PROFILE
 PERSISTENCE_FORMAT: V8
 NEXT_IMPLEMENTATION_READINESS: REBELLION_OPERATIONAL_EVIDENCE_SOURCE_GROUNDING
 ```
 
-ChatGPT independently reviewed the GitHub FIX23 branch, one-commit lineage, runtime bootstrap writer, WorldState shape, strict V8 decoder/runtime/event closure, focused tests, replay coverage, and reported verification.
+## Mission
 
-The accepted runtime slice creates a Conflict-scoped persistence bootstrap episode only when T018 actually creates a new rebellion under one exact authored Country/Faction persistence profile. The episode is tied to the same existing `REBELLION_STARTED` event and is identity/provenance only; it does not prove operational capacity. Authored initial rebellions are not retroactively bootstrapped.
+F05_FIX24 is docs-only Rebellion Operational Evidence Source Grounding.
 
-No operational evidence/collapse writer, settlement runtime, LandHex writer, persistence-driven Conflict outcome writer, T023 writer, or autonomous evidence producer was added. The accepted persistence contract advances to `SerializedSimulationSnapshotV8` / format version 8.
+Determine separately for `organizationalContinuity`, `commandContinuity`, `logisticsAccess`, and `externalSupport` what authoritative fact, actor, action/event provenance, and domain boundary would be required before positive operational evidence may be recorded.
 
-## Current gate
+Audit current WorldState, existing actions/events, intervention/proposal/FUND_MOVEMENT/contact/territorial state, and the external player/heuristic/LLM boundary. Do not convert generic scalars or labels into evidence.
 
-```text
-GATE1F_CHATGPT_DECISION: NOT_READY
-V02: NOT_STARTED
-PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
-F05_FIX24: NOT_AUTHORIZED
-NEXT_AUTHORIZED_TASK_ID: NONE
-```
+No production implementation, evidence writer, persistence V9, settlement runtime, Gate 1F PASS, or V02 is authorized.
 
-No successor task is authorized until the user requests the next progression.
+## Execution
+
+Codex Desktop should read `docs/bridge/tasks/F05_FIX24.md` from GitHub and continue from accepted FIX23 head `82bb6018f2fc87d9f1807cab3c12fb5e2e016775`.
+
+The GitHub review branch `f05-fix24-review` already exists at that exact accepted head.
+
+Create only the grounding/result documents, publish them to `f05-fix24-review`, and stop for ChatGPT review.
+
+## Hard boundaries
+
+- FIX23 bootstrap episode is not positive operational evidence;
+- no Faction/Country/Region/LandHex/ContactGraph scalar inference;
+- no foreignLinks -> external support evidence;
+- no currentStrategy -> command continuity;
+- no existing event/action relabeling without exact semantic support;
+- no score/threshold/quorum/weight/timer/RNG/decay;
+- no LandHex/Conflict/T022/T023 writer;
+- settlement domain unchanged;
+- persistence remains V8;
+- no F05_FIX25 self-authorization.
+
+Execute only `docs/bridge/tasks/F05_FIX24.md`.
