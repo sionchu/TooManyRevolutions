@@ -299,6 +299,122 @@ describe("Coup Coordination static authoring seam", () => {
     ).toThrow("must have the coup capability");
   });
 
+  it("distinguishes exact profile pairs from delimiter collisions", () => {
+    const scenario = createAuthoringScenario();
+    const country = scenario.initialCountries[0]!;
+    const faction = scenario.initialFactions[0]!;
+    const firstCountryId = asCountryId("collision.country");
+    const firstFactionId = asFactionId("collision:faction");
+    const secondCountryId = asCountryId("collision.country:collision");
+    const secondFactionId = asFactionId("faction");
+    const firstCurrentGovernmentId = asGovernmentId(
+      "collision.first.current-government",
+    );
+    const firstSuccessorGovernmentId = asGovernmentId(
+      "collision.first.successor-government",
+    );
+    const secondCurrentGovernmentId = asGovernmentId(
+      "collision.second.current-government",
+    );
+    const secondSuccessorGovernmentId = asGovernmentId(
+      "collision.second.successor-government",
+    );
+    const firstNodeId = asCoupCoordinationNodeId("collision.first.node");
+    const secondNodeId = asCoupCoordinationNodeId("collision.second.node");
+
+    const collisionScenario: ScenarioDefinition = {
+      ...scenario,
+      initialCountries: [
+        ...scenario.initialCountries,
+        {
+          ...country,
+          id: firstCountryId,
+          name: "충돌 국가 1",
+          currentGovernmentId: firstCurrentGovernmentId,
+        },
+        {
+          ...country,
+          id: secondCountryId,
+          name: "충돌 국가 2",
+          currentGovernmentId: secondCurrentGovernmentId,
+        },
+      ],
+      initialFactions: [
+        ...scenario.initialFactions,
+        { ...faction, id: firstFactionId, countryId: firstCountryId },
+        { ...faction, id: secondFactionId, countryId: secondCountryId },
+      ],
+      initialGovernments: [
+        ...scenario.initialGovernments,
+        {
+          id: firstCurrentGovernmentId,
+          countryId: firstCountryId,
+          name: "충돌 국가 1 현 정부",
+          authority: "central",
+          formedAtTick: 0,
+        },
+        {
+          id: firstSuccessorGovernmentId,
+          countryId: firstCountryId,
+          name: "충돌 국가 1 후계 정부",
+          authority: "contender",
+          formedAtTick: 0,
+        },
+        {
+          id: secondCurrentGovernmentId,
+          countryId: secondCountryId,
+          name: "충돌 국가 2 현 정부",
+          authority: "central",
+          formedAtTick: 0,
+        },
+        {
+          id: secondSuccessorGovernmentId,
+          countryId: secondCountryId,
+          name: "충돌 국가 2 후계 정부",
+          authority: "contender",
+          formedAtTick: 0,
+        },
+      ],
+      factionCapabilities: {
+        ...scenario.factionCapabilities,
+        [firstFactionId]: ["coup"],
+        [secondFactionId]: ["coup"],
+      },
+      coupCoordinationNodes: [
+        ...scenario.coupCoordinationNodes!,
+        { id: firstNodeId, countryId: firstCountryId, name: "충돌 노드 1" },
+        { id: secondNodeId, countryId: secondCountryId, name: "충돌 노드 2" },
+      ],
+      coupCoordinationProfiles: [
+        ...scenario.coupCoordinationProfiles!,
+        {
+          countryId: firstCountryId,
+          coupFactionId: firstFactionId,
+          requiredNodeIds: [firstNodeId],
+          successorGovernmentId: firstSuccessorGovernmentId,
+        },
+        {
+          countryId: secondCountryId,
+          coupFactionId: secondFactionId,
+          requiredNodeIds: [secondNodeId],
+          successorGovernmentId: secondSuccessorGovernmentId,
+        },
+      ],
+    };
+
+    expect(() => assertScenarioDefinition(collisionScenario)).not.toThrow();
+
+    expect(() =>
+      assertScenarioDefinition({
+        ...collisionScenario,
+        coupCoordinationProfiles: [
+          ...collisionScenario.coupCoordinationProfiles!,
+          { ...collisionScenario.coupCoordinationProfiles![1]! },
+        ],
+      }),
+    ).toThrow("profile repeats");
+  });
+
   it("rejects duplicate profiles for one country and coup faction", () => {
     const scenario = createAuthoringScenario();
     const profile = scenario.coupCoordinationProfiles![0]!;

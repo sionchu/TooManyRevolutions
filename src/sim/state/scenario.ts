@@ -379,7 +379,7 @@ export function assertScenarioCoupCoordinationAuthoring(
     nodesById.set(node.id, node);
   }
 
-  const seenProfileKeys = new Set<string>();
+  const seenProfileFactionIdsByCountry = new Map<CountryId, Set<FactionId>>();
   for (const profile of scenario.coupCoordinationProfiles ?? []) {
     const faction = factionsById.get(profile.coupFactionId);
     if (faction === undefined) {
@@ -409,15 +409,21 @@ export function assertScenarioCoupCoordinationAuthoring(
       );
     }
 
-    const profileKey = `${profile.countryId}:${profile.coupFactionId}`;
-    if (seenProfileKeys.has(profileKey)) {
-      throw new Error(`Coup coordination profile repeats ${profileKey}.`);
+    const profileLabel = `${profile.countryId}:${profile.coupFactionId}`;
+    let seenFactionIds = seenProfileFactionIdsByCountry.get(profile.countryId);
+    if (seenFactionIds === undefined) {
+      seenFactionIds = new Set<FactionId>();
+      seenProfileFactionIdsByCountry.set(profile.countryId, seenFactionIds);
     }
-    seenProfileKeys.add(profileKey);
+
+    if (seenFactionIds.has(profile.coupFactionId)) {
+      throw new Error(`Coup coordination profile repeats ${profileLabel}.`);
+    }
+    seenFactionIds.add(profile.coupFactionId);
 
     if (profile.requiredNodeIds.length === 0) {
       throw new Error(
-        `Coup coordination profile ${profileKey} must require at least one node.`,
+        `Coup coordination profile ${profileLabel} must require at least one node.`,
       );
     }
 
@@ -425,7 +431,7 @@ export function assertScenarioCoupCoordinationAuthoring(
     for (const nodeId of profile.requiredNodeIds) {
       if (seenNodeIds.has(nodeId)) {
         throw new Error(
-          `Coup coordination profile ${profileKey} repeats required node ${nodeId}.`,
+          `Coup coordination profile ${profileLabel} repeats required node ${nodeId}.`,
         );
       }
       seenNodeIds.add(nodeId);
@@ -433,13 +439,13 @@ export function assertScenarioCoupCoordinationAuthoring(
       const node = nodesById.get(nodeId);
       if (node === undefined) {
         throw new Error(
-          `Coup coordination profile ${profileKey} references missing node ${nodeId}.`,
+          `Coup coordination profile ${profileLabel} references missing node ${nodeId}.`,
         );
       }
 
       if (node.countryId !== profile.countryId) {
         throw new Error(
-          `Coup coordination profile ${profileKey} node ${nodeId} must belong to country ${profile.countryId}.`,
+          `Coup coordination profile ${profileLabel} node ${nodeId} must belong to country ${profile.countryId}.`,
         );
       }
     }
@@ -449,19 +455,19 @@ export function assertScenarioCoupCoordinationAuthoring(
     );
     if (successorGovernment === undefined) {
       throw new Error(
-        `Coup coordination profile ${profileKey} references missing successor Government ${profile.successorGovernmentId}.`,
+        `Coup coordination profile ${profileLabel} references missing successor Government ${profile.successorGovernmentId}.`,
       );
     }
 
     if (successorGovernment.countryId !== profile.countryId) {
       throw new Error(
-        `Coup coordination profile ${profileKey} successor Government must belong to country ${profile.countryId}.`,
+        `Coup coordination profile ${profileLabel} successor Government must belong to country ${profile.countryId}.`,
       );
     }
 
     if (country.currentGovernmentId === profile.successorGovernmentId) {
       throw new Error(
-        `Coup coordination profile ${profileKey} successor Government must differ from the current Government.`,
+        `Coup coordination profile ${profileLabel} successor Government must differ from the current Government.`,
       );
     }
   }
