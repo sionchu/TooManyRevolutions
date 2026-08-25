@@ -28,8 +28,6 @@ F05_FIX23: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE_IMPLEMENTED / PASS / ACC
 ## F05_FIX23 accepted result
 
 ```text
-REVIEW_BRANCH: f05-fix23-review
-REVIEW_BASE: e6912f2ac643079ed8347fb496b7d1d10033aa41
 REVIEWED_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
 PRIMARY_CLASSIFICATION: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE_IMPLEMENTED
 RUNTIME_STATE: CONFLICT_SCOPED_BOOTSTRAP_EPISODE
@@ -39,26 +37,24 @@ PROFILE_BINDING: EXACT_COUNTRY_FACTION_PROFILE
 OPERATIONAL_EVIDENCE_WRITER: NOT_IMPLEMENTED
 OPERATIONAL_COLLAPSE_WRITER: NOT_IMPLEMENTED
 SETTLEMENT_DOMAIN: NOT_IMPLEMENTED
-T018_CREATION_OWNER: UNCHANGED
-T021_T022_T023: UNCHANGED
-TERRITORIAL_WRITER: NO
 PERSISTENCE_FORMAT: V8
-LATE_STATE_IMPROVEMENT_CLAIMED: NO
 NEXT_IMPLEMENTATION_READINESS: REBELLION_OPERATIONAL_EVIDENCE_SOURCE_GROUNDING
 ```
 
-The accepted FIX23 slice binds a newly T018-created rebellion Conflict to one exact authored RebellionPersistenceProfile and the same existing `REBELLION_STARTED` GameEvent. The Conflict-scoped episode stores bootstrap identity/provenance only and is not operational continuity evidence. Initial authored rebellions do not fabricate episodes, and resolved rebellions may retain the episode as historical provenance.
+The accepted bootstrap episode is Conflict-scoped identity/provenance only. It is not positive evidence of organizational continuity, command continuity, logistics access, external support, or any other continuing operational capacity.
 
-V8 strictly serializes/decodes the episode map and validates Conflict/profile/Country/Faction/tick/source-event closure. V7 and older snapshots are rejected without silent migration. Verification reported focused FIX23 tests PASS, focused persistence regression PASS, format/typecheck/lint/build PASS, T018/T021/T024/F04B/F05/F05_FIX9 inspections PASS, full-suite assertions PASS at 63 files / 553 assertions with only the known post-assertion Vitest `onTaskUpdate` IPC runner error, and `git diff --check` PASS.
-
-## Authorization
+## Current authorization
 
 ```text
-CURRENT_TASK_ID: NONE
-CURRENT_TASK_STATUS: WAITING_FOR_USER_NEXT
-F05_FIX24: NOT_AUTHORIZED
-NEXT_AUTHORIZED_TASK_ID: NONE
+CURRENT_TASK_ID: F05_FIX24
+CURRENT_TASK_STATUS: AUTHORIZED
+TASK_FILE: docs/bridge/tasks/F05_FIX24.md
+IMPLEMENTATION_BASE: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
+REVIEW_BRANCH: f05-fix24-review
+NEXT_AUTHORIZED_TASK_ID: F05_FIX24
 ```
+
+F05_FIX24 is docs-only operational-evidence source grounding. It must evaluate each of the four authored channel kinds independently and determine whether current typed state/events are sufficient, only explicit external input is defensible, or new authoritative operational-support domains are required before any positive evidence writer is implemented.
 
 ## Preserved architecture constraints
 
@@ -74,12 +70,17 @@ NEXT_AUTHORIZED_TASK_ID: NONE
 - no generic rebellion persistence/strength/progress/suppression score;
 - no hidden scalar threshold, quorum, weight, or automatic decay;
 - persistence authoring is not runtime evidence;
-- bootstrap episode presence is not continued-capacity evidence;
-- no operational evidence/collapse writer yet;
-- no Faction/Region/LandHex/front observation promoted to persistence evidence;
+- FIX23 bootstrap episode is not positive operational evidence;
+- Faction organization/resources/grievance/influence are not operational evidence by threshold;
+- currentStrategy is not command continuity;
+- foreignLinks is not external-support evidence;
+- ContactGraph connectivity is not logistics evidence;
+- LandHex/front observations are not persistence evidence;
+- existing Intervention/FUND_MOVEMENT/Political Proposal events may not be relabeled without exact semantic support;
 - settlement acceptance is not implementation or completed peace;
 - no direct crisis deletion by intervention;
 - no LLM direct state mutation;
 - coup autonomous response remains ungrounded at current scope;
-- no FUND_MOVEMENT extension;
-- no V02 until Gate 1F PASS.
+- persistence remains V8 in F05_FIX24;
+- no V02 until Gate 1F PASS;
+- no F05_FIX25 self-authorization.
