@@ -37,12 +37,12 @@ if (PLAYER_COUNTRY_ID === null) {
 
 const PLAYER_ID: CountryId = PLAYER_COUNTRY_ID;
 
-type DemoSpeed = 1 | 2 | 4;
+type DemoSpeed = 1 | 2 | 3;
 
 const SPEED_INTERVAL_MS: Readonly<Record<DemoSpeed, number>> = {
   1: 900,
   2: 450,
-  4: 225,
+  3: 300,
 };
 
 const MAJOR_EVENT_TYPES = new Set([
@@ -778,7 +778,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
             >
               {isPlaying ? "일시정지" : "재생"}
             </button>
-            {([1, 2, 4] as const).map((preset) => (
+            {([1, 2, 3] as const).map((preset) => (
               <button
                 className={
                   speed === preset ? "speed-button active" : "speed-button"
