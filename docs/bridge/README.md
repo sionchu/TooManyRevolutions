@@ -16,9 +16,9 @@ Bridge files are development metadata only. Simulation/runtime code must never d
 ```text
 ChatGPT writes the authorized task to GitHub
 -> user opens a Codex Desktop chat
--> Codex reads the GitHub Bridge task
+-> Codex reads the GitHub Bridge task through the repository's normal Git remote
 -> Codex implements/tests in the active local TooManyRevolutions repository
--> Codex commits and publishes the implementation/result to GitHub
+-> Codex commits and pushes/publishes the implementation/result to GitHub
 -> user reports completion
 -> ChatGPT reviews the actual GitHub diff/tests/result
 -> ChatGPT decides PASS/REJECT
@@ -44,9 +44,13 @@ Codex Desktop:
 
 ## Git handling
 
-Reading the GitHub Bridge task does not require the local copy of Bridge metadata to be fresh.
+**Normal repository Git operations are allowed.** In particular, `git fetch` may be used to refresh remote-tracking refs and `git push` may be used to publish completed work. Do not disable these operations by default.
 
-Do not make fetch/pull/SHA matching a universal prerequisite for starting implementation. Do not reset, rebase, force-update, or discard user work merely to synchronize Bridge metadata.
+When local Bridge metadata is stale, prefer refreshing `origin/master` and reading the Bridge task from that remote-tracking ref. A fetch does not require merging the remote branch into the current implementation branch.
+
+Do not make pull/merge/exact-SHA matching a universal prerequisite for starting implementation, and do not reset, rebase, force-update, or discard user work merely to synchronize Bridge metadata.
+
+Do not fall back to web search, browser cache, raw GitHub URL lookup, or `git ls-remote` when the normal repository remote can provide the Bridge files.
 
 The important completion condition is that the actual implementation/result becomes reviewable on GitHub. If master cannot accept the local implementation as a fast-forward because Bridge-only metadata advanced independently, publish the implementation on a dedicated review branch rooted at the reviewed predecessor instead of rewriting either history.
 
