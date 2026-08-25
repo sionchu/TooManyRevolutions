@@ -1,36 +1,59 @@
 # TMR Current Bridge Task
 
-TASK_ID: NONE
-STATUS: WAITING_FOR_USER_NEXT
-BASE_BRANCH: master
+TASK_ID: F05_FIX22
+STATUS: AUTHORIZED
+BASE_IMPLEMENTATION_HEAD: 79046aa292e22ff7afb0289f8d7895ba38d8a8ab
+BASE_IMPLEMENTATION_BRANCH: f05-fix21-review
+REVIEW_BRANCH: f05-fix22-review
+TASK_FILE: docs/bridge/tasks/F05_FIX22.md
+RESULT_PATH: docs/bridge/results/F05_FIX22_RESULT.md
 
-## Last reviewed task
+## Accepted predecessor
 
 ```text
 F05_FIX21: COMPLETE / REVIEWED / PASS / ACCEPTED
-REVIEW_BRANCH: f05-fix21-review
-REVIEW_BASE: 510e971f38b52343055285a585d851a5baae283f
-REVIEWED_HEAD: 79046aa292e22ff7afb0289f8d7895ba38d8a8ab
 PRIMARY_CLASSIFICATION: REBELLION_SPLIT_MINIMAL_DOMAINS_DESIGNABLE
 FIRST_IMPLEMENTATION_DIRECTION: PERSISTENCE_AUTHORING_FIRST
 NEXT_IMPLEMENTATION_READINESS: REBELLION_PERSISTENCE_AUTHORING_SEAM
 PERSISTENCE_FORMAT: V7_UNCHANGED
 ```
 
-ChatGPT independently reviewed the GitHub FIX21 diff and result. The task remained docs-only: exactly the rebellion domain-split design document and result document changed.
+## Mission
 
-The accepted design keeps rebellion operational persistence separate from settlement/demobilization/suppression closure. Persistence uses scenario-owned typed operational channel/profile authoring as a future evidence allow-list, not as current evidence, a score, threshold, territorial writer, or pre-authored outcome. Settlement acceptance remains distinct from implementation/compliance/demobilization and cannot directly close a Conflict.
-
-The accepted first implementation direction is `PERSISTENCE_AUTHORING_FIRST`: a successor task may add only the static scenario-owned rebellion persistence authoring seam and validation before any runtime episode, ActionRecord/GameEvent writer, Conflict mutation, or persistence version bump.
-
-## Current gate
+Implement only the static scenario-owned Rebellion Persistence authoring seam:
 
 ```text
-GATE1F_CHATGPT_DECISION: NOT_READY
-V02: NOT_STARTED
-PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV7 / format version 7
-F05_FIX22: NOT_AUTHORIZED
-NEXT_AUTHORIZED_TASK_ID: NONE
+RebellionOperationalChannelDefinition
++ RebellionPersistenceProfile
++ strict ScenarioDefinition validation
+-> future evidence allow-list only
 ```
 
-No successor task is authorized until the user requests the next progression.
+No runtime persistence episode/evidence, ActionRecord/GameEvent writer, Conflict outcome writer, settlement runtime, territorial writer, or persistence V8 is authorized.
+
+## Execution
+
+Codex Desktop should read `docs/bridge/tasks/F05_FIX22.md` from GitHub and continue from accepted FIX21 head `79046aa292e22ff7afb0289f8d7895ba38d8a8ab`.
+
+The GitHub review branch `f05-fix22-review` already exists at that exact accepted head.
+
+Publish the completed implementation/result to `f05-fix22-review` and stop for ChatGPT review.
+
+## Hard boundaries
+
+- static ScenarioDefinition authoring + validation only;
+- channels are future evidence allow-lists, not current evidence;
+- no score/threshold/quorum/weight/timer/random/decay;
+- no Faction/Region/LandHex/front scalar inference;
+- no `NO_ACTIVE_FRONT_EDGE -> peace`;
+- no `0 faction LandHex -> defeat`;
+- no runtime WorldState persistence field;
+- no ActionRecord/GameEvent persistence writer;
+- no settlement implementation;
+- no LandHex/Conflict/T023 writer;
+- persistence stays V7;
+- no Gate 1F PASS;
+- no V02;
+- no F05_FIX23 self-authorization.
+
+Execute only `docs/bridge/tasks/F05_FIX22.md`.
