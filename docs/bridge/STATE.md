@@ -25,31 +25,28 @@ F05_FIX19: COUP_RESPONSE_SOURCE_EXTERNAL_INPUT_ONLY_AT_CURRENT_SCOPE / PASS / AC
 
 ```text
 REVIEW_BRANCH: f05-fix19-review
-REVIEW_BASE: ccde3f4299b39d03ee80f097381c1efd4dd678e6
 REVIEWED_HEAD: e300fb2e51435e0f1eeedc1c2dd3db006ac0c08e
 PRIMARY_CLASSIFICATION: COUP_RESPONSE_SOURCE_EXTERNAL_INPUT_ONLY_AT_CURRENT_SCOPE
 EXISTING_WORLDSTATE_SUFFICIENT: NO
-GENERIC_SCALAR_INFERENCE_ALLOWED: NO
-RANDOM_OR_TIMER_ALLOWED: NO
-PREAUTHORED_ALIGNMENT_ALLOWED: NO
-LLM_DIRECT_MUTATION_ALLOWED: NO
 FIX18_RESPONSE_SEAM_REUSED: YES
 PERSISTENCE_FORMAT: V7_UNCHANGED
 NEXT_IMPLEMENTATION_READINESS: EXPLICIT_RESPONSE_INPUT_INTEGRATION_ONLY
 ```
 
-The accepted grounding finds no existing authoritative node-level information, expectation, command, or public-signal domain sufficient to generate autonomous `incumbent | coup` responses. Existing Country/Faction/Government/Agenda/Region/territorial scalars and labels cannot be promoted into a response writer. RNG, timers, hidden scores, pre-authored final alignment, node-name inference, and direct LLM mutation remain forbidden.
+The coup path remains valid for explicit schema-grounded external responses but has no accepted autonomous node-response producer. It therefore does not by itself close Gate 1F late-state silence.
 
-The currently grounded response source is therefore explicit schema-valid external input entering the existing F05_FIX18 `COUP_COORDINATION_RESPONSE` ActionRecord path. This is a replayable input boundary, not evidence that autonomous coup coordination has been solved, and it makes no Gate 1F pacing-improvement claim.
-
-## Authorization
+## Current authorization
 
 ```text
-CURRENT_TASK_ID: NONE
-CURRENT_TASK_STATUS: WAITING_FOR_USER_NEXT
-F05_FIX20: NOT_AUTHORIZED
-NEXT_AUTHORIZED_TASK_ID: NONE
+CURRENT_TASK_ID: F05_FIX20
+CURRENT_TASK_STATUS: AUTHORIZED
+TASK_FILE: docs/bridge/tasks/F05_FIX20.md
+IMPLEMENTATION_BASE: e300fb2e51435e0f1eeedc1c2dd3db006ac0c08e
+REVIEW_BRANCH: f05-fix20-review
+NEXT_AUTHORIZED_TASK_ID: F05_FIX20
 ```
+
+F05_FIX20 is docs-only rebellion persistence/settlement grounding. It must determine the minimal historically and architecturally defensible explanation for an active rebellion with no active territorial front edge, and distinguish persistence from settlement/suppression/demobilization before any new writer is implemented.
 
 ## Preserved architecture constraints
 
@@ -57,14 +54,16 @@ NEXT_AUTHORIZED_TASK_ID: NONE
 - Government transition is nonterminal;
 - physical territorial authority only through LandHex controller state;
 - Region.stateControl is not territorial ownership;
-- no fake coup LandHex front/writer;
+- no fake coup or rebellion LandHex writer;
 - no `0 LandHex -> defeat/dissolution`;
+- no `NO_ACTIVE_FRONT_EDGE -> peace`;
 - State Dissolution remains T023-owned;
-- no numeric coup coordination/support/loyalty/inevitability/progress score;
-- no random/timer/majority coup resolution;
-- no scalar/label/Agenda/territory inference of coup-node alignment;
-- no pre-authored initial coup-node alignment;
-- no autonomous coup-node response producer at the accepted current scope;
+- no random/timer/majority hidden conflict resolution;
+- no generic insurgency/suppression/progress score;
+- no direct crisis deletion by intervention;
+- no LLM direct state mutation;
+- coup autonomous response remains ungrounded at current scope;
 - no FUND_MOVEMENT extension;
-- rebellion persistence remains unresolved and separate;
-- no V02 until Gate 1F PASS.
+- no persistence V8 in F05_FIX20;
+- no V02 until Gate 1F PASS;
+- no F05_FIX21 self-authorization.
