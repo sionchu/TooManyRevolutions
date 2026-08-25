@@ -2,6 +2,7 @@ import {
   F04D_VALIDATION_INTERVENTION_IDS,
   createF04DValidationScenario,
 } from "./gate1fValidationFixture";
+import { INTERVENTION_FIXTURE_IDS } from "./interventionFixture";
 import { asScenarioId } from "./ids";
 import type { ScenarioDefinition } from "./scenario";
 
@@ -47,13 +48,19 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
       name: index === 0 ? "국가 수비 평의회" : "철산 노동자회",
     })),
     interventionCatalog: Object.fromEntries(
-      Object.entries(base.interventionCatalog).map(([id, definition]) => [
-        id,
-        {
-          ...definition,
-          name: interventionNames[id] ?? definition.name,
-        },
-      ]),
+      Object.entries(base.interventionCatalog)
+        .filter(
+          ([id]) =>
+            id !== INTERVENTION_FIXTURE_IDS.long &&
+            id !== INTERVENTION_FIXTURE_IDS.prerequisite,
+        )
+        .map(([id, definition]) => [
+          id,
+          {
+            ...definition,
+            name: interventionNames[id] ?? definition.name,
+          },
+        ]),
     ) as ScenarioDefinition["interventionCatalog"],
   };
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   derivePresentationState,
@@ -36,6 +36,25 @@ if (PLAYER_COUNTRY_ID === null) {
 }
 
 const PLAYER_ID: CountryId = PLAYER_COUNTRY_ID;
+
+type DemoSpeed = 1 | 2 | 4;
+
+const SPEED_INTERVAL_MS: Readonly<Record<DemoSpeed, number>> = {
+  1: 900,
+  2: 450,
+  4: 225,
+};
+
+const MAJOR_EVENT_TYPES = new Set([
+  "COUP_ATTEMPT_STARTED",
+  "REBELLION_STARTED",
+  "CONFLICT_RESOLVED",
+  "CIVIL_WAR_STARTED",
+  "GOVERNMENT_TRANSITIONED",
+  "ORDER_CONSOLIDATION_STARTED",
+  "ORDER_CONSOLIDATED",
+  "STATE_DISSOLVED",
+]);
 
 const REGIME_LABELS: Readonly<Record<RegimeClassification, string>> = {
   monarchy: "왕정",
@@ -506,8 +525,65 @@ function TitleScreen({ onStart }: { readonly onStart: () => void }) {
 
 function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const [record, setRecord] = useState<RunRecord>(() => createDemoRunRecord());
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState<DemoSpeed>(1);
+  const [autoPauseMajorEvents, setAutoPauseMajorEvents] = useState(true);
+  const [flowNotice, setFlowNotice] = useState(
+    "일시정지 · 재생을 누르면 하루씩 진행합니다.",
+  );
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const recordRef = useRef(record);
+  const intervalRef = useRef<number | null>(null);
+  const stepLockRef = useRef(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
   const [selectedRegionId, setSelectedRegionId] = useState<RegionId | null>(
     GAMEBUILDERS_DEMO_SCENARIO.initialRegions[0]?.id ?? null,
+  );
+
+  useEffect(() => {
+    recordRef.current = record;
+  }, [record]);
+
+  const clearClock = useCallback(() => {
+    if (intervalRef.current !== null) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  const playTone = useCallback(
+    (tone: "confirm" | "crisis") => {
+      if (!soundEnabled || typeof window === "undefined") return;
+      const AudioContextConstructor =
+        window.AudioContext ??
+        (
+          window as typeof window & {
+            webkitAudioContext?: typeof AudioContext;
+          }
+        ).webkitAudioContext;
+      if (AudioContextConstructor === undefined) return;
+
+      const context =
+        audioContextRef.current ??
+        (audioContextRef.current = new AudioContextConstructor());
+      void context.resume();
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      const start = context.currentTime;
+      const duration = tone === "crisis" ? 0.28 : 0.12;
+      oscillator.type = tone === "crisis" ? "sawtooth" : "triangle";
+      oscillator.frequency.setValueAtTime(tone === "crisis" ? 150 : 520, start);
+      if (tone === "crisis") {
+        oscillator.frequency.exponentialRampToValueAtTime(90, start + duration);
+      }
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.045, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start(start);
+      oscillator.stop(start + duration + 0.02);
+    },
+    [soundEnabled],
   );
   const presentation = useMemo(
     () => derivePresentationState(GAMEBUILDERS_DEMO_SCENARIO, record.world),
@@ -552,8 +628,89 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       event.type === "REBELLION_STARTED",
   );
 
-  const advance = (days: number) =>
-    setRecord((current) => advanceDemoRecord(current, days));
+  const advanceOneDay = useCallback(() => {
+    if (stepLockRef.current) return;
+    const current = recordRef.current;
+    if (current.world.run.outcome.status !== "active") {
+      clearClock();
+      setIsPlaying(false);
+      setFlowNotice("종료된 실행은 더 진행되지 않습니다.");
+      return;
+    }
+
+    stepLockRef.current = true;
+    try {
+      const previousEventIds = new Set(
+        current.eventStore.events.map((event) => event.id),
+      );
+      const next = advanceDemoRecord(current, 1);
+      const newEvents = next.eventStore.events.filter(
+        (event) => !previousEventIds.has(event.id),
+      );
+      const majorEvent = newEvents.find((event) =>
+        MAJOR_EVENT_TYPES.has(event.type),
+      );
+      recordRef.current = next;
+      setRecord(next);
+
+      if (majorEvent !== undefined) {
+        const mapped = eventLabel(majorEvent, GAMEBUILDERS_DEMO_SCENARIO);
+        setFlowNotice(
+          `${mapped.title} · ${next.world.tick}일차${autoPauseMajorEvents ? " · 자동 일시정지" : " · 계속 진행"}`,
+        );
+        playTone("crisis");
+        if (autoPauseMajorEvents) setIsPlaying(false);
+      } else if (next.world.run.outcome.status !== "active") {
+        setFlowNotice("실행 결과가 확정되어 시간이 멈췄습니다.");
+        setIsPlaying(false);
+      } else {
+        setFlowNotice(`${speed}x 재생 중 · ${next.world.tick}일차`);
+      }
+    } finally {
+      stepLockRef.current = false;
+    }
+  }, [autoPauseMajorEvents, clearClock, playTone, speed]);
+
+  useEffect(() => {
+    clearClock();
+    if (!isPlaying) return;
+    intervalRef.current = window.setInterval(
+      advanceOneDay,
+      SPEED_INTERVAL_MS[speed],
+    );
+    return clearClock;
+  }, [advanceOneDay, clearClock, isPlaying, speed]);
+
+  const togglePlaying = () => {
+    if (recordRef.current.world.run.outcome.status !== "active") return;
+    const nextPlaying = !isPlaying;
+    setIsPlaying(nextPlaying);
+    setFlowNotice(
+      nextPlaying ? `${speed}x 재생 시작 · 하루씩 진행합니다.` : "일시정지됨",
+    );
+    playTone("confirm");
+  };
+
+  const advance = (days: number) => {
+    clearClock();
+    setIsPlaying(false);
+    const current = recordRef.current;
+    const next = advanceDemoRecord(current, days);
+    recordRef.current = next;
+    setRecord(next);
+    setFlowNotice(`수동 보조 진행 · ${next.world.tick}일차`);
+    playTone("confirm");
+  };
+
+  const submitAction = (interventionId: InterventionId) => {
+    clearClock();
+    setIsPlaying(false);
+    const next = submitIntervention(recordRef.current, interventionId);
+    recordRef.current = next;
+    setRecord(next);
+    setFlowNotice("행동 제출 완료 · 안전을 위해 시간이 일시정지되었습니다.");
+    playTone("confirm");
+  };
 
   return (
     <main className="game-shell">
@@ -574,6 +731,14 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
           </span>
         </div>
         <div className="header-actions">
+          <button
+            className="quiet-button"
+            type="button"
+            aria-pressed={soundEnabled}
+            onClick={() => setSoundEnabled((enabled) => !enabled)}
+          >
+            소리 {soundEnabled ? "켜짐" : "꺼짐"}
+          </button>
           <button className="quiet-button" type="button" onClick={onReset}>
             타이틀로
           </button>
@@ -604,15 +769,57 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
           value={formatAmount(playerCountry?.stateContinuity ?? 0)}
         />
         <div className="time-controls" aria-label="시간 진행">
-          <button type="button" onClick={() => advance(1)}>
-            +1일
-          </button>
-          <button type="button" onClick={() => advance(7)}>
-            +7일
-          </button>
-          <button type="button" onClick={() => advance(30)}>
-            +30일
-          </button>
+          <div className="playback-buttons">
+            <button
+              className="play-button"
+              type="button"
+              aria-pressed={isPlaying}
+              onClick={togglePlaying}
+            >
+              {isPlaying ? "일시정지" : "재생"}
+            </button>
+            {([1, 2, 4] as const).map((preset) => (
+              <button
+                className={
+                  speed === preset ? "speed-button active" : "speed-button"
+                }
+                key={preset}
+                type="button"
+                aria-pressed={speed === preset}
+                onClick={() => {
+                  setSpeed(preset);
+                  setFlowNotice(`${preset}x 속도 선택`);
+                }}
+              >
+                {preset}x
+              </button>
+            ))}
+          </div>
+          <label className="auto-pause-toggle">
+            <input
+              type="checkbox"
+              checked={autoPauseMajorEvents}
+              onChange={(event) =>
+                setAutoPauseMajorEvents(event.target.checked)
+              }
+            />
+            중요 사건 시 자동 일시정지
+          </label>
+          <span className="time-status" role="status">
+            {flowNotice}
+          </span>
+          <div className="manual-jumps">
+            <span>보조</span>
+            <button type="button" onClick={() => advance(1)}>
+              +1일
+            </button>
+            <button type="button" onClick={() => advance(7)}>
+              +7일
+            </button>
+            <button type="button" onClick={() => advance(30)}>
+              +30일
+            </button>
+          </div>
         </div>
       </section>
 
@@ -680,11 +887,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
                   <button
                     className="action-button"
                     type="button"
-                    onClick={() =>
-                      setRecord((current) =>
-                        submitIntervention(current, definition.id),
-                      )
-                    }
+                    onClick={() => submitAction(definition.id)}
                   >
                     실행 기록 <span aria-hidden="true">↗</span>
                   </button>

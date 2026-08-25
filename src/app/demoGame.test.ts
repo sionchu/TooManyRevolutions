@@ -6,6 +6,8 @@ import {
   submitIntervention,
 } from "./demoGame";
 import { F04D_VALIDATION_INTERVENTION_IDS } from "../sim/state/gate1fValidationFixture";
+import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
+import { INTERVENTION_FIXTURE_IDS } from "../sim/state/interventionFixture";
 
 describe("GameBuilders demo runtime boundary", () => {
   it("starts from a deterministic named run", () => {
@@ -46,5 +48,41 @@ describe("GameBuilders demo runtime boundary", () => {
         (event) => event.type === "TICK_ADVANCED",
       ),
     ).toHaveLength(7);
+  });
+
+  it("keeps inspection-only intervention fixtures out of the player catalog", () => {
+    const interventionIds = Object.keys(
+      GAMEBUILDERS_DEMO_SCENARIO.interventionCatalog,
+    );
+
+    expect(interventionIds).toHaveLength(4);
+    expect(interventionIds).not.toContain(INTERVENTION_FIXTURE_IDS.long);
+    expect(interventionIds).not.toContain(
+      INTERVENTION_FIXTURE_IDS.prerequisite,
+    );
+    expect(
+      Object.values(GAMEBUILDERS_DEMO_SCENARIO.interventionCatalog).map(
+        (definition) => definition.name,
+      ),
+    ).not.toContain("T016B 장기 행정 프로그램 fixture");
+  });
+
+  it("keeps action submission inside the common intake and records rejection honestly", () => {
+    const initial = createDemoRunRecord();
+    const afterFirstAction = submitIntervention(
+      initial,
+      F04D_VALIDATION_INTERVENTION_IDS.oppositionLegalization,
+    );
+    const matured = advanceDemoRecord(afterFirstAction, 15);
+    const afterRejectedAction = submitIntervention(
+      matured,
+      F04D_VALIDATION_INTERVENTION_IDS.oppositionLegalization,
+    );
+
+    expect(
+      afterRejectedAction.eventStore.events.some(
+        (event) => event.type === "INTERVENTION_REJECTED",
+      ),
+    ).toBe(true);
   });
 });
