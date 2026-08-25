@@ -26,8 +26,6 @@ F05_FIX21: REBELLION_SPLIT_MINIMAL_DOMAINS_DESIGNABLE / PASS / ACCEPTED
 ## F05_FIX21 accepted result
 
 ```text
-REVIEW_BRANCH: f05-fix21-review
-REVIEW_BASE: 510e971f38b52343055285a585d851a5baae283f
 REVIEWED_HEAD: 79046aa292e22ff7afb0289f8d7895ba38d8a8ab
 PRIMARY_CLASSIFICATION: REBELLION_SPLIT_MINIMAL_DOMAINS_DESIGNABLE
 FIRST_IMPLEMENTATION_DIRECTION: PERSISTENCE_AUTHORING_FIRST
@@ -38,23 +36,28 @@ NO_FRONT_MEANS_PEACE: NO
 ZERO_LANDHEX_MEANS_DEFEAT: NO
 GENERIC_SCORE_ALLOWED: NO
 RANDOM_OR_TIMER_ALLOWED: NO
-DIRECT_CONFLICT_DELETE_ALLOWED: NO
-FREE_LANDHEX_WRITER_ALLOWED: NO
-LLM_DIRECT_MUTATION_ALLOWED: NO
 PERSISTENCE_FORMAT: V7_UNCHANGED
 ```
 
-The accepted persistence authoring design is scenario-owned and optional. Typed operational channels/profile membership are an allow-list for future evidence references, not current evidence, magnitude, weight, quorum, threshold, timer, territorial authority, or a pre-authored outcome. Old scenarios with absent/empty authoring retain current behavior.
+The accepted persistence authoring design is optional ScenarioDefinition metadata. Operational channels and profile membership are allow-lists for future typed evidence only; they are not current evidence, score, threshold, territorial authority, or a pre-authored outcome. Settlement/demobilization/suppression remains a separate domain.
 
-The accepted settlement design remains a separate future domain. Proposal/negotiation/acceptance, implementation/compliance or breach, demobilization/suppression evidence, and closure are distinct. Acceptance alone cannot resolve Conflict. Any future closure must validate explicit evidence and reach the existing typed Conflict outcome boundary; State Dissolution remains T023-owned.
-
-## Authorization
+## Current authorization
 
 ```text
-CURRENT_TASK_ID: NONE
-CURRENT_TASK_STATUS: WAITING_FOR_USER_NEXT
-F05_FIX22: NOT_AUTHORIZED
-NEXT_AUTHORIZED_TASK_ID: NONE
+CURRENT_TASK_ID: F05_FIX22
+CURRENT_TASK_STATUS: AUTHORIZED
+TASK_FILE: docs/bridge/tasks/F05_FIX22.md
+IMPLEMENTATION_BASE: 79046aa292e22ff7afb0289f8d7895ba38d8a8ab
+REVIEW_BRANCH: f05-fix22-review
+NEXT_AUTHORIZED_TASK_ID: F05_FIX22
+```
+
+F05_FIX22 implements only the static Rebellion Persistence authoring seam and validation. It must not create runtime persistence state/evidence, settlement state, ActionRecord/GameEvent writers, Conflict outcomes, LandHex effects, or persistence V8.
+
+Expected successful next readiness:
+
+```text
+REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE
 ```
 
 ## Preserved architecture constraints
@@ -69,12 +72,14 @@ NEXT_AUTHORIZED_TASK_ID: NONE
 - State Dissolution remains T023-owned;
 - no random/timer hidden conflict resolution;
 - no generic rebellion persistence/strength/progress/suppression score;
-- no hidden scalar threshold or automatic decay;
+- no hidden scalar threshold, quorum, weight, or automatic decay;
 - persistence authoring is not runtime evidence;
+- no Faction/Region/LandHex/front observation promoted to persistence evidence;
 - settlement acceptance is not implementation or completed peace;
 - no direct crisis deletion by intervention;
 - no LLM direct state mutation;
 - coup autonomous response remains ungrounded at current scope;
 - no FUND_MOVEMENT extension;
-- no persistence V8 until an authorized runtime seam requires it;
-- no V02 until Gate 1F PASS.
+- persistence remains V7 in F05_FIX22;
+- no V02 until Gate 1F PASS;
+- no F05_FIX23 self-authorization.
