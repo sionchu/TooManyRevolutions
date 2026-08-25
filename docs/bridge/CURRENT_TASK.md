@@ -3,10 +3,9 @@
 TASK_ID: F05_FIX17
 STATUS: AUTHORIZED
 BASE_BRANCH: master
-TASK_COMMIT: e40493948335afcfc253dee1dcee5a010166db23
-STATE_ACTIVATION_COMMIT: 40e23c98763f98d24875a2dd857bc85de4268404
+TASK_COMMIT: f4a1483802879331a81f9f4c040fa75b511dfc8f
 TASK_FILE: docs/bridge/tasks/F05_FIX17.md
-COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
+HANDOFF_POLICY: REMOTE_HANDOFF_ON_PASS
 RESULT_PATH: docs/bridge/results/F05_FIX17_RESULT.md
 
 ## Mission summary
@@ -18,7 +17,7 @@ COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE
 NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_AUTHORING_SEAM
 ```
 
-F05_FIX17 implements **only** the static scenario-owned authoring contract for the accepted coup coordination design.
+F05_FIX17 implements **only** the static scenario-owned Coup Coordination authoring contract and deterministic validation.
 
 Required semantic shape:
 
@@ -35,46 +34,22 @@ CoupCoordinationProfile
   successorGovernmentId (existing same-Country Government)
 ```
 
-The required-node set is authored content, not a majority/quorum/weighted score. Node names are presentation/authoring labels only and never branch logic.
+The required-node set is authored content, not a majority/quorum/weighted score. Node names are authoring/presentation labels only.
 
-## Required preservation
+## Preservation
 
-- existing scenarios with no coup-coordination authoring remain behaviorally unchanged;
-- absent vs explicit empty authoring collections produce equivalent initial WorldState;
-- no authored node/profile is copied into mutable WorldState in this task;
 - no runtime alignment state;
-- no initial alignment writer;
-- no `COUP_COORDINATION_RESPONSE` ActionRecord/event;
-- no node-response producer;
-- no coup outcome writer or Government-transition producer;
+- no `COUP_COORDINATION_RESPONSE` action/event;
+- no autonomous node-response producer;
+- no coup outcome/Government-transition producer;
 - no T018/T021/T022/T023 behavior change;
 - no Conflict/Government/Faction runtime schema change;
 - no persistence change; remain strict V6;
-- no production Gate 1F coup-node content merely to manufacture reachability.
+- no production Gate 1F coup-node content merely to manufacture reachability;
+- Gate 1F remains NOT_READY; V02 remains NOT_STARTED;
+- F05_FIX18 is not authorized.
 
-## Required validation
-
-At minimum reject:
-
-- duplicate node IDs;
-- unknown node Country;
-- empty node name;
-- unknown profile Country;
-- unknown coup Faction;
-- Faction/Country mismatch;
-- Faction without authored `coup` capability;
-- duplicate/ambiguous coup profile;
-- empty required-node set;
-- duplicate required node in one profile;
-- unknown required node;
-- foreign-Country required node;
-- unknown successor Government;
-- foreign-Country successor Government;
-- initially self-successor profile.
-
-Required-node insertion order must not carry semantics.
-
-## Exact outcomes
+## Required outcome
 
 Exactly one:
 
@@ -95,68 +70,13 @@ If rejected:
 NEXT_IMPLEMENTATION_READINESS: PIVOT_TO_REBELLION_PERSISTENCE_GROUNDING
 ```
 
-No third open-ended authoring outcome is allowed.
+## Remote Codex execution
 
-## Forbidden scope
+**Do not use shell `git fetch`, `git pull`, `git push`, or GitHub CLI authentication as a prerequisite.** The repository snapshot supplied by Codex remote/cloud is the execution input.
 
-- no generic military/state-apparatus actor framework;
-- no ranks, units, command hierarchy, communications graph, manpower;
-- no loyalty/coordination/inevitability/progress score;
-- no random roll, timer, countdown, cooldown, majority threshold, node weight;
-- no alignment inference from Faction/Country/Government scalars, ideology, strategy, Agenda, Region stateControl, or LandHex control;
-- no fake coup LandHex front;
-- no State Dissolution from coup/Government transition;
-- no rebellion implementation;
-- no FUND_MOVEMENT extension;
-- no V02/UI/runtime LLM solver;
-- no Gate 1F PASS or F05_FIX18 self-authorization.
+If this `CURRENT_TASK.md` and `docs/bridge/tasks/F05_FIX17.md` are present in the supplied snapshot, execute F05_FIX17 directly. If they are absent, the remote task was started from a stale snapshot: stop that task and launch a new remote task against the current repository/branch rather than trying to repair the sandbox through direct GitHub network access.
 
-Persistence remains `SerializedSimulationSnapshotV6 / format version 6`.
-
-## Repository-root / Codex Desktop freshness guard
-
-The real repository is the nested `TooManyRevolutions` directory.
-
-**The existing Codex Desktop thread may be reused. A new thread is not required.**
-
-First synchronize the real nested repository. Then in the existing Codex thread/worktree run:
-
-```bash
-git status
-git rev-parse HEAD
-git rev-parse master
-git rev-parse origin/master
-```
-
-If the worktree is clean, `master`/`origin/master` are current, and only HEAD is behind, `git merge --ff-only origin/master` is permitted.
-
-Do not reset, rebase, force, or create a new branch merely to bypass freshness.
-
-Proceed only when the worktree is clean and `HEAD == origin/master ==` the exact current GitHub master activation SHA supplied by ChatGPT/user.
-
-If parent `Game-TMR` shows `TooManyRevolutions/` as untracked, `cd TooManyRevolutions` first and never modify/configure/reset the parent repository.
-
-## Verification
-
-Follow the immutable task, including at minimum:
-
-```bash
-pnpm install --frozen-lockfile
-pnpm run format
-pnpm run typecheck
-pnpm run lint
-pnpm run build
-pnpm run inspect:t018
-pnpm run inspect:t024
-pnpm run inspect:f05
-pnpm run inspect:f05fix9
-pnpm run inspect:f05fix14
-# focused F05_FIX17 scenario-validation tests if code is added
-pnpm test
-git diff --check
-```
-
-Report the known Vitest `onTaskUpdate` runner/IPC issue separately from assertion status if it reproduces.
+Run the required tests/inspections from the task. After successful work, expose the result using the Codex product's normal review/handoff path available in that environment. Shell-level GitHub network access is not an acceptance criterion.
 
 ## Completion
 
