@@ -21,43 +21,40 @@ F05_FIX18: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE_IMPLEMENTED / PASS / ACCEPTE
 F05_FIX19: COUP_RESPONSE_SOURCE_EXTERNAL_INPUT_ONLY_AT_CURRENT_SCOPE / PASS / ACCEPTED
 F05_FIX20: REBELLION_PERSISTENCE_AND_SETTLEMENT_REQUIRE_SEPARATE_DOMAINS / PASS / ACCEPTED
 F05_FIX21: REBELLION_SPLIT_MINIMAL_DOMAINS_DESIGNABLE / PASS / ACCEPTED
+F05_FIX22: REBELLION_PERSISTENCE_AUTHORING_SEAM_IMPLEMENTED / PASS / ACCEPTED
 ```
 
-## F05_FIX21 accepted result
+## F05_FIX22 accepted result
 
 ```text
-REVIEWED_HEAD: 79046aa292e22ff7afb0289f8d7895ba38d8a8ab
-PRIMARY_CLASSIFICATION: REBELLION_SPLIT_MINIMAL_DOMAINS_DESIGNABLE
-FIRST_IMPLEMENTATION_DIRECTION: PERSISTENCE_AUTHORING_FIRST
-NEXT_IMPLEMENTATION_READINESS: REBELLION_PERSISTENCE_AUTHORING_SEAM
-PERSISTENCE_DOMAIN_SEPARATE: YES
-SETTLEMENT_DOMAIN_SEPARATE: YES
-NO_FRONT_MEANS_PEACE: NO
-ZERO_LANDHEX_MEANS_DEFEAT: NO
-GENERIC_SCORE_ALLOWED: NO
-RANDOM_OR_TIMER_ALLOWED: NO
-PERSISTENCE_FORMAT: V7_UNCHANGED
-```
-
-The accepted persistence authoring design is optional ScenarioDefinition metadata. Operational channels and profile membership are allow-lists for future typed evidence only; they are not current evidence, score, threshold, territorial authority, or a pre-authored outcome. Settlement/demobilization/suppression remains a separate domain.
-
-## Current authorization
-
-```text
-CURRENT_TASK_ID: F05_FIX22
-CURRENT_TASK_STATUS: AUTHORIZED
-TASK_FILE: docs/bridge/tasks/F05_FIX22.md
-IMPLEMENTATION_BASE: 79046aa292e22ff7afb0289f8d7895ba38d8a8ab
 REVIEW_BRANCH: f05-fix22-review
-NEXT_AUTHORIZED_TASK_ID: F05_FIX22
+REVIEW_BASE: 79046aa292e22ff7afb0289f8d7895ba38d8a8ab
+REVIEWED_HEAD: e6912f2ac643079ed8347fb496b7d1d10033aa41
+PRIMARY_CLASSIFICATION: REBELLION_PERSISTENCE_AUTHORING_SEAM_IMPLEMENTED
+AUTHORING_SCOPE: STATIC_SCENARIO_ONLY
+CHANNEL_KINDS: organizationalContinuity | commandContinuity | logisticsAccess | externalSupport
+PROFILE_IDENTITY: COUNTRY_AND_FACTION
+CHANNELS_ARE_CURRENT_EVIDENCE: NO
+PROFILE_IS_SCORE_OR_THRESHOLD: NO
+RUNTIME_PERSISTENCE_EPISODE: NOT_IMPLEMENTED
+RUNTIME_EVIDENCE: NOT_IMPLEMENTED
+SETTLEMENT_DOMAIN: NOT_IMPLEMENTED
+T018_T021_T022_T023: UNCHANGED
+PERSISTENCE_FORMAT: V7_UNCHANGED
+NEXT_IMPLEMENTATION_READINESS: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE
 ```
 
-F05_FIX22 implements only the static Rebellion Persistence authoring seam and validation. It must not create runtime persistence state/evidence, settlement state, ActionRecord/GameEvent writers, Conflict outcomes, LandHex effects, or persistence V8.
+The accepted static seam adds optional ScenarioDefinition rebellion operational channels and Country/Faction persistence profiles with strict validation. Channel/profile authoring is only an allow-list for future typed evidence references; it is not current persistence evidence, a score, threshold, quorum, territorial writer, or pre-authored outcome. Exact Country/Faction pair uniqueness uses delimiter-safe nested identity logic. Absent/empty authoring preserves current WorldState and gameplay.
 
-Expected successful next readiness:
+Verification reported for FIX22: focused 25-test suite PASS; format/typecheck/lint/build PASS; T018/T021/F04B/F05/F05_FIX9 inspections PASS; full-suite assertions PASS at 62 files / 541 tests, with only the known Vitest `onTaskUpdate` IPC process error after assertions; `git diff --check` PASS. Independent review confirmed the implementation diff is one commit over the accepted FIX21 head and changes only FIX22 docs/result, static IDs/domain/types/validation/tests, and the public export surface.
+
+## Authorization
 
 ```text
-REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE
+CURRENT_TASK_ID: NONE
+CURRENT_TASK_STATUS: WAITING_FOR_USER_NEXT
+F05_FIX23: NOT_AUTHORIZED
+NEXT_AUTHORIZED_TASK_ID: NONE
 ```
 
 ## Preserved architecture constraints
@@ -80,6 +77,5 @@ REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE
 - no LLM direct state mutation;
 - coup autonomous response remains ungrounded at current scope;
 - no FUND_MOVEMENT extension;
-- persistence remains V7 in F05_FIX22;
-- no V02 until Gate 1F PASS;
-- no F05_FIX23 self-authorization.
+- persistence remains V7 until a separately authorized runtime seam requires a version decision;
+- no V02 until Gate 1F PASS.
