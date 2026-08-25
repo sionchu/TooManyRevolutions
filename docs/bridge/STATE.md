@@ -6,7 +6,7 @@ BRANCH: master
 CURRENT_GATE: Gate 1F
 GATE1F_CHATGPT_DECISION: NOT_READY
 V02: NOT_STARTED
-PERSISTENCE: SerializedSimulationSnapshotV6 / format version 6
+PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV6 / format version 6
 
 ## Accepted progression
 
@@ -19,40 +19,32 @@ F05_FIX16: COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE / PASS / ACCEPTED
 F05_FIX17: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED / PASS / ACCEPTED
 ```
 
-## F05_FIX17 accepted result
+## F05_FIX18 review status
 
 ```text
-REVIEWED_HEAD: 5863d46563b1d7ed6dc5d65a40e1965817662707
-PRIMARY_CLASSIFICATION: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED
-AUTHORING_SCOPE: STATIC_SCENARIO_ONLY
-REQUIRED_SET_SEMANTIC: AUTHORED_NECESSARY_SET
-RUNTIME_ALIGNMENT_STATE: NO
-RUNTIME_ACTION_SCHEMA_CHANGE: NO
-COUP_OUTCOME_WRITER: NO
-PERSISTENCE_FORMAT: V6_UNCHANGED
-NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE
+TASK_ID: F05_FIX18
+REVIEW_BRANCH: f05-fix18-review
+REVIEW_BASE: 5863d46563b1d7ed6dc5d65a40e1965817662707
+REVIEWED_HEAD: 46958f17803b9b7b9f748f9b11d38564fa571ed6
+REPORTED_CLASSIFICATION: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE_IMPLEMENTED
+ARCHITECTURE_SCOPE_REVIEW: PROVISIONALLY_ACCEPTABLE
+FINAL_CHATGPT_DECISION: REVIEW_CORRECTION_REQUIRED
 ```
 
-Verification: format/typecheck/lint/build/focused FIX17 tests and required inspections pass; full-suite assertions pass at 60 files / 489 tests. The known Vitest `onTaskUpdate` runner/IPC process error remains separate from assertion status.
+The implementation contains the intended explicit Coup Coordination response path, sparse response state, authored necessary-set outcome evaluation through the existing conflict-outcome sink, and candidate persistence V7. It adds no autonomous response producer, random/timer/score inference, or territorial coup writer.
 
-## Current authorization
+Final acceptance is withheld because business-invalid `COUP_COORDINATION_RESPONSE` ActionRecords currently no-op silently. The authorized task required repository-consistent rejection provenance. FIX18 must add bounded deterministic rejection evidence without changing gameplay semantics, then rerun the full required verification.
+
+## Authorization
 
 ```text
 CURRENT_TASK_ID: F05_FIX18
-CURRENT_TASK_STATUS: AUTHORIZED
-TASK_FILE: docs/bridge/tasks/F05_FIX18_AUTHORIZED.md
-IMPLEMENTATION_BASE: 5863d46563b1d7ed6dc5d65a40e1965817662707
-REVIEW_BRANCH: f05-fix18-review
-NEXT_AUTHORIZED_TASK_ID: F05_FIX18
+CURRENT_TASK_STATUS: REVIEW_CORRECTION_REQUIRED
+NEXT_AUTHORIZED_TASK_ID: NONE
+F05_FIX19: NOT_AUTHORIZED
 ```
 
-F05_FIX18 implements the minimal explicit-response Coup Coordination runtime vertical slice and persistence V7. It does not authorize an autonomous response producer and must not claim Gate 1F pacing improvement merely because the explicit response path exists.
-
-Expected successful next readiness:
-
-```text
-COUP_COORDINATION_RESPONSE_SOURCE_GROUNDING
-```
+Until FIX18 is accepted, the project-wide accepted persistence contract remains V6. V7 is provisional on the FIX18 review branch.
 
 ## Preserved architecture constraints
 
@@ -69,5 +61,4 @@ COUP_COORDINATION_RESPONSE_SOURCE_GROUNDING
 - no autonomous coup-node response producer in F05_FIX18;
 - no FUND_MOVEMENT extension;
 - no rebellion persistence implementation in F05_FIX18;
-- no V02 until Gate 1F PASS;
-- no F05_FIX19 self-authorization.
+- no V02 until Gate 1F PASS.
