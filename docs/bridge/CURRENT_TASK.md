@@ -1,58 +1,39 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX23
-STATUS: AUTHORIZED
-BASE_IMPLEMENTATION_HEAD: e6912f2ac643079ed8347fb496b7d1d10033aa41
-BASE_IMPLEMENTATION_BRANCH: f05-fix22-review
+TASK_ID: NONE
+STATUS: WAITING_FOR_USER_NEXT
+BASE_BRANCH: master
+
+## Last reviewed task
+
+```text
+F05_FIX23: COMPLETE / REVIEWED / PASS / ACCEPTED
 REVIEW_BRANCH: f05-fix23-review
-TASK_FILE: docs/bridge/tasks/F05_FIX23.md
-RESULT_PATH: docs/bridge/results/F05_FIX23_RESULT.md
-
-## Accepted predecessor
-
-```text
-F05_FIX22: COMPLETE / REVIEWED / PASS / ACCEPTED
-PRIMARY_CLASSIFICATION: REBELLION_PERSISTENCE_AUTHORING_SEAM_IMPLEMENTED
-AUTHORING_SCOPE: STATIC_SCENARIO_ONLY
-NEXT_IMPLEMENTATION_READINESS: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE
-PERSISTENCE_FORMAT: V7_UNCHANGED
+REVIEW_BASE: e6912f2ac643079ed8347fb496b7d1d10033aa41
+REVIEWED_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
+PRIMARY_CLASSIFICATION: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE_IMPLEMENTED
+RUNTIME_STATE: CONFLICT_SCOPED_BOOTSTRAP_EPISODE
+BOOTSTRAP_SOURCE: EXISTING_REBELLION_STARTED_EVENT
+BOOTSTRAP_PROVES_CONTINUED_CAPACITY: NO
+PROFILE_BINDING: EXACT_COUNTRY_FACTION_PROFILE
+PERSISTENCE_FORMAT: V8
+NEXT_IMPLEMENTATION_READINESS: REBELLION_OPERATIONAL_EVIDENCE_SOURCE_GROUNDING
 ```
 
-## Mission
+ChatGPT independently reviewed the GitHub FIX23 branch, one-commit lineage, runtime bootstrap writer, WorldState shape, strict V8 decoder/runtime/event closure, focused tests, replay coverage, and reported verification.
 
-Implement only the minimal Rebellion Persistence runtime bootstrap slice:
+The accepted runtime slice creates a Conflict-scoped persistence bootstrap episode only when T018 actually creates a new rebellion under one exact authored Country/Faction persistence profile. The episode is tied to the same existing `REBELLION_STARTED` event and is identity/provenance only; it does not prove operational capacity. Authored initial rebellions are not retroactively bootstrapped.
+
+No operational evidence/collapse writer, settlement runtime, LandHex writer, persistence-driven Conflict outcome writer, T023 writer, or autonomous evidence producer was added. The accepted persistence contract advances to `SerializedSimulationSnapshotV8` / format version 8.
+
+## Current gate
 
 ```text
-new T018 rebellion Conflict
-+ exact authored RebellionPersistenceProfile
-+ existing REBELLION_STARTED GameEvent
--> Conflict-scoped bootstrap episode identity/provenance
--> strict V8 persistence/replay
+GATE1F_CHATGPT_DECISION: NOT_READY
+V02: NOT_STARTED
+PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
+F05_FIX24: NOT_AUTHORIZED
+NEXT_AUTHORIZED_TASK_ID: NONE
 ```
 
-The episode is identity/provenance only. It does NOT prove continued operational capacity.
-
-No operational evidence writer, collapse writer, settlement runtime, LandHex mutation, Conflict outcome writer, autonomous producer, Gate 1F PASS, or V02 is authorized.
-
-## Execution
-
-Codex Desktop should read `docs/bridge/tasks/F05_FIX23.md` from GitHub and continue from accepted FIX22 head `e6912f2ac643079ed8347fb496b7d1d10033aa41`.
-
-The review branch `f05-fix23-review` already exists at that exact head.
-
-Publish the completed implementation/result to `f05-fix23-review` and stop for ChatGPT review.
-
-## Hard boundaries
-
-- bootstrap only from a newly created T018 rebellion and its existing REBELLION_STARTED event;
-- no auto-bootstrap from authored initial active rebellions;
-- no operational evidence/collapse ActionRecord or GameEvent;
-- no scalar/Region/LandHex/front/time/RNG inference;
-- no `NO_ACTIVE_FRONT_EDGE -> peace`;
-- no `0 faction LandHex -> defeat`;
-- no settlement/demobilization runtime;
-- no direct Conflict/T022/T023 writer;
-- persistence advances only as required for the new authoritative bootstrap state: V8;
-- no F05_FIX24 self-authorization.
-
-Execute only `docs/bridge/tasks/F05_FIX23.md`.
+No successor task is authorized until the user requests the next progression.
