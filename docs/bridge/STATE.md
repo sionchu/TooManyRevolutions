@@ -22,13 +22,10 @@ F05_FIX17: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED / PASS / ACCEPTED
 ## F05_FIX17 accepted result
 
 ```text
-REVIEW_BRANCH: f05-fix17-review
-REVIEW_BASE: d3908e1f30390131e12cced6e1b80bd03c5c1a4f
 REVIEWED_HEAD: 5863d46563b1d7ed6dc5d65a40e1965817662707
 PRIMARY_CLASSIFICATION: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED
 AUTHORING_SCOPE: STATIC_SCENARIO_ONLY
 REQUIRED_SET_SEMANTIC: AUTHORED_NECESSARY_SET
-INITIAL_ALIGNMENT_AUTHORED: NO
 RUNTIME_ALIGNMENT_STATE: NO
 RUNTIME_ACTION_SCHEMA_CHANGE: NO
 COUP_OUTCOME_WRITER: NO
@@ -36,17 +33,25 @@ PERSISTENCE_FORMAT: V6_UNCHANGED
 NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE
 ```
 
-The final correction uses collision-free exact `(countryId, coupFactionId)` profile identity and includes a delimiter-collision regression. No Coup Coordination runtime state, response action, coup outcome writer, Government-transition producer, T018/T021/T022/T023 behavior change, persistence change, or production Gate 1F coup-node content was added.
+Verification: format/typecheck/lint/build/focused FIX17 tests and required inspections pass; full-suite assertions pass at 60 files / 489 tests. The known Vitest `onTaskUpdate` runner/IPC process error remains separate from assertion status.
 
-Verification: format/typecheck/lint/build/focused FIX17 tests and all required inspections pass. Full-suite assertions pass at `60 files / 489 tests`; the remaining process exit is the known Vitest `onTaskUpdate` runner/IPC issue after assertions and is not treated as a gameplay failure.
-
-## Authorization
+## Current authorization
 
 ```text
-CURRENT_TASK_ID: NONE
-CURRENT_TASK_STATUS: WAITING_FOR_USER_NEXT
-F05_FIX18: NOT_AUTHORIZED
-NEXT_AUTHORIZED_TASK_ID: NONE
+CURRENT_TASK_ID: F05_FIX18
+CURRENT_TASK_STATUS: AUTHORIZED
+TASK_FILE: docs/bridge/tasks/F05_FIX18_AUTHORIZED.md
+IMPLEMENTATION_BASE: 5863d46563b1d7ed6dc5d65a40e1965817662707
+REVIEW_BRANCH: f05-fix18-review
+NEXT_AUTHORIZED_TASK_ID: F05_FIX18
+```
+
+F05_FIX18 implements the minimal explicit-response Coup Coordination runtime vertical slice and persistence V7. It does not authorize an autonomous response producer and must not claim Gate 1F pacing improvement merely because the explicit response path exists.
+
+Expected successful next readiness:
+
+```text
+COUP_COORDINATION_RESPONSE_SOURCE_GROUNDING
 ```
 
 ## Preserved architecture constraints
@@ -54,11 +59,15 @@ NEXT_AUTHORIZED_TASK_ID: NONE
 - player = CountryId continuity, not Government;
 - Government transition is nonterminal;
 - physical territorial authority only through LandHex controller state;
+- Region.stateControl is not territorial ownership;
 - no fake coup LandHex front/writer;
 - no `0 LandHex -> defeat/dissolution`;
 - State Dissolution remains T023-owned;
 - no numeric coup coordination/support/loyalty/inevitability/progress score;
 - no random/timer/majority coup resolution;
-- no scalar/label inference of coup-node alignment;
+- no scalar/label/Agenda/territory inference of coup-node alignment;
+- no autonomous coup-node response producer in F05_FIX18;
 - no FUND_MOVEMENT extension;
-- no V02 until Gate 1F PASS.
+- no rebellion persistence implementation in F05_FIX18;
+- no V02 until Gate 1F PASS;
+- no F05_FIX19 self-authorization.
