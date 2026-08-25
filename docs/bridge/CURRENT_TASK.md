@@ -6,6 +6,7 @@ BASE_IMPLEMENTATION_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
 BASE_IMPLEMENTATION_BRANCH: gamebuilders-demo-sprint-01
 WORK_BRANCH: gamebuilders-product-surface-p0
 TASK_FILE: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0.md
+MAP_FIRST_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_FIRST_ADDENDUM.md
 RESULT_PATH: docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md
 
 ## Accepted predecessor
@@ -26,23 +27,57 @@ V02: NOT_STARTED
 
 The current build is technically playable but visually/product-wise still reads too much like a text-heavy debug web app. The authorized P0 converts it into a coherent political-fantasy strategy-game surface.
 
+**Mandatory correction:** TMR is a MAP-FIRST strategy game. Read and obey `GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_FIRST_ADDENDUM.md`; it overrides any weaker interpretation that would preserve a dashboard/card-heavy main layout.
+
 Mandatory areas:
 
 ```text
 locked title / brand identity
-+ title -> opening briefing -> main-game build-up
++ title -> opening briefing -> MAIN MAP reveal
 + anti-AI-slop visual bible
 + DB-like design registry / naming / layer hierarchy
 + replaceable asset manifest with provenance / generation recipes
 + unified AI-generated or procedural asset package
 + real neighboring Country/Region/LandHex entities in the GameBuilders scenario
-+ layered political atlas where raw hexes are not the dominant look
-+ responsive UI across desktop/laptop/tablet/mobile
++ persistent map-first political atlas (~65–80% of desktop usable viewport)
++ contextual drawers/sheets instead of permanent text walls
++ responsive map-first UI across desktop/laptop/tablet/mobile
 + player-facing copy cleanup and factual event fix
 + game-theoretic decision UX using actual declared costs/effects
 + external commercial UX references + vetted GitHub repo/license audit
 + Sites redeploy and responsive browser QA
 ```
+
+## Map-first correction
+
+The GDD's spatial contract is authoritative product direction:
+
+```text
+politics is calculated at Region scale
+territory moves on LandHexes
+ideology spreads as color/pattern
+authoritative organizations become map markers
+revolution becomes territory
+```
+
+The raw hex substrate must not become the visible product identity. The world map is the persistent playfield; Agenda, Decisions, Chronicle, Region detail, and Foreign Powers are supporting contextual UI.
+
+Default desktop must NOT be:
+
+```text
+[permanent text wall] [map card] [permanent text wall]
+```
+
+Preferred hierarchy:
+
+```text
+compact HUD / time / critical alerts
+-> living political atlas as main surface
+-> contextual region/agenda/decision drawers over edges
+-> details/history on demand
+```
+
+On mobile, use a map-first view with dismissible bottom sheets/tabs, not a long stack of desktop cards.
 
 ## Design architecture rule
 
@@ -64,7 +99,14 @@ Stable IDs must identify assets/components/layers independent of filenames and a
 
 ## External references
 
-Commercial game assets are inspiration only. Benchmark at minimum Suzerain, Papers Please, Crusader Kings III, and Frostpunk 2 for hook/map/political-pressure hierarchy.
+Commercial game assets are inspiration only. Benchmark at minimum Plague Inc., Rebel Inc., Suzerain, Papers Please, Crusader Kings III, and Frostpunk 2.
+
+**Reference roles are distinct:**
+
+- Plague Inc. / Rebel Inc. -> persistent map-first systemic playfield, spatial state change, time-flow/readability.
+- Crusader Kings III -> political geography, neighboring polities, territory labels, heraldry.
+- Suzerain / Papers Please -> title, briefing, political identity, document flavor, decision framing; do NOT let these turn the persistent main screen into a text-box game.
+- Frostpunk 2 -> faction/council pressure and visual tension hierarchy.
 
 Vetted implementation references include:
 
@@ -108,4 +150,4 @@ Never present uncertain future behavior as guaranteed.
 - no unvetted copyleft code import;
 - no successor task self-authorization.
 
-Execute every checkpoint in `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0.md`, committing/pushing safe checkpoints without waiting for intermediate review. Stop after the final P0 result and Sites status are published.
+Execute every checkpoint in `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0.md` **plus the mandatory map-first addendum**, committing/pushing safe checkpoints without waiting for intermediate review. Stop after the final P0 result and Sites status are published.
