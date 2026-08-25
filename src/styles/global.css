@@ -13,8 +13,10 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  overflow-x: hidden;
 }
 button {
+  min-height: 2.5rem;
   font: inherit;
   cursor: pointer;
 }
@@ -302,8 +304,14 @@ h3 {
   gap: 0.8rem;
 }
 .brand-mark {
+  display: block;
+  width: 2.8rem;
+  height: auto;
   color: #a33d34;
   font-size: 1.45rem;
+}
+.brand-mark-compact {
+  width: 2.65rem;
 }
 .brand-lockup h1 {
   margin: 0.12rem 0 0;
@@ -527,6 +535,9 @@ h3 {
   border: 1px solid #d2c2a9;
   background: #f8f0e2;
 }
+.decision-card {
+  padding: 0.85rem;
+}
 .action-available {
   border-color: #b79b69;
 }
@@ -556,6 +567,64 @@ h3 {
   margin: 0.45rem 0;
   color: #44342a;
   font-size: 1rem;
+}
+.decision-sections {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+}
+.decision-section {
+  padding: 0.55rem 0.65rem;
+  border-left: 2px solid #cbb99c;
+  background: rgb(255 250 238 / 52%);
+}
+.decision-section h4 {
+  margin: 0 0 0.25rem;
+  color: #7f332f;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+}
+.decision-section p,
+.decision-section ul {
+  margin: 0;
+  color: #715e49;
+  font-size: 0.69rem;
+  line-height: 1.5;
+}
+.decision-section ul {
+  display: grid;
+  gap: 0.18rem;
+  padding-left: 1rem;
+}
+.decision-cost {
+  border-left-color: #a48655;
+}
+.decision-change {
+  border-left-color: #6b8581;
+}
+.decision-response {
+  border-left-color: #9b8a76;
+}
+.decision-tradeoffs {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+}
+.decision-tradeoffs > div {
+  padding: 0.5rem 0.6rem;
+  background: #eee1cc;
+}
+.decision-tradeoffs span {
+  color: #92754a;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+.decision-tradeoffs p {
+  margin: 0.2rem 0 0;
+  color: #766049;
+  font-size: 0.67rem;
+  line-height: 1.45;
 }
 .action-facts {
   color: #8a7862;
@@ -852,6 +921,11 @@ h3 {
   margin: 0.2rem 0 0;
   color: #49392c;
   font-size: 1.2rem;
+}
+.inspector-owner {
+  margin: 0.25rem 0 0;
+  color: #8a7862;
+  font-size: 0.68rem;
 }
 .region-stats {
   margin: 0.8rem 0;
