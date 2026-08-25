@@ -23,82 +23,78 @@ F05_FIX20: REBELLION_PERSISTENCE_AND_SETTLEMENT_REQUIRE_SEPARATE_DOMAINS / PASS 
 F05_FIX21: REBELLION_SPLIT_MINIMAL_DOMAINS_DESIGNABLE / PASS / ACCEPTED
 F05_FIX22: REBELLION_PERSISTENCE_AUTHORING_SEAM_IMPLEMENTED / PASS / ACCEPTED
 F05_FIX23: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE_IMPLEMENTED / PASS / ACCEPTED
+GAMEBUILDERS_DEMO_SPRINT_01: TECHNICAL_PASS / ACCEPTED_AS_VERTICAL_SLICE
 ```
 
-## Accepted implementation freeze point
+## Accepted core freeze point
 
 ```text
-IMPLEMENTATION_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
+CORE_IMPLEMENTATION_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
 PRIMARY_CLASSIFICATION: REBELLION_PERSISTENCE_RUNTIME_VERTICAL_SLICE_IMPLEMENTED
 PERSISTENCE_FORMAT: V8
 GATE1F: NOT_READY
 V02: NOT_STARTED
 ```
 
-This FIX23 head is the stable core base for the GameBuilders vertical slice. The demo sprint layers client/presentation/scenario authoring on top of it and must not manufacture a Gate 1F pass.
+The GameBuilders branch is a presentation/client/scenario overlay on this accepted core. It does not alter accepted persistence or claim Gate 1F completion.
 
-## GameBuilders emergency sprint override
+## GameBuilders reviewed result
 
-The current browser app at the accepted base still exposes a foundation/developer scaffold while renderer-neutral PresentationState, Agenda, deterministic simulation, EventStore, policy/intervention, ideology, faction, crisis, conflict, and persistence systems already exist behind it.
+```text
+WORK_BRANCH: gamebuilders-demo-sprint-01
+REVIEW_BASE: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
+REVIEWED_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
+DEPLOYED_SOURCE_HEAD: 2a454a9b3f539cc7a74c1beb724af7c4b170004d
+PLAYABLE_LOCAL: YES
+SITES_STATUS: DEPLOYED
+SITES_URL: https://too-many-revolutions-gamebuilders.leeje92.chatgpt.site
+TIME_FLOW_STATUS: PASS
+DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
+TECHNICAL_PLAYABILITY: PASS
+SUBMISSION_READY: CONDITIONAL_POLISH_REQUIRED
+```
 
-Submission priorities therefore temporarily change from deeper F05 architecture to a playable product surface.
+Independent review confirmed seven commits over the FIX23 base and a focused change set: product shell/UI, deterministic GameBuilders scenario, demo runtime helpers/tests, time-flow controls, 0–20y audit, Sites packaging, QA and capture docs. The browser client submits interventions through the common ActionProposal/ActionRecord path and advances every simulated day through `runSimulationStep -> commitSimulationStep`.
+
+No direct UI WorldState mutation, scripted/scheduled crisis, fake Agenda/EventStore facts, new F05 evidence/settlement runtime, persistence V9, Three.js, server/LLM dependency, or unlicensed external media was added.
+
+## Product-QC findings before final submission
+
+The vertical slice is technically playable, but three short follow-up fixes are required before treating it as final-submission polished:
+
+- remove player-facing developer jargon and raw domain IDs. Current UI still exposes phrases such as `Renderer-neutral read model`, `authoritative history`, `LandHex projection`, `ActionRecord`, `T018`, and `RunOutcome`, and the region inspector displays raw ideology IDs rather than catalog names;
+- correct `RESOURCE_SHORTAGE_CHANGED` display to read the authoritative payload field `scarcity`; the current UI asks for `nextScarcity`, which does not exist in the event producer and can display a false zero;
+- revise the 3-minute capture route to intentionally follow a deterministic real crisis trajectory when feasible. The current shot list allows a no-crisis capture even though the horizon audit demonstrates real rebellion/coup emergence in deterministic trajectories.
+
+## Horizon / pacing status
+
+The deterministic audit used the same daily authoritative pipeline and seed across no-action, material relief, political accommodation, legalization, and coercive trajectories at Days 0/90/180/360/720/1080/1800/3600/7200.
+
+```text
+DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
+```
+
+Short/medium play is active and meaningful, but late conflicts can become structurally stalled. With the shipped presentation scheduler, 3x means roughly 300 ms per simulated day, so uninterrupted play can reach Day 720 in about 3.6 minutes and Day 1080 in about 5.4 minutes. This is a real hands-on demo risk for long continuous sessions and must not be hidden by UI speed or fake resolution. Gate 1F remains NOT_READY.
+
+## Overnight continuation
+
+```text
+F05_FIX24: COMPLETE / AWAITING_CHATGPT_REVIEW
+F05_FIX24_REVIEW_BRANCH_HEAD: 4553ac1029803cb01b821c3c78db64978d1c1b98
+F05_FIX24_PRIMARY_CLASSIFICATION_REPORTED: REBELLION_EVIDENCE_REQUIRES_NEW_OPERATIONAL_SUPPORT_DOMAINS
+F05_FIX25_CONDITIONAL_DESIGN_MEMO: CREATED / NON_AUTHORITATIVE
+F05_FIX25_IMPLEMENTATION: NOT_AUTHORIZED
+```
+
+The F05_FIX24 branch is three commits ahead of FIX23 and changes only the grounding document, result document, and conditional F05_FIX25 design memo. No production/test/persistence changes were made on that branch. F05_FIX24 remains awaiting independent acceptance; the memo is planning only.
 
 ## Current authorization
 
 ```text
-CURRENT_TASK_ID: GAMEBUILDERS_DEMO_SPRINT_01
-CURRENT_TASK_STATUS: AUTHORIZED
-TASK_FILE: docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01.md
-TIMEFLOW_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01_TIMEFLOW_ADDENDUM.md
-DEPLOYMENT_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01_DEPLOYMENT_ADDENDUM.md
-OVERNIGHT_CONTINUATION: docs/bridge/tasks/GAMEBUILDERS_OVERNIGHT_CONTINUATION_01.md
-IMPLEMENTATION_BASE: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
-WORK_BRANCH: gamebuilders-demo-sprint-01
-RESULT_PATH: docs/bridge/results/GAMEBUILDERS_DEMO_SPRINT_01_RESULT.md
+CURRENT_TASK_ID: NONE
+CURRENT_TASK_STATUS: WAITING_FOR_USER_NEXT
+NEXT_AUTHORIZED_TASK_ID: NONE
 ```
-
-This is one long authorized unattended task. Codex may continue through the demo checkpoints and bounded overnight continuation without intermediate human authorization, committing/pushing at safe checkpoints.
-
-## Time-flow / pacing correction
-
-The player controls the **flow rate of history** through pause/play and selectable speed. Every simulated day still executes the authoritative one-day pipeline; wall-clock speed is presentation scheduling only.
-
-Important-event auto-pause is a **user-configurable presentation option**, not a forced game rule. Major events remain prominently visible even when auto-pause is disabled.
-
-Fast-forward is not a remedy for Gate 1F. It can expose the known late-state interaction stall sooner in real time. Therefore the exact GameBuilders demo scenario must be audited deterministically through approximately 20 simulated years across multiple real legal response trajectories.
-
-Required classification:
-
-```text
-DEMO_HORIZON_STATUS: ROBUST_SHORT_AND_MEDIUM_HORIZON
-DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
-DEMO_HORIZON_STATUS: EARLY_STALL_DEMO_BLOCKER
-```
-
-The audit must separate simulated-horizon behavior from UI speed. Slowing the clock is not accepted as evidence that the stall is solved.
-
-If `EARLY_STALL_DEMO_BLOCKER`, unattended repair may tune only GameBuilders-specific initial ScenarioDefinition data, existing action/catalog composition, documented demo seed, UI information hierarchy, and speed presets. No scheduled crisis, hidden countdown, fake event/Agenda, arbitrary Conflict cleanup, new persistence version, or other hidden pacing mechanic is allowed.
-
-## Sites deployment
-
-The target is the actual playable application deployed/previewed through ChatGPT Sites from Codex Desktop. The Site must not be a mock/reimplementation. If public publishing is blocked by account/workspace permissions, use the maximum available Sites preview/share state and record the exact blocker.
-
-## Bounded overnight continuation
-
-Do not stop simply because the first playable build finishes quickly. After the P0 demo is safely committed/deployed:
-
-```text
-playable demo + Sites
--> deterministic 0–20y demo horizon audit
--> demo-only authoring repair if early-stall blocker
--> deployed browser/Sites P0/P1 QA + one repair/redeploy pass
--> if time remains, resume F05_FIX24 in its existing docs-only scope on f05-fix24-review
--> if time still remains, write a conditional F05_FIX25 DESIGN MEMO only
-```
-
-F05_FIX24 may therefore resume after demo safety work, but only its already-authored research/docs scope. It remains `AWAITING_CHATGPT_REVIEW` after Codex completion.
-
-No F05_FIX25 production implementation, new authoritative runtime writer, ActionRecord/GameEvent evidence type, persistence V9, or settlement runtime is authorized unattended. The conditional design memo is non-authoritative planning only.
 
 ## Preserved architecture constraints
 
@@ -108,17 +104,12 @@ No F05_FIX25 production implementation, new authoritative runtime writer, Action
 - Region.stateControl is not territorial ownership;
 - fronts remain derived;
 - no direct UI WorldState mutation;
-- player actions use existing validation/action/simulation boundaries;
 - no fake/scheduled coup, rebellion, Agenda, EventStore history, or story progression;
 - no `0 LandHex -> defeat/dissolution`;
 - no `NO_ACTIVE_FRONT_EDGE -> peace`;
 - State Dissolution remains T023-owned;
-- no new generic political/persistence/pacing score;
+- no generic political/persistence/pacing score;
 - no timer/RNG cheat to shorten the demo;
 - no unreviewed F05 operational-evidence or settlement implementation;
-- no persistence V9; accepted persistence remains V8;
-- no LLM/server dependency;
-- no Three.js/new 3D pipeline for the emergency sprint;
-- no unlicensed external media;
-- Gate 1F remains NOT_READY;
-- V02 remains NOT_STARTED.
+- accepted persistence remains V8;
+- no V02 until Gate 1F PASS.
