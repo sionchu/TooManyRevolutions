@@ -19,34 +19,35 @@ F05_FIX16: COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE / PASS / ACCEPTED
 F05_FIX17: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED / PASS / ACCEPTED
 F05_FIX18: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE_IMPLEMENTED / PASS / ACCEPTED
 F05_FIX19: COUP_RESPONSE_SOURCE_EXTERNAL_INPUT_ONLY_AT_CURRENT_SCOPE / PASS / ACCEPTED
+F05_FIX20: REBELLION_PERSISTENCE_AND_SETTLEMENT_REQUIRE_SEPARATE_DOMAINS / PASS / ACCEPTED
 ```
 
-## F05_FIX19 accepted result
+## F05_FIX20 accepted result
 
 ```text
-REVIEW_BRANCH: f05-fix19-review
-REVIEWED_HEAD: e300fb2e51435e0f1eeedc1c2dd3db006ac0c08e
-PRIMARY_CLASSIFICATION: COUP_RESPONSE_SOURCE_EXTERNAL_INPUT_ONLY_AT_CURRENT_SCOPE
-EXISTING_WORLDSTATE_SUFFICIENT: NO
-FIX18_RESPONSE_SEAM_REUSED: YES
-PERSISTENCE_FORMAT: V7_UNCHANGED
-NEXT_IMPLEMENTATION_READINESS: EXPLICIT_RESPONSE_INPUT_INTEGRATION_ONLY
-```
-
-The coup path remains valid for explicit schema-grounded external responses but has no accepted autonomous node-response producer. It therefore does not by itself close Gate 1F late-state silence.
-
-## Current authorization
-
-```text
-CURRENT_TASK_ID: F05_FIX20
-CURRENT_TASK_STATUS: AUTHORIZED
-TASK_FILE: docs/bridge/tasks/F05_FIX20.md
-IMPLEMENTATION_BASE: e300fb2e51435e0f1eeedc1c2dd3db006ac0c08e
 REVIEW_BRANCH: f05-fix20-review
-NEXT_AUTHORIZED_TASK_ID: F05_FIX20
+REVIEW_BASE: e300fb2e51435e0f1eeedc1c2dd3db006ac0c08e
+REVIEWED_HEAD: 510e971f38b52343055285a585d851a5baae283f
+PRIMARY_CLASSIFICATION: REBELLION_PERSISTENCE_AND_SETTLEMENT_REQUIRE_SEPARATE_DOMAINS
+EXISTING_WORLDSTATE_PERSISTENCE_SUFFICIENT: NO
+EXISTING_WORLDSTATE_TERMINATION_SUFFICIENT: NO
+EXISTING_BEHAVIOR_CLASSIFICATION: PARTIAL_BUT_INCOMPLETE
+NO_FRONT_MEANS_PEACE: NO
+ZERO_LANDHEX_MEANS_DEFEAT: NO
+PERSISTENCE_FORMAT: V7_UNCHANGED
+NEXT_IMPLEMENTATION_READINESS: REBELLION_DOMAIN_SPLIT_REQUIRED
 ```
 
-F05_FIX20 is docs-only rebellion persistence/settlement grounding. It must determine the minimal historically and architecturally defensible explanation for an active rebellion with no active territorial front edge, and distinguish persistence from settlement/suppression/demobilization before any new writer is implemented.
+The accepted grounding finds that rebellion identity/operational persistence, territorial projection, and settlement/demobilization are distinct authorities. The existing narrow `suppressIneligibleRebellions()` path is retained as partial but incomplete; it is not generalized into no-front peace or zero-territory defeat. A future design must split rebellion operational persistence from settlement/demobilization before implementation.
+
+## Authorization
+
+```text
+CURRENT_TASK_ID: NONE
+CURRENT_TASK_STATUS: WAITING_FOR_USER_NEXT
+F05_FIX21: NOT_AUTHORIZED
+NEXT_AUTHORIZED_TASK_ID: NONE
+```
 
 ## Preserved architecture constraints
 
@@ -63,7 +64,5 @@ F05_FIX20 is docs-only rebellion persistence/settlement grounding. It must deter
 - no direct crisis deletion by intervention;
 - no LLM direct state mutation;
 - coup autonomous response remains ungrounded at current scope;
-- no FUND_MOVEMENT extension;
-- no persistence V8 in F05_FIX20;
-- no V02 until Gate 1F PASS;
-- no F05_FIX21 self-authorization.
+- FUND_MOVEMENT route remains closed;
+- no V02 until Gate 1F PASS.
