@@ -18,45 +18,35 @@ F05_FIX15: War-as-Politics requires new authoritative domain
 F05_FIX16: COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE / PASS / ACCEPTED
 ```
 
-## F05_FIX17 current status
+## F05_FIX17 review status
 
 ```text
 TASK_ID: F05_FIX17
-IMPLEMENTATION_STATUS: IMPLEMENTED_LOCALLY
-CHATGPT_REVIEW_STATUS: NOT_YET_REVIEWED_FROM_GITHUB_DIFF
 REVIEW_BRANCH: f05-fix17-review
 REVIEW_BASE: d3908e1f30390131e12cced6e1b80bd03c5c1a4f
+REVIEWED_HEAD: ce425ddc063e20186476acf9f4fcf0676e52195b
+ARCHITECTURE_SCOPE_REVIEW: PROVISIONALLY_ACCEPTABLE
+FINAL_CHATGPT_DECISION: CORRECTION_AND_VERIFICATION_REQUIRED
 REPORTED_PRIMARY_CLASSIFICATION: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED
 REPORTED_NEXT_READINESS: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE
 ```
 
-The reported FIX17 result is not accepted until the implementation/result is published to GitHub and independently reviewed against repository evidence.
+The GitHub implementation diff has now been independently reviewed. It stays within the intended static authoring boundary. Final acceptance is withheld for one correctness fix in exact profile-pair uniqueness and completion of the required verification suite.
+
+## Required FIX17 correction
+
+Profile uniqueness must represent the exact `(countryId, coupFactionId)` pair without delimiter-string collision. A regression test must cover distinct IDs that would collide under naive delimiter joining.
+
+Root `HANDOFF.md` is workflow residue and should be removed. The result document must be refreshed after the final verification and review-branch publication.
 
 ## Authorization
 
 ```text
 CURRENT_TASK_ID: F05_FIX17
-CURRENT_TASK_STATUS: AWAITING_GITHUB_REVIEW_UPLOAD
+CURRENT_TASK_STATUS: CORRECTION_AND_VERIFICATION_REQUIRED
 F05_FIX18: NOT_AUTHORIZED
 NEXT_AUTHORIZED_TASK_ID: NONE
 ```
-
-The previously drafted F05_FIX18 authorization was premature and has been revoked.
-
-## Normal Bridge workflow
-
-```text
-ChatGPT writes task to GitHub
--> Codex Desktop new chat reads GitHub task
--> Codex implements/tests in the active local repo
--> Codex commits and publishes implementation/result to GitHub
--> user reports completion
--> ChatGPT reviews actual GitHub diff/tests/result
--> PASS/REJECT
--> only after PASS does ChatGPT authorize the next task
-```
-
-Codex does not need local Bridge metadata freshness merely to read the GitHub task. Bridge synchronization mechanics must not replace actual implementation review.
 
 ## Preserved architecture constraints
 
