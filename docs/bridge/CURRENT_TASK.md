@@ -1,31 +1,58 @@
 # TMR Current Bridge Task
 
-TASK_ID: NONE
-STATUS: WAITING_FOR_USER_NEXT
-BASE_BRANCH: master
+TASK_ID: F05_FIX18
+STATUS: AUTHORIZED
+BASE_IMPLEMENTATION_HEAD: 5863d46563b1d7ed6dc5d65a40e1965817662707
+BASE_IMPLEMENTATION_BRANCH: f05-fix17-review
+REVIEW_BRANCH: f05-fix18-review
+TASK_FILE: docs/bridge/tasks/F05_FIX18_AUTHORIZED.md
+RESULT_PATH: docs/bridge/results/F05_FIX18_RESULT.md
 
-## Last reviewed task
+## Accepted predecessor
 
 ```text
 F05_FIX17: COMPLETE / REVIEWED / PASS / ACCEPTED
 PRIMARY_CLASSIFICATION: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED
 NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE
-REVIEW_BRANCH: f05-fix17-review
-REVIEW_BASE: d3908e1f30390131e12cced6e1b80bd03c5c1a4f
-REVIEWED_HEAD: 5863d46563b1d7ed6dc5d65a40e1965817662707
 ```
 
-ChatGPT independently reviewed the GitHub implementation and correction diff. The exact `(countryId, coupFactionId)` uniqueness issue is fixed with collision-free nested identity, the delimiter-collision regression is present, root `HANDOFF.md` is removed, and the required verification completed.
+## Mission
 
-Full-suite assertions pass (`60 files / 489 tests`); the remaining nonzero process exit is the known Vitest `onTaskUpdate` runner/IPC error reported separately after assertions.
-
-## Current gate
+Implement only the minimal Coup Coordination runtime vertical slice:
 
 ```text
-GATE1F_CHATGPT_DECISION: NOT_READY
-V02: NOT_STARTED
-F05_FIX18: NOT_AUTHORIZED
-NEXT_AUTHORIZED_TASK_ID: NONE
+COUP_COORDINATION_RESPONSE
+-> sparse decisive node response state
+-> deterministic ActionRecord/GameEvent provenance
+-> authored necessary-set evaluation
+-> existing applyConflictOutcome()
+-> statusQuo / nonterminal governmentTransition / remain active
+-> strict persistence V7 / replay closure
 ```
 
-No successor task is authorized until the user requests the next progression.
+No autonomous response producer is authorized in F05_FIX18.
+
+## Execution
+
+Codex Desktop should read `docs/bridge/tasks/F05_FIX18_AUTHORIZED.md` from GitHub and continue from the reviewed local FIX17 implementation lineage.
+
+The expected implementation base is `5863d46563b1d7ed6dc5d65a40e1965817662707`. The GitHub review branch `f05-fix18-review` already exists at that exact head.
+
+Do not recreate FIX17. Do not merge Bridge-only master metadata into the implementation merely to read this task. Normal Git remote use is allowed; no reset/rebase/force.
+
+Publish the completed FIX18 implementation/result to `f05-fix18-review` and stop for ChatGPT review.
+
+## Hard boundaries
+
+- no random/timer/score/majority/weighted coup resolution;
+- no scalar/label/territory inference of node alignment;
+- no fake coup LandHex writer;
+- no direct Government writer outside existing conflict outcome sink;
+- no coup State Dissolution writer;
+- no rebellion implementation;
+- no FUND_MOVEMENT extension;
+- no Gate 1F PASS;
+- no V02;
+- no F05_FIX19 self-authorization.
+
+Execute only `docs/bridge/tasks/F05_FIX18_AUTHORIZED.md`.
