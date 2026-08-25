@@ -1,47 +1,36 @@
 # TMR Current Bridge Task
 
 TASK_ID: F05_FIX17
-STATUS: IMPLEMENTED_LOCALLY / AWAITING_GITHUB_REVIEW_UPLOAD
+STATUS: CORRECTION_AND_VERIFICATION_REQUIRED
 BASE_BRANCH: master
 TASK_FILE: docs/bridge/tasks/F05_FIX17.md
 RESULT_PATH: docs/bridge/results/F05_FIX17_RESULT.md
 REVIEW_BRANCH: f05-fix17-review
+REVIEW_BASE: d3908e1f30390131e12cced6e1b80bd03c5c1a4f
+REVIEW_HEAD: ce425ddc063e20186476acf9f4fcf0676e52195b
 
-## Current state
+## ChatGPT review
 
-F05_FIX17 has been implemented in the active Codex Desktop local repository and reported with:
+The GitHub diff has been independently reviewed. The FIX17 architecture/scope is provisionally acceptable: static scenario authoring only, no Coup Coordination runtime state, no response action, no coup outcome writer, no T018/T021/T022/T023 behavior change, no persistence change, and no production Gate 1F coup-node content.
 
-```text
-PRIMARY_CLASSIFICATION: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED
-NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE
-```
+F05_FIX17 is not yet PASS because one correctness issue and verification remain.
 
-ChatGPT has **not** independently reviewed the actual FIX17 source diff/result on GitHub yet. Therefore F05_FIX17 is not accepted and F05_FIX18 is not authorized.
+## Required correction
 
-## Codex Desktop action
+In `assertScenarioCoupCoordinationAuthoring()`, profile uniqueness must be checked by the exact `(countryId, coupFactionId)` pair. Do not derive pair identity by joining the two IDs with a delimiter, because distinct IDs containing that delimiter can collide. Use a collision-free pair structure such as a nested map/set.
 
-Do not reimplement, reset, rewrite, rebase, or force-update F05_FIX17.
+Add a focused regression test where two distinct valid pairs would collide under delimiter joining but must both be accepted. Preserve rejection of a true duplicate exact pair.
 
-Use the repository's normal Git remote. **Normal `git fetch` and `git push` are allowed and expected here.** Do not use web search, browser cache, GitHub raw URL lookup, or `git ls-remote` as a substitute for the repository remote.
+## Cleanup
 
-If the local Bridge metadata is stale, fetch `origin/master` only to refresh the remote-tracking ref and read the latest Bridge metadata from `origin/master`. This must not merge, reset, or rewrite the completed local FIX17 implementation.
+Remove root `HANDOFF.md`. Update `docs/bridge/results/F05_FIX17_RESULT.md` so its publication and verification fields match reality.
 
-Publish the existing completed local FIX17 HEAD to the already-created GitHub review branch:
+## Verification
 
-```text
-f05-fix17-review
-```
+Rerun: format, typecheck, lint, build, focused FIX17 tests, full tests, inspect:t018, inspect:t024, inspect:f05, inspect:f05fix9, inspect:f05fix14, and git diff --check.
 
-That branch is rooted at the reviewed F05_FIX16 predecessor `d3908e1f30390131e12cced6e1b80bd03c5c1a4f`, matching the lineage of the local FIX17 implementation. Do not merge Bridge-only master metadata into FIX17 merely to publish it.
+If the known Vitest process/IPC issue occurs after assertions pass, report it separately. If esbuild still cannot start, report the environment error and do not claim verification PASS.
 
-After the review branch is published, stop. Do not start F05_FIX18, Gate 1F PASS, or V02.
+## Completion
 
-## Review sequence
-
-```text
-FIX17 branch published
--> ChatGPT compares d390... to f05-fix17-review
--> ChatGPT reviews code/tests/result
--> PASS or correction
--> only then may next task be authorized
-```
+Commit only these FIX17 corrections/cleanup on `f05-fix17-review`, publish the updated branch to GitHub, and stop. Do not start F05_FIX18, Gate 1F PASS, or V02.
