@@ -1,6 +1,6 @@
 # TMR Bridge State
 
-UPDATED: 2026-08-25
+UPDATED: 2026-08-26
 REPOSITORY: sionchu/TooManyRevolutions
 BRANCH: master
 CURRENT_GATE: Gate 1F
@@ -20,36 +20,42 @@ F05_FIX17: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED / PASS / ACCEPTED
 F05_FIX18: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE_IMPLEMENTED / PASS / ACCEPTED
 F05_FIX19: COUP_RESPONSE_SOURCE_EXTERNAL_INPUT_ONLY_AT_CURRENT_SCOPE / PASS / ACCEPTED
 F05_FIX20: REBELLION_PERSISTENCE_AND_SETTLEMENT_REQUIRE_SEPARATE_DOMAINS / PASS / ACCEPTED
+F05_FIX21: REBELLION_SPLIT_MINIMAL_DOMAINS_DESIGNABLE / PASS / ACCEPTED
 ```
 
-## F05_FIX20 accepted result
+## F05_FIX21 accepted result
 
 ```text
-REVIEWED_HEAD: 510e971f38b52343055285a585d851a5baae283f
-PRIMARY_CLASSIFICATION: REBELLION_PERSISTENCE_AND_SETTLEMENT_REQUIRE_SEPARATE_DOMAINS
-EXISTING_BEHAVIOR_CLASSIFICATION: PARTIAL_BUT_INCOMPLETE
-EXISTING_WORLDSTATE_PERSISTENCE_SUFFICIENT: NO
-EXISTING_WORLDSTATE_TERMINATION_SUFFICIENT: NO
+REVIEW_BRANCH: f05-fix21-review
+REVIEW_BASE: 510e971f38b52343055285a585d851a5baae283f
+REVIEWED_HEAD: 79046aa292e22ff7afb0289f8d7895ba38d8a8ab
+PRIMARY_CLASSIFICATION: REBELLION_SPLIT_MINIMAL_DOMAINS_DESIGNABLE
+FIRST_IMPLEMENTATION_DIRECTION: PERSISTENCE_AUTHORING_FIRST
+NEXT_IMPLEMENTATION_READINESS: REBELLION_PERSISTENCE_AUTHORING_SEAM
+PERSISTENCE_DOMAIN_SEPARATE: YES
+SETTLEMENT_DOMAIN_SEPARATE: YES
 NO_FRONT_MEANS_PEACE: NO
 ZERO_LANDHEX_MEANS_DEFEAT: NO
+GENERIC_SCORE_ALLOWED: NO
+RANDOM_OR_TIMER_ALLOWED: NO
+DIRECT_CONFLICT_DELETE_ALLOWED: NO
+FREE_LANDHEX_WRITER_ALLOWED: NO
+LLM_DIRECT_MUTATION_ALLOWED: NO
 PERSISTENCE_FORMAT: V7_UNCHANGED
-NEXT_IMPLEMENTATION_READINESS: REBELLION_DOMAIN_SPLIT_REQUIRED
 ```
 
-The rebellion path must separate conflict-scoped operational persistence from negotiated settlement/demobilization/suppression closure. Territorial fronts remain derived and are not lifecycle authority.
+The accepted persistence authoring design is scenario-owned and optional. Typed operational channels/profile membership are an allow-list for future evidence references, not current evidence, magnitude, weight, quorum, threshold, timer, territorial authority, or a pre-authored outcome. Old scenarios with absent/empty authoring retain current behavior.
 
-## Current authorization
+The accepted settlement design remains a separate future domain. Proposal/negotiation/acceptance, implementation/compliance or breach, demobilization/suppression evidence, and closure are distinct. Acceptance alone cannot resolve Conflict. Any future closure must validate explicit evidence and reach the existing typed Conflict outcome boundary; State Dissolution remains T023-owned.
+
+## Authorization
 
 ```text
-CURRENT_TASK_ID: F05_FIX21
-CURRENT_TASK_STATUS: AUTHORIZED
-TASK_FILE: docs/bridge/tasks/F05_FIX21.md
-IMPLEMENTATION_BASE: 510e971f38b52343055285a585d851a5baae283f
-REVIEW_BRANCH: f05-fix21-review
-NEXT_AUTHORIZED_TASK_ID: F05_FIX21
+CURRENT_TASK_ID: NONE
+CURRENT_TASK_STATUS: WAITING_FOR_USER_NEXT
+F05_FIX22: NOT_AUTHORIZED
+NEXT_AUTHORIZED_TASK_ID: NONE
 ```
-
-F05_FIX21 is docs-only domain split design. It must produce precise minimum schema/writer boundaries for persistence and settlement/demobilization and select the first implementation direction. No production mutation is authorized.
 
 ## Preserved architecture constraints
 
@@ -64,11 +70,11 @@ F05_FIX21 is docs-only domain split design. It must produce precise minimum sche
 - no random/timer hidden conflict resolution;
 - no generic rebellion persistence/strength/progress/suppression score;
 - no hidden scalar threshold or automatic decay;
+- persistence authoring is not runtime evidence;
+- settlement acceptance is not implementation or completed peace;
 - no direct crisis deletion by intervention;
-- settlement acceptance alone is not completed peace;
 - no LLM direct state mutation;
 - coup autonomous response remains ungrounded at current scope;
 - no FUND_MOVEMENT extension;
-- no persistence V8 in F05_FIX21;
-- no V02 until Gate 1F PASS;
-- no F05_FIX22 self-authorization.
+- no persistence V8 until an authorized runtime seam requires it;
+- no V02 until Gate 1F PASS.
