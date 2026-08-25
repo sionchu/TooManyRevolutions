@@ -1,32 +1,49 @@
 # TMR Current Bridge Task
 
-TASK_ID: NONE
-STATUS: WAITING_FOR_USER_NEXT
-BASE_BRANCH: master
+TASK_ID: F05_FIX20
+STATUS: AUTHORIZED
+BASE_IMPLEMENTATION_HEAD: e300fb2e51435e0f1eeedc1c2dd3db006ac0c08e
+BASE_IMPLEMENTATION_BRANCH: f05-fix19-review
+REVIEW_BRANCH: f05-fix20-review
+TASK_FILE: docs/bridge/tasks/F05_FIX20.md
+RESULT_PATH: docs/bridge/results/F05_FIX20_RESULT.md
 
-## Last reviewed task
+## Accepted predecessor
 
 ```text
 F05_FIX19: COMPLETE / REVIEWED / PASS / ACCEPTED
-REVIEW_BRANCH: f05-fix19-review
-REVIEW_BASE: ccde3f4299b39d03ee80f097381c1efd4dd678e6
-REVIEWED_HEAD: e300fb2e51435e0f1eeedc1c2dd3db006ac0c08e
 PRIMARY_CLASSIFICATION: COUP_RESPONSE_SOURCE_EXTERNAL_INPUT_ONLY_AT_CURRENT_SCOPE
 NEXT_IMPLEMENTATION_READINESS: EXPLICIT_RESPONSE_INPUT_INTEGRATION_ONLY
+PERSISTENCE_FORMAT: V7_UNCHANGED
 ```
 
-ChatGPT independently reviewed the GitHub FIX19 diff and result. The task remained docs-only: only the grounding document and result document changed. No production source, tests, runtime schema, or persistence implementation changed.
+FIX19 establishes that the current coup path has no grounded autonomous response producer and therefore does not by itself repair Gate 1F pacing.
 
-The accepted conclusion is conservative: current WorldState does not contain a historically and architecturally sufficient node-level signal/expectation domain for autonomous coup-node side selection. Generic scalar inference, random/time selection, pre-authored alignment, and unstructured LLM mutation remain forbidden. The accepted current source boundary is explicit schema-valid input through the existing FIX18 response seam.
+## Mission
 
-## Current gate
+F05_FIX20 is docs-only research/architecture grounding for rebellion persistence and settlement.
 
-```text
-GATE1F_CHATGPT_DECISION: NOT_READY
-V02: NOT_STARTED
-PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV7 / format version 7
-F05_FIX20: NOT_AUTHORIZED
-NEXT_AUTHORIZED_TASK_ID: NONE
-```
+Determine why an already-active rebellion can persist, transform, or end when it has no active territorial front edge and/or no faction-controlled LandHex. Separate political eligibility, non-territorial operational persistence, territorial control/fronts, suppression/defeat, negotiated settlement, demobilization, and temporary front absence.
 
-No successor task is authorized until the user requests the next progression.
+Do not implement runtime state, actions, settlement writers, persistence V8, Gate 1F PASS, or V02.
+
+## Execution
+
+Codex Desktop should read `docs/bridge/tasks/F05_FIX20.md` from GitHub and continue from the accepted FIX19 lineage.
+
+The GitHub review branch `f05-fix20-review` already exists at accepted FIX19 head `e300fb2e51435e0f1eeedc1c2dd3db006ac0c08e`.
+
+Create only the required grounding/result documents, publish them to `f05-fix20-review`, and stop for ChatGPT review.
+
+## Hard boundaries
+
+- no `NO_ACTIVE_FRONT_EDGE -> peace`;
+- no `0 faction LandHex -> defeat`;
+- no free LandHex writer;
+- no random/timer/countdown/cooldown resolution;
+- no generic hidden insurgency/suppression score;
+- no direct Conflict deletion or State Dissolution writer;
+- no LLM direct mutation;
+- no production source/test change;
+- no persistence V8;
+- no F05_FIX21 self-authorization.
