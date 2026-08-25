@@ -615,14 +615,163 @@ h3 {
   border: 1px solid #d2c2a9;
   background: #d0c0a5;
 }
+.atlas-frame {
+  min-width: 0;
+}
 .hex-map {
   display: block;
   width: 100%;
   height: auto;
   min-height: 300px;
 }
+.political-atlas {
+  min-height: 0;
+  overflow: visible;
+}
 .map-paper {
   fill: #d8c9ad;
+}
+.atlas-terrain {
+  stroke: #a9916c;
+  stroke-width: 1;
+  opacity: 0.82;
+}
+.terrain-plains {
+  fill: #d8caa9;
+}
+.terrain-forest {
+  fill: #b7b697;
+}
+.terrain-hills {
+  fill: #c1ae8e;
+}
+.terrain-mountains {
+  fill: #a89a86;
+}
+.terrain-coast {
+  fill: #b6c3bd;
+}
+.terrain-wetlands {
+  fill: #aebcb0;
+}
+.atlas-political-fill {
+  stroke: none;
+  opacity: 0.58;
+  mix-blend-mode: multiply;
+}
+.atlas-route {
+  fill: none;
+  stroke: #805f3e;
+  stroke-dasharray: 3 5;
+  stroke-linecap: round;
+  opacity: 0.78;
+  pointer-events: none;
+}
+.route-muted {
+  opacity: 0.28;
+}
+.atlas-border {
+  fill: none;
+  stroke: #6d4e3a;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.atlas-border-outside {
+  stroke: #9c8769;
+  stroke-width: 1.4;
+}
+.atlas-front {
+  stroke: #a33d34;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 1 10;
+  opacity: 0.88;
+}
+.atlas-token {
+  fill: #f4e7cf;
+  stroke: #a33d34;
+  stroke-width: 2;
+}
+.atlas-capital {
+  fill: #f7e6b8;
+  stroke: #6d4e3a;
+  stroke-width: 2;
+}
+.atlas-capital-core {
+  fill: #7f332f;
+}
+.country-crest {
+  filter: drop-shadow(0 1px 1px rgb(50 40 30 / 25%));
+}
+.country-label {
+  fill: #3e3027;
+  font-family: Georgia, "Noto Serif KR", serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: #e9ddc5;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  text-anchor: middle;
+}
+.region-label {
+  fill: #5d4b38;
+  font-size: 0.68rem;
+  font-weight: 700;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: #e5d7ba;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.region-label-selected {
+  fill: #7f332f;
+  font-weight: 900;
+}
+.atlas-hit-area {
+  fill: rgb(255 255 255 / 1%);
+  stroke: transparent;
+  stroke-width: 3;
+  cursor: pointer;
+}
+.atlas-hit-area:hover,
+.atlas-hit-area:focus-visible,
+.atlas-hit-selected {
+  fill: rgb(255 255 255 / 10%);
+  stroke: #332d28;
+}
+.atlas-hit-area:focus-visible {
+  outline: none;
+}
+.design-debug {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px dashed #a48655;
+  color: #665744;
+  background: #efe3cf;
+  font-size: 0.68rem;
+}
+.design-debug summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+.design-debug ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.2rem 0.8rem;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.design-debug li {
+  display: flex;
+  gap: 0.45rem;
+}
+.design-debug li span {
+  color: #a33d34;
+  font-family: Consolas, monospace;
+  font-weight: 900;
 }
 .hex {
   stroke: #9e8865;
@@ -675,6 +824,15 @@ h3 {
   width: 0.7rem;
   height: 0.7rem;
   border: 1px solid #8c7356;
+}
+.legend-line {
+  display: inline-block;
+  width: 1.15rem;
+  border-top: 2px dashed #805f3e;
+}
+.legend-line-border {
+  border-top-style: solid;
+  border-top-color: #6d4e3a;
 }
 .swatch-country {
   background: #b99a55;

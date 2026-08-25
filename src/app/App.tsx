@@ -2,9 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   derivePresentationState,
-  type PresentationLandHex,
   type PresentationRegion,
-  type PresentationState,
 } from "../presentation/presentationState";
 import {
   deriveNationalAgendas,
@@ -15,6 +13,7 @@ import type { GameEvent } from "../sim/events/event";
 import { type RunRecord } from "../sim/core/step";
 import { BrandMark } from "./BrandMark";
 import { OpeningBriefing } from "./OpeningBriefing";
+import { PoliticalAtlas } from "./PoliticalAtlas";
 import { TitleScreen } from "./TitleScreen";
 import { transitionProductScreen, type ProductScreen } from "./screenFlow";
 import {
@@ -130,25 +129,6 @@ function formatAmount(value: number): string {
 
 function formatDate(date: RunRecord["world"]["date"]): string {
   return `${date.year}.${String(date.month).padStart(2, "0")}.${String(date.day).padStart(2, "0")}`;
-}
-
-function controllerLabel(
-  controller: PresentationLandHex["controller"],
-): string {
-  switch (controller.kind) {
-    case "country":
-      return "국가 통제";
-    case "faction":
-      return "세력 통제";
-    case "uncontrolled":
-      return "무주지";
-  }
-}
-
-function controllerClass(
-  controller: PresentationLandHex["controller"],
-): string {
-  return `hex-${controller.kind}`;
 }
 
 function severityClass(band: AgendaSeverityBand | undefined): string {
@@ -306,90 +286,6 @@ function effectLabel(effect: InterventionEffect): string {
     return `세력 조직 ${effect.delta >= 0 ? "+" : ""}${effect.delta}`;
   }
   return `${RULE_LABELS[effect.rule] ?? effect.rule} 변경`;
-}
-
-function HexMap({
-  presentation,
-  selectedRegionId,
-  onSelectRegion,
-}: {
-  readonly presentation: PresentationState;
-  readonly selectedRegionId: RegionId | null;
-  readonly onSelectRegion: (regionId: RegionId) => void;
-}) {
-  const size = 38;
-  const pointsFor = (q: number, r: number): string => {
-    const x = size * Math.sqrt(3) * (q + r / 2) + 210;
-    const y = size * 1.5 * r + 150;
-    return Array.from({ length: 6 }, (_, index) => {
-      const angle = (Math.PI / 180) * (60 * index - 30);
-      return `${x + size * Math.cos(angle)},${y + size * Math.sin(angle)}`;
-    }).join(" ");
-  };
-  const regionNames = new Map(
-    presentation.regions.map((region) => [region.regionId, region.name]),
-  );
-
-  return (
-    <div className="map-wrap">
-      <svg
-        className="hex-map"
-        viewBox="0 0 520 360"
-        role="img"
-        aria-label="아르켄 왕국 LandHex 전략 지도"
-      >
-        <rect
-          className="map-paper"
-          x="0"
-          y="0"
-          width="520"
-          height="360"
-          rx="18"
-        />
-        {presentation.landHexes.map((hex) => (
-          <g key={hex.landHexId}>
-            <polygon
-              className={`hex ${controllerClass(hex.controller)}${selectedRegionId === hex.regionId ? " hex-selected" : ""}`}
-              points={pointsFor(hex.coordinate.q, hex.coordinate.r)}
-              tabIndex={0}
-              role="button"
-              aria-label={`${regionNames.get(hex.regionId) ?? hex.regionId} · ${controllerLabel(hex.controller)}`}
-              onClick={() => onSelectRegion(hex.regionId)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  onSelectRegion(hex.regionId);
-                }
-              }}
-            />
-            <text
-              className="hex-label"
-              x={
-                size *
-                  Math.sqrt(3) *
-                  (hex.coordinate.q + hex.coordinate.r / 2) +
-                210
-              }
-              y={size * 1.5 * hex.coordinate.r + 155}
-            >
-              {regionNames.get(hex.regionId)?.slice(0, 3) ?? "지역"}
-            </text>
-          </g>
-        ))}
-      </svg>
-      <div className="map-legend" aria-label="지도 범례">
-        <span>
-          <i className="legend-swatch swatch-country" /> 국가
-        </span>
-        <span>
-          <i className="legend-swatch swatch-faction" /> 세력
-        </span>
-        <span>
-          <i className="legend-swatch swatch-uncontrolled" /> 무주지
-        </span>
-      </div>
-    </div>
-  );
 }
 
 function Metric({
@@ -903,7 +799,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
             </div>
             <span className="map-date">{formatDate(record.world.date)}</span>
           </div>
-          <HexMap
+          <PoliticalAtlas
             presentation={presentation}
             selectedRegionId={selectedRegionId}
             onSelectRegion={setSelectedRegionId}

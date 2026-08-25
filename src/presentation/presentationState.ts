@@ -21,6 +21,7 @@ import type {
   ConflictId,
   CountryId,
   FactionId,
+  GovernmentId,
   IdeologyId,
   LandHexId,
   RegionId,
@@ -63,6 +64,15 @@ export interface PresentationRegion {
   readonly unrest: number;
   readonly scarcity: number;
   readonly politicalInfluence: readonly PoliticalInfluencePresentation[];
+}
+
+/** One actual Country, including its present government pointer for labels. */
+export interface PresentationCountry {
+  readonly countryId: CountryId;
+  readonly name: string;
+  readonly capitalRegionId: RegionId | null;
+  readonly currentGovernmentId: GovernmentId | null;
+  readonly isPlayer: boolean;
 }
 
 /** One actual Faction presence anchored by the LandHex controller projection. */
@@ -122,6 +132,7 @@ export interface PresentationState {
   readonly scenarioVersion: number;
   readonly tick: number;
   readonly date: SimDate;
+  readonly countries: readonly PresentationCountry[];
   readonly landHexes: readonly PresentationLandHex[];
   readonly regions: readonly PresentationRegion[];
   readonly organizationTokens: readonly OrganizationTokenPresentation[];
@@ -198,6 +209,21 @@ function derivePresentationLandHexes(
         controller: cloneController(runtimeState.controller),
       };
     });
+}
+
+function derivePresentationCountries(
+  scenario: ScenarioDefinition,
+  world: WorldState,
+): readonly PresentationCountry[] {
+  return Object.values(world.countries)
+    .sort((first, second) => compareStableText(first.id, second.id))
+    .map((country) => ({
+      countryId: country.id,
+      name: country.name,
+      capitalRegionId: country.capitalRegionId,
+      currentGovernmentId: country.currentGovernmentId,
+      isPlayer: country.id === scenario.playerCountryId,
+    }));
 }
 
 function derivePoliticalInfluence(
@@ -381,6 +407,7 @@ export function derivePresentationState(
     scenarioVersion: scenario.version,
     tick: world.tick,
     date: cloneDate(world.date),
+    countries: derivePresentationCountries(scenario, world),
     landHexes: derivePresentationLandHexes(scenario, world),
     regions: derivePresentationRegions(scenario, world),
     organizationTokens: deriveOrganizationTokens(scenario, world),
