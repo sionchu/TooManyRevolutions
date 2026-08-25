@@ -1,57 +1,36 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX21
-STATUS: AUTHORIZED
-BASE_IMPLEMENTATION_HEAD: 510e971f38b52343055285a585d851a5baae283f
-BASE_IMPLEMENTATION_BRANCH: f05-fix20-review
-REVIEW_BRANCH: f05-fix21-review
-TASK_FILE: docs/bridge/tasks/F05_FIX21.md
-RESULT_PATH: docs/bridge/results/F05_FIX21_RESULT.md
+TASK_ID: NONE
+STATUS: WAITING_FOR_USER_NEXT
+BASE_BRANCH: master
 
-## Accepted predecessor
+## Last reviewed task
 
 ```text
-F05_FIX20: COMPLETE / REVIEWED / PASS / ACCEPTED
-PRIMARY_CLASSIFICATION: REBELLION_PERSISTENCE_AND_SETTLEMENT_REQUIRE_SEPARATE_DOMAINS
-EXISTING_BEHAVIOR_CLASSIFICATION: PARTIAL_BUT_INCOMPLETE
-NEXT_IMPLEMENTATION_READINESS: REBELLION_DOMAIN_SPLIT_REQUIRED
+F05_FIX21: COMPLETE / REVIEWED / PASS / ACCEPTED
+REVIEW_BRANCH: f05-fix21-review
+REVIEW_BASE: 510e971f38b52343055285a585d851a5baae283f
+REVIEWED_HEAD: 79046aa292e22ff7afb0289f8d7895ba38d8a8ab
+PRIMARY_CLASSIFICATION: REBELLION_SPLIT_MINIMAL_DOMAINS_DESIGNABLE
+FIRST_IMPLEMENTATION_DIRECTION: PERSISTENCE_AUTHORING_FIRST
+NEXT_IMPLEMENTATION_READINESS: REBELLION_PERSISTENCE_AUTHORING_SEAM
 PERSISTENCE_FORMAT: V7_UNCHANGED
 ```
 
-## Mission
+ChatGPT independently reviewed the GitHub FIX21 diff and result. The task remained docs-only: exactly the rebellion domain-split design document and result document changed.
 
-F05_FIX21 is docs-only Rebellion Domain Split Design.
+The accepted design keeps rebellion operational persistence separate from settlement/demobilization/suppression closure. Persistence uses scenario-owned typed operational channel/profile authoring as a future evidence allow-list, not as current evidence, a score, threshold, territorial writer, or pre-authored outcome. Settlement acceptance remains distinct from implementation/compliance/demobilization and cannot directly close a Conflict.
 
-Design two separate minimum domains:
+The accepted first implementation direction is `PERSISTENCE_AUTHORING_FIRST`: a successor task may add only the static scenario-owned rebellion persistence authoring seam and validation before any runtime episode, ActionRecord/GameEvent writer, Conflict mutation, or persistence version bump.
+
+## Current gate
 
 ```text
-A. rebellion operational persistence
-B. settlement / demobilization / suppression closure
+GATE1F_CHATGPT_DECISION: NOT_READY
+V02: NOT_STARTED
+PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV7 / format version 7
+F05_FIX22: NOT_AUTHORIZED
+NEXT_AUTHORIZED_TASK_ID: NONE
 ```
 
-Specify static/runtime/action/event ownership, writer boundaries, coexistence rules, replay requirements, and implementation ordering precisely enough for the next task to implement the first seam without inventing semantics.
-
-The expected preferred direction is the smallest defensible authoring-first seam, but Codex must justify the result rather than force it.
-
-## Execution
-
-Codex Desktop should read `docs/bridge/tasks/F05_FIX21.md` from GitHub and continue from the accepted FIX20 lineage.
-
-The GitHub review branch `f05-fix21-review` already exists at accepted FIX20 head `510e971f38b52343055285a585d851a5baae283f`.
-
-Create only the required design/result documents, publish them to `f05-fix21-review`, and stop for ChatGPT review.
-
-## Hard boundaries
-
-- no `NO_ACTIVE_FRONT_EDGE -> peace`;
-- no `0 faction LandHex -> defeat`;
-- no free LandHex writer;
-- no generic rebellion persistence/strength/progress/suppression score;
-- no hidden scalar threshold or automatic decay;
-- no random/timer/countdown/cooldown resolution;
-- no direct Conflict delete or State Dissolution writer;
-- no settlement acceptance = automatic completed peace shortcut;
-- no production source/test change;
-- no persistence V8;
-- no Gate 1F PASS or V02;
-- no F05_FIX22 self-authorization.
+No successor task is authorized until the user requests the next progression.
