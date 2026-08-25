@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="카르센 변경백령 문장">
+  <circle cx="60" cy="60" r="51" fill="#eee2cb" stroke="#27211d" stroke-width="5"/>
+  <path d="M60 22 93 38v28c0 22-15 35-33 41C42 101 27 88 27 66V38z" fill="#65745d" stroke="#27211d" stroke-width="4"/>
+  <path d="m60 40 9 18 20 3-15 14 4 20-18-9-18 9 4-20-15-14 20-3z" fill="#b58b3f" stroke="#eee2cb" stroke-width="3"/>
+</svg>

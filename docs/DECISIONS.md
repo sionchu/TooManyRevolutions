@@ -1821,6 +1821,50 @@ developer fixture without changing the underlying InterventionDefinition seam.
 ### Reversal cost
 Low / Medium / High
 
+## ADR-045 — GameBuilders P0 replaceable political-atlas surface
+
+**Date:** 2026-08-26
+**Status:** Accepted for `GAMEBUILDERS_PRODUCT_SURFACE_P0`
+
+### Problem
+
+The accepted GameBuilders demo is playable but its title, map, and decision
+surface are visually coupled in one small React composition. That makes a
+single crest, hero, map layer, or copy correction expensive and leaves the
+authoritative political map visually indistinct from a debug hex grid.
+
+### Decision
+
+- Keep simulation and persistence unchanged as the authority. Add a typed,
+  stable-ID design registry, asset manifest, layer registry, screen registry,
+  and Korean copy registry under `src/presentation/design/`.
+- Treat project-authored SVG/CSS/procedural assets as replaceable modules. Any
+  future generated raster must carry style-family, provenance, prompt recipe,
+  version, layer, and crop metadata before it is used.
+- Compose title, opening dossier, political atlas, HUD, decisions, and history
+  from named presentation components. Country/Region/LandHex labels and tint
+  are derived from actual scenario data; the renderer does not invent entities.
+- Use the existing DOM/SVG path for P0. Audit MIT map/renderer references and
+  keep AGPL Freeciv-web as UX reference only; do not add a renderer dependency
+  without a measured P0 need.
+
+### Reason
+
+The registry makes partial asset replacement and layer-level QA possible while
+preserving the thin-client boundary. The atlas can become visually richer by
+changing presentation modules without moving political authority into React.
+
+### Consequences
+
+New production art must be registered and pass provenance/closure checks. The
+first P0 map remains a stable SVG/DOM composition and may use procedural texture
+instead of an untraceable asset bundle.
+
+### Reversal cost
+
+Medium. Removing the registry would require returning component identity, asset
+provenance, and layer toggle coverage to per-screen code.
+
 ## ADR-043 — F05_FIX7 long-horizon proposal orchestration remains developer-only
 
 **Date:** 2026-08-24

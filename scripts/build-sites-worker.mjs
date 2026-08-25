@@ -3,21 +3,60 @@ import { resolve } from "node:path";
 
 const serverDirectory = resolve("dist", "server");
 const assetDirectory = resolve("dist", "assets");
+async function collectAssetFiles(directory, relativePrefix = "") {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const relativePath = relativePrefix
+      ? `${relativePrefix}/${entry.name}`
+      : entry.name;
+    const absolutePath = resolve(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...(await collectAssetFiles(absolutePath, relativePath)));
+    } else if (entry.isFile()) {
+      files.push(relativePath);
+    }
+  }
+
+  return files.sort();
+}
+
 const assetNames = [
   "index.html",
-  ...(await readdir(assetDirectory)).map((name) => `assets/${name}`),
+  ...(await collectAssetFiles(assetDirectory)).map((name) => `assets/${name}`),
 ];
+
+function contentTypeFor(name) {
+  if (name.endsWith(".html")) return "text/html; charset=utf-8";
+  if (name.endsWith(".css")) return "text/css; charset=utf-8";
+  if (name.endsWith(".js")) return "text/javascript; charset=utf-8";
+  if (name.endsWith(".json")) return "application/json; charset=utf-8";
+  if (name.endsWith(".svg")) return "image/svg+xml";
+  if (name.endsWith(".png")) return "image/png";
+  if (name.endsWith(".webp")) return "image/webp";
+  if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
+  return "application/octet-stream";
+}
+
+async function readEmbeddedAsset(name) {
+  const bytes = await readFile(resolve("dist", name));
+  const contentType = contentTypeFor(name);
+  const isText =
+    contentType.startsWith("text/") ||
+    contentType.startsWith("application/json");
+
+  return {
+    body: isText ? bytes.toString("utf8") : bytes.toString("base64"),
+    contentType,
+    ...(isText ? {} : { encoding: "base64" }),
+  };
+}
+
 const embeddedAssets = Object.fromEntries(
   await Promise.all(
-    assetNames.map(async (name) => {
-      const body = await readFile(resolve("dist", name), "utf8");
-      const contentType = name.endsWith(".html")
-        ? "text/html; charset=utf-8"
-        : name.endsWith(".css")
-          ? "text/css; charset=utf-8"
-          : "text/javascript; charset=utf-8";
-      return [`/${name}`, { body, contentType }];
-    }),
+    assetNames.map(async (name) => [`/${name}`, await readEmbeddedAsset(name)]),
   ),
 );
 const embeddedAssetsSource = JSON.stringify(embeddedAssets);
@@ -39,12 +78,19 @@ function embeddedResponse(request) {
   const asset = EMBEDDED_ASSETS[pathname];
   return asset === undefined
     ? null
-    : new Response(asset.body, {
+    : new Response(
+        asset.encoding === "base64"
+          ? Uint8Array.from(atob(asset.body), (character) =>
+              character.charCodeAt(0),
+            )
+          : asset.body,
+        {
         headers: {
           "cache-control": pathname === "/index.html" ? "no-cache" : "public, max-age=31536000, immutable",
           "content-type": asset.contentType,
         },
-      });
+        },
+      );
 }
 
 async function fetchSiteAsset(request, assets) {
