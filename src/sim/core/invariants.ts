@@ -19,6 +19,7 @@ import {
   POLITICAL_PROPOSAL_SUBJECT_KINDS,
 } from "../state/politicalProposal";
 import type { WorldState } from "../state/world";
+import { COUP_COORDINATION_ALIGNMENTS } from "../state/coupCoordination";
 import type { SimDate } from "./clock";
 import type { SeedState } from "./rng";
 
@@ -645,6 +646,36 @@ function assertPoliticalProposals(world: WorldState): void {
   }
 }
 
+function assertCoupCoordinationResponses(world: WorldState): void {
+  for (const [conflictId, responsesByNode] of Object.entries(
+    world.coupCoordinationResponses ?? {},
+  )) {
+    if (conflictId.length === 0) {
+      throw new Error(
+        "Coup Coordination response map cannot use an empty Conflict ID.",
+      );
+    }
+
+    for (const [nodeId, response] of Object.entries(responsesByNode)) {
+      if (
+        nodeId.length === 0 ||
+        response.conflictId !== conflictId ||
+        response.nodeId !== nodeId ||
+        !COUP_COORDINATION_ALIGNMENTS.includes(response.alignment) ||
+        response.actionId.length === 0 ||
+        response.eventId.length === 0 ||
+        !Number.isInteger(response.respondedAtTick) ||
+        response.respondedAtTick < 0 ||
+        response.respondedAtTick > world.tick
+      ) {
+        throw new Error(
+          `Coup Coordination response ${conflictId}/${nodeId} is invalid.`,
+        );
+      }
+    }
+  }
+}
+
 function assertRunState(
   world: WorldState,
   options: { readonly validateActionHistory?: boolean } = {},
@@ -823,6 +854,7 @@ export function assertWorldStateInvariants(
   assertInterventionCommitments(world);
   assertFactionFundMovementCommitments(world);
   assertPoliticalProposals(world);
+  assertCoupCoordinationResponses(world);
 
   for (const government of Object.values(world.governments)) {
     if (world.countries[government.countryId] === undefined) {

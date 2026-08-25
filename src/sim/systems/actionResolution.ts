@@ -6,9 +6,13 @@ import type {
 } from "../core/step";
 import type { GameEvent } from "../events/event";
 import { runInterventionResolutionPhase } from "./intervention";
-import { RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE } from "../state/action";
+import {
+  COUP_COORDINATION_RESPONSE_ACTION_TYPE,
+  RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE,
+} from "../state/action";
 import { runPolicyPhase } from "./policy";
 import type { ScenarioDefinition } from "../state/scenario";
+import { runCoupCoordinationResponsePhase } from "./coupCoordination";
 
 /**
  * Dispatch policy and intervention actions one global ActionRecord at a time.
@@ -33,7 +37,8 @@ export function runPolicyAndInterventionResolutionPhase(
     if (
       action.actionType !== "ENACT_POLICY" &&
       action.actionType !== "START_INTERVENTION" &&
-      action.actionType !== RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE
+      action.actionType !== RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE &&
+      action.actionType !== COUP_COORDINATION_RESPONSE_ACTION_TYPE
     ) {
       continue;
     }
@@ -49,7 +54,9 @@ export function runPolicyAndInterventionResolutionPhase(
     const result =
       action.actionType === "ENACT_POLICY"
         ? runPolicyPhase(singleActionContext, scenario)
-        : runInterventionResolutionPhase(singleActionContext, scenario);
+        : action.actionType === COUP_COORDINATION_RESPONSE_ACTION_TYPE
+          ? runCoupCoordinationResponsePhase(singleActionContext, scenario)
+          : runInterventionResolutionPhase(singleActionContext, scenario);
 
     currentWorld = result.nextWorld;
     nextEventSequence = result.nextEventSequence;

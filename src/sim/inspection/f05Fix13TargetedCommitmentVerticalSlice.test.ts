@@ -361,7 +361,7 @@ describe("F05_FIX13 targeted FUND_MOVEMENT commitment vertical slice", () => {
     expect(withCommitment?.severity).toBe(withoutCommitment?.severity);
   });
 
-  it("round-trips V6 commitment state, replay, and deterministic insertion order while rejecting V5", () => {
+  it("round-trips V7 commitment state, replay, and deterministic insertion order while rejecting V6", () => {
     const { scenario, world } = initialTargetedWorld();
     const secondFaction = POLITICAL_CRISIS_FIXTURE_FACTION_IDS.rebellion;
     const actions = [
@@ -396,14 +396,14 @@ describe("F05_FIX13 targeted FUND_MOVEMENT commitment vertical slice", () => {
     );
     const loaded = deserializeSimulationSnapshot(scenario, reversed);
 
-    expect(snapshot.formatVersion).toBe(6);
+    expect(snapshot.formatVersion).toBe(7);
     expect(serializeSimulationSnapshot(scenario, loaded)).toEqual(snapshot);
     expect(() =>
       deserializeSimulationSnapshot(scenario, {
         ...snapshot,
-        formatVersion: 5,
+        formatVersion: 6,
       }),
-    ).toThrow("Unsupported simulation snapshot version 5");
+    ).toThrow("Unsupported simulation snapshot version 6");
 
     const next = runSimulationStep(loaded.world, { actions: [] }, {}, scenario);
     const nextRecord = commitSimulationStep(scenario, loaded, next);

@@ -1,6 +1,8 @@
 import type { JsonValue } from "../core/serialization";
 import {
   asActionId,
+  asConflictId,
+  asCoupCoordinationNodeId,
   asCountryId,
   asFactionId,
   asInterventionId,
@@ -8,6 +10,7 @@ import {
   asPoliticalProposalId,
   asRegionId,
   type ActionId,
+  type ConflictId,
   type CountryId,
   type FactionId,
   type InterventionId,
@@ -15,6 +18,11 @@ import {
   type PoliticalProposalId,
 } from "./ids";
 import type { TargetedFactionFundMovementActionPayload } from "./factionFundMovement";
+import {
+  COUP_COORDINATION_ALIGNMENTS,
+  type CoupCoordinationAlignment,
+} from "./coupCoordination";
+import type { CoupCoordinationNodeId } from "./ids";
 
 export type ActionSource = "player" | "heuristic" | "llm";
 
@@ -169,6 +177,16 @@ export const RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE =
   "RESPOND_POLITICAL_PROPOSAL" as const;
 export const RESPOND_POLITICAL_PROPOSAL_ACTION_SCHEMA_VERSION = 1 as const;
 
+export const COUP_COORDINATION_RESPONSE_ACTION_TYPE =
+  "COUP_COORDINATION_RESPONSE" as const;
+export const COUP_COORDINATION_RESPONSE_ACTION_SCHEMA_VERSION = 1 as const;
+
+export interface CoupCoordinationResponseActionPayload {
+  readonly conflictId: ConflictId;
+  readonly nodeId: CoupCoordinationNodeId;
+  readonly alignment: CoupCoordinationAlignment;
+}
+
 export const POLITICAL_PROPOSAL_RESPONSES = ["accept", "reject"] as const;
 export type PoliticalProposalResponse =
   (typeof POLITICAL_PROPOSAL_RESPONSES)[number];
@@ -315,6 +333,67 @@ export function createRespondPoliticalProposalActionProposal(
     actionType: RESPOND_POLITICAL_PROPOSAL_ACTION_TYPE,
     payload: { proposalId, response },
     schemaVersion: RESPOND_POLITICAL_PROPOSAL_ACTION_SCHEMA_VERSION,
+  };
+}
+
+/** Decode the exact v1 decisive Coup Coordination response payload. */
+export function decodeCoupCoordinationResponseAction(
+  action: ValidatedActionRecord,
+): CoupCoordinationResponseActionPayload | null {
+  if (
+    action.actionType !== COUP_COORDINATION_RESPONSE_ACTION_TYPE ||
+    action.schemaVersion !== COUP_COORDINATION_RESPONSE_ACTION_SCHEMA_VERSION ||
+    !isJsonObject(action.payload)
+  ) {
+    return null;
+  }
+
+  const keys = Object.keys(action.payload).sort();
+  if (
+    keys.length !== 3 ||
+    keys[0] !== "alignment" ||
+    keys[1] !== "conflictId" ||
+    keys[2] !== "nodeId"
+  ) {
+    return null;
+  }
+
+  const conflictId = action.payload.conflictId;
+  const nodeId = action.payload.nodeId;
+  const alignment = action.payload.alignment;
+  if (
+    typeof conflictId !== "string" ||
+    conflictId.length === 0 ||
+    typeof nodeId !== "string" ||
+    nodeId.length === 0 ||
+    typeof alignment !== "string" ||
+    !COUP_COORDINATION_ALIGNMENTS.includes(
+      alignment as CoupCoordinationAlignment,
+    )
+  ) {
+    return null;
+  }
+
+  return {
+    conflictId: asConflictId(conflictId),
+    nodeId: asCoupCoordinationNodeId(nodeId),
+    alignment: alignment as CoupCoordinationAlignment,
+  };
+}
+
+export function createCoupCoordinationResponseActionProposal(
+  tick: number,
+  source: ActionSource,
+  conflictId: ConflictId,
+  nodeId: CoupCoordinationNodeId,
+  alignment: CoupCoordinationAlignment,
+): ActionProposal {
+  return {
+    tick,
+    source,
+    actionType: COUP_COORDINATION_RESPONSE_ACTION_TYPE,
+    payload: { alignment, conflictId, nodeId },
+    schemaVersion: COUP_COORDINATION_RESPONSE_ACTION_SCHEMA_VERSION,
   };
 }
 

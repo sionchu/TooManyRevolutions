@@ -22,6 +22,10 @@ import type {
   ContactEdgeRuntimeState,
   ContactEdgeRuntimeStateMap,
 } from "../state/contact";
+import type {
+  CoupCoordinationResponseState,
+  CoupCoordinationResponseStateMap,
+} from "../state/coupCoordination";
 import type { Country, DiplomaticRelation } from "../state/country";
 import type {
   Faction,
@@ -52,6 +56,7 @@ import {
 import {
   asActionId,
   asConflictId,
+  asCoupCoordinationNodeId,
   asCountryId,
   asEventId,
   asFactionFundMovementCommitmentId,
@@ -64,6 +69,7 @@ import {
   asRegionId,
   asScenarioId,
   type CountryId,
+  type CoupCoordinationNodeId,
   type IdeologyId,
   type LandHexId,
 } from "../state/ids";
@@ -98,7 +104,7 @@ import {
 import { freezeCanonicalGraph } from "./canonicalFreeze";
 import { claimCanonicalSimulationStepResult } from "./tick";
 
-export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 6 as const;
+export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 7 as const;
 
 const canonicalRunRecords = new WeakMap<RunRecord, ScenarioDefinition>();
 
@@ -119,7 +125,7 @@ function registerCanonicalRunRecord<T extends RunRecord>(
   return record;
 }
 
-export interface SerializedWorldStateV6 {
+export interface SerializedWorldStateV7 {
   readonly tick: number;
   readonly date: SimDate;
   readonly countries: Readonly<Record<string, Country>>;
@@ -128,6 +134,7 @@ export interface SerializedWorldStateV6 {
   readonly governments: Readonly<Record<string, Government>>;
   readonly factions: Readonly<Record<string, Faction>>;
   readonly conflicts: Readonly<Record<string, Conflict>>;
+  readonly coupCoordinationResponses: CoupCoordinationResponseStateMap;
   readonly interventionCommitments: Readonly<
     Record<string, InterventionCommitment>
   >;
@@ -146,11 +153,11 @@ export interface SerializedEventStoreV2 {
 }
 
 /** Versioned runtime snapshot. Static ScenarioDefinition content is excluded. */
-export interface SerializedSimulationSnapshotV6 {
+export interface SerializedSimulationSnapshotV7 {
   readonly formatVersion: typeof SIMULATION_SNAPSHOT_FORMAT_VERSION;
   readonly scenarioId: string;
   readonly scenarioVersion: number;
-  readonly world: SerializedWorldStateV6;
+  readonly world: SerializedWorldStateV7;
   readonly eventStore: SerializedEventStoreV2;
 }
 
@@ -384,6 +391,38 @@ function clonePolicyState(policyState: PolicyState): PolicyState {
   };
 }
 
+function cloneCoupCoordinationResponse(
+  response: CoupCoordinationResponseState,
+): CoupCoordinationResponseState {
+  return {
+    alignment: response.alignment,
+    actionId: response.actionId,
+    conflictId: response.conflictId,
+    eventId: response.eventId,
+    nodeId: response.nodeId,
+    respondedAtTick: response.respondedAtTick,
+  };
+}
+
+function cloneCoupCoordinationResponses(
+  responses: CoupCoordinationResponseStateMap | undefined,
+): CoupCoordinationResponseStateMap {
+  const cloned = Object.create(null) as Record<
+    string,
+    Readonly<Record<string, CoupCoordinationResponseState>>
+  >;
+
+  for (const conflictId of Object.keys(responses ?? {}).sort(
+    compareStableText,
+  )) {
+    const byNode =
+      responses?.[conflictId as keyof CoupCoordinationResponseStateMap] ?? {};
+    cloned[conflictId] = cloneRecord(byNode, cloneCoupCoordinationResponse);
+  }
+
+  return cloned as CoupCoordinationResponseStateMap;
+}
+
 function cloneActionRecord(action: ActionRecord): ActionRecord {
   return {
     // Keep action-log JSON canonical across encode/decode.  Action proposals
@@ -442,7 +481,7 @@ function cloneEvent(event: GameEvent): GameEvent {
   };
 }
 
-function cloneWorldState(world: WorldState): SerializedWorldStateV6 {
+function cloneWorldState(world: WorldState): SerializedWorldStateV7 {
   return {
     tick: world.tick,
     date: { ...world.date },
@@ -454,6 +493,9 @@ function cloneWorldState(world: WorldState): SerializedWorldStateV6 {
     governments: cloneRecord(world.governments, cloneGovernment),
     factions: cloneRecord(world.factions, cloneFaction),
     conflicts: cloneRecord(world.conflicts, cloneConflict),
+    coupCoordinationResponses: cloneCoupCoordinationResponses(
+      world.coupCoordinationResponses,
+    ),
     interventionCommitments: cloneRecord(
       world.interventionCommitments,
       cloneInterventionCommitment,
@@ -2071,6 +2113,110 @@ function decodeSeedState(value: unknown, label: string): SeedState {
   };
 }
 
+function decodeCoupCoordinationResponseState(
+  value: unknown,
+  label: string,
+): CoupCoordinationResponseState {
+  const record = expectRecord(value, label);
+  assertKnownKeys(
+    record,
+    [
+      "alignment",
+      "actionId",
+      "conflictId",
+      "eventId",
+      "nodeId",
+      "respondedAtTick",
+    ],
+    label,
+  );
+
+  return {
+    alignment: expectEnum(
+      required(record, "alignment", label),
+      ["incumbent", "coup"],
+      `${label}.alignment`,
+    ),
+    actionId: asActionId(
+      expectNonEmptyString(
+        required(record, "actionId", label),
+        `${label}.actionId`,
+      ),
+    ),
+    conflictId: asConflictId(
+      expectNonEmptyString(
+        required(record, "conflictId", label),
+        `${label}.conflictId`,
+      ),
+    ),
+    eventId: asEventId(
+      expectNonEmptyString(
+        required(record, "eventId", label),
+        `${label}.eventId`,
+      ),
+    ),
+    nodeId: asCoupCoordinationNodeId(
+      expectNonEmptyString(
+        required(record, "nodeId", label),
+        `${label}.nodeId`,
+      ),
+    ),
+    respondedAtTick: expectNonNegativeInteger(
+      required(record, "respondedAtTick", label),
+      `${label}.respondedAtTick`,
+    ),
+  };
+}
+
+function decodeCoupCoordinationResponses(
+  value: unknown,
+  label: string,
+): CoupCoordinationResponseStateMap {
+  const record = expectRecord(value, label);
+  const decoded = Object.create(null) as Record<
+    string,
+    Readonly<Record<CoupCoordinationNodeId, CoupCoordinationResponseState>>
+  >;
+
+  for (const conflictId of Object.keys(record).sort(compareStableText)) {
+    if (conflictId.length === 0) {
+      throw new Error(`${label} cannot contain an empty Conflict ID.`);
+    }
+
+    const byNodeRecord = expectRecord(
+      record[conflictId],
+      `${label}.${conflictId}`,
+    );
+    const byNode = Object.create(null) as Record<
+      CoupCoordinationNodeId,
+      CoupCoordinationResponseState
+    >;
+    for (const nodeId of Object.keys(byNodeRecord).sort(compareStableText)) {
+      if (nodeId.length === 0) {
+        throw new Error(
+          `${label}.${conflictId} cannot contain an empty node ID.`,
+        );
+      }
+      const response = decodeCoupCoordinationResponseState(
+        byNodeRecord[nodeId],
+        `${label}.${conflictId}.${nodeId}`,
+      );
+      if (response.conflictId !== conflictId || response.nodeId !== nodeId) {
+        throw new Error(
+          `${label}.${conflictId}.${nodeId} key does not match response identity.`,
+        );
+      }
+      if (byNode[nodeId as CoupCoordinationNodeId] !== undefined) {
+        throw new Error(`${label}.${conflictId} contains a duplicate node.`);
+      }
+      byNode[nodeId as CoupCoordinationNodeId] = response;
+    }
+    decoded[conflictId] = byNode;
+  }
+
+  return decoded as CoupCoordinationResponseStateMap;
+}
+
 function decodeWorldState(value: unknown, label: string): WorldState {
   const record = expectRecord(value, label);
   assertKnownKeys(
@@ -2084,6 +2230,7 @@ function decodeWorldState(value: unknown, label: string): WorldState {
       "governments",
       "factions",
       "conflicts",
+      "coupCoordinationResponses",
       "interventionCommitments",
       "factionFundMovementCommitments",
       "politicalProposals",
@@ -2133,6 +2280,10 @@ function decodeWorldState(value: unknown, label: string): WorldState {
       required(record, "conflicts", label),
       `${label}.conflicts`,
       decodeConflict,
+    ),
+    coupCoordinationResponses: decodeCoupCoordinationResponses(
+      required(record, "coupCoordinationResponses", label),
+      `${label}.coupCoordinationResponses`,
     ),
     interventionCommitments: decodeEntityRecord(
       required(record, "interventionCommitments", label),
@@ -2478,6 +2629,61 @@ function assertFactionFundMovementEventProvenance(
   }
 }
 
+function assertCoupCoordinationEventProvenance(
+  world: WorldState,
+  eventStore: EventStore,
+): void {
+  const responseEvents = eventStore.events.filter(
+    (event) => event.type === "COUP_COORDINATION_NODE_RESPONDED",
+  );
+  const responseStates = Object.values(world.coupCoordinationResponses ?? {})
+    .flatMap((byNode) => Object.values(byNode))
+    .sort((first, second) => compareStableText(first.eventId, second.eventId));
+  const responseStatesByEventId = new Map(
+    responseStates.map((response) => [response.eventId, response]),
+  );
+
+  for (const response of responseStates) {
+    const event = findEventById(eventStore, response.eventId);
+    if (
+      event === undefined ||
+      event.type !== "COUP_COORDINATION_NODE_RESPONDED" ||
+      event.tick !== response.respondedAtTick ||
+      event.actorId !== response.nodeId ||
+      event.targetId !== response.conflictId
+    ) {
+      throw new Error(
+        `Coup Coordination response ${response.eventId} has missing or mismatched event provenance.`,
+      );
+    }
+
+    if (
+      typeof event.payload !== "object" ||
+      event.payload === null ||
+      Array.isArray(event.payload) ||
+      Object.keys(event.payload).sort(compareStableText).join(",") !==
+        "actionId,alignment,conflictId,nodeId" ||
+      eventPayloadValue(event, "actionId") !== response.actionId ||
+      eventPayloadValue(event, "alignment") !== response.alignment ||
+      eventPayloadValue(event, "conflictId") !== response.conflictId ||
+      eventPayloadValue(event, "nodeId") !== response.nodeId
+    ) {
+      throw new Error(
+        `Coup Coordination response event ${event.id} payload does not match state.`,
+      );
+    }
+  }
+
+  for (const event of responseEvents) {
+    const response = responseStatesByEventId.get(event.id);
+    if (response === undefined) {
+      throw new Error(
+        `Coup Coordination response event ${event.id} has no matching response state.`,
+      );
+    }
+  }
+}
+
 function assertEventStoreMatchesWorld(
   world: WorldState,
   eventStore: EventStore,
@@ -2498,6 +2704,7 @@ function assertEventStoreMatchesWorld(
 
   assertPoliticalProposalEventProvenance(world, eventStore);
   assertFactionFundMovementEventProvenance(world, eventStore);
+  assertCoupCoordinationEventProvenance(world, eventStore);
 
   const outcome = world.run.outcome;
   if (outcome.status === "active") {
@@ -2538,7 +2745,7 @@ function assertRunRecordForPersistence(
 export function serializeSimulationSnapshot(
   scenario: ScenarioDefinition,
   record: RunRecord,
-): SerializedSimulationSnapshotV6 {
+): SerializedSimulationSnapshotV7 {
   assertRunRecordForPersistence(scenario, record);
 
   return {
@@ -2639,6 +2846,8 @@ function assertIncrementalEventStoreMatchesWorld(
   }
 
   assertPoliticalProposalEventProvenance(world, eventStore);
+  assertFactionFundMovementEventProvenance(world, eventStore);
+  assertCoupCoordinationEventProvenance(world, eventStore);
 
   const outcome = world.run.outcome;
   if (outcome.status === "active") {

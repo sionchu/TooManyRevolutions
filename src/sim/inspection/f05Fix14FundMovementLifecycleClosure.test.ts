@@ -516,7 +516,7 @@ describe("F05_FIX14 FUND_MOVEMENT lifecycle closure", () => {
     expect(existingResponse.forbiddenWriterEventTypes).toEqual([]);
   });
 
-  it("round-trips resolved V6 state with uninterrupted and insertion-order-equal replay", () => {
+  it("round-trips resolved V7 state with uninterrupted and insertion-order-equal replay", () => {
     const scenario = createF05Fix13TargetedCommitmentScenario();
     let world = createInitialWorldState(scenario, 51407);
     world = withFaction(world, COUP_FACTION_ID, { grievance: 0.55 });
@@ -564,7 +564,7 @@ describe("F05_FIX14 FUND_MOVEMENT lifecycle closure", () => {
     const loadedSnapshot = serializeSimulationSnapshot(scenario, loaded);
 
     expect(continuousSnapshot).toEqual(loadedSnapshot);
-    expect(continuousSnapshot.formatVersion).toBe(6);
+    expect(continuousSnapshot.formatVersion).toBe(7);
     expect(
       Object.values(continuous.world.factionFundMovementCommitments).every(
         (commitment) => commitment.status === "resolved",
@@ -578,9 +578,9 @@ describe("F05_FIX14 FUND_MOVEMENT lifecycle closure", () => {
     expect(() =>
       deserializeSimulationSnapshot(scenario, {
         ...continuousSnapshot,
-        formatVersion: 5,
+        formatVersion: 6,
       }),
-    ).toThrow("Unsupported simulation snapshot version 5");
+    ).toThrow("Unsupported simulation snapshot version 6");
 
     const invalidReason = JSON.parse(JSON.stringify(continuousSnapshot)) as {
       world: {

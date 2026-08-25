@@ -1,6 +1,7 @@
 import type { SimDate } from "../core/clock";
 import { createSeedState, type SeedState } from "../core/rng";
 import type { Conflict } from "./conflict";
+import type { CoupCoordinationResponseStateMap } from "./coupCoordination";
 import type { ContactEdgeRuntimeStateMap } from "./contact";
 import type { Country } from "./country";
 import type { Faction } from "./faction";
@@ -43,6 +44,8 @@ export interface WorldState {
   readonly governments: Readonly<Record<GovernmentId, Government>>;
   readonly factions: Readonly<Record<FactionId, Faction>>;
   readonly conflicts: Readonly<Record<ConflictId, Conflict>>;
+  /** Sparse decisive Coup Coordination responses; omitted on legacy hand-authored worlds. */
+  readonly coupCoordinationResponses?: CoupCoordinationResponseStateMap;
   readonly interventionCommitments: Readonly<
     Record<InterventionCommitmentId, InterventionCommitment>
   >;
@@ -252,6 +255,7 @@ export function createInitialWorldState(
     governments: indexGovernments(scenario.initialGovernments),
     factions: indexFactions(scenario.initialFactions),
     conflicts: indexConflicts(scenario.initialConflicts),
+    coupCoordinationResponses: {},
     interventionCommitments: {},
     factionFundMovementCommitments: {},
     politicalProposals: {},

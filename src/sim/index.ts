@@ -35,6 +35,7 @@ export * from "./state/territorialControl";
 export * from "./state/world";
 export * from "./systems/economy";
 export * from "./systems/actionResolution";
+export * from "./systems/coupCoordination";
 export * from "./systems/contactGraph";
 export * from "./systems/ideologyState";
 export * from "./systems/ideologyDiffusion";

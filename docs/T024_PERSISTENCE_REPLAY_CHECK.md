@@ -123,3 +123,20 @@ and object insertion-order checks cover open, rejected, and accepted states.
 The proposal state is not an event-only read model. Its opening event alone does
 not count as a pacing or downstream result; only the existing intervention
 commitment/completion and typed state effects qualify as an ACCEPT consequence.
+
+## F05_FIX18 V7 amendment
+
+F05_FIX18 advances the authoritative snapshot contract to
+`SerializedSimulationSnapshotV7` / format version 7. V7 adds only the sparse
+`WorldState.coupCoordinationResponses` map and its strict action/event
+provenance. The map is indexed by coup `ConflictId` and authored required-node
+ID; absence is the uncommitted state, while the only stored alignments are
+`incumbent` and `coup`.
+
+The V7 decoder rejects V6 and older envelopes, missing response maps, unknown
+or mismatched conflict/node keys, invalid alignments/ticks, duplicate decisive
+responses, missing or incompatible `COUP_COORDINATION_RESPONSE` ActionRecords,
+and missing or mismatched `COUP_COORDINATION_NODE_RESPONDED` events. T024
+roundtrip and replay checks therefore cover empty, partial, and resolved coup
+response state without serializing ScenarioDefinition authoring data or any
+derived read model.

@@ -1,6 +1,7 @@
 import {
   createDeterministicActionId,
   decodeFactionAction,
+  decodeCoupCoordinationResponseAction,
   decodeTargetedFactionFundMovementAction,
   decodeRespondPoliticalProposalAction,
   decodeStartInterventionAction,
@@ -9,7 +10,17 @@ import {
   type ActionRecord,
   type ValidatedActionRecord,
 } from "../state/action";
-import type { ConflictOutcome, ConflictWinner } from "../state/conflict";
+import type {
+  Conflict,
+  ConflictOutcome,
+  ConflictWinner,
+} from "../state/conflict";
+import {
+  COUP_COORDINATION_ALIGNMENTS,
+  findCoupCoordinationProfilesForConflict,
+  type CoupCoordinationProfile,
+  type CoupCoordinationResponseState,
+} from "../state/coupCoordination";
 import {
   createDeterministicInterventionCommitmentId,
   assertScenarioInterventionCatalog,
@@ -603,6 +614,175 @@ function assertPoliticalProposalProvenance(
   }
 }
 
+function assertCoupCoordinationResponseProvenance(
+  scenario: ScenarioDefinition,
+  world: WorldState,
+): void {
+  const actionsById = new Map<string, ActionRecord>();
+  for (const action of world.run.actionLog) {
+    actionsById.set(action.id, action);
+  }
+
+  const responseEventIds = new Set<string>();
+  for (const [conflictId, responsesByNode] of Object.entries(
+    world.coupCoordinationResponses ?? {},
+  )) {
+    const conflict =
+      world.conflicts[conflictId as keyof typeof world.conflicts];
+    if (conflict === undefined || conflict.kind !== "coup") {
+      throw new Error(
+        `Coup Coordination responses reference a non-coup or missing Conflict ${conflictId}.`,
+      );
+    }
+
+    const profiles = findCoupCoordinationProfilesForConflict(
+      scenario,
+      conflict,
+    );
+    if (profiles.length !== 1) {
+      throw new Error(
+        `Coup Conflict ${conflictId} does not have exactly one authored Coup Coordination profile.`,
+      );
+    }
+    const profile = profiles[0]!;
+    const requiredNodeIds = new Set(profile.requiredNodeIds);
+
+    for (const [nodeId, response] of Object.entries(responsesByNode)) {
+      assertCoupCoordinationResponseIdentity(
+        scenario,
+        conflictId,
+        nodeId,
+        response,
+      );
+
+      if (!requiredNodeIds.has(response.nodeId)) {
+        throw new Error(
+          `Coup Coordination response ${response.eventId} references a non-required node.`,
+        );
+      }
+
+      if (responseEventIds.has(response.eventId)) {
+        throw new Error(
+          `Coup Coordination response event ${response.eventId} is duplicated.`,
+        );
+      }
+      responseEventIds.add(response.eventId);
+
+      const action = actionsById.get(response.actionId);
+      if (
+        action === undefined ||
+        action.validationOutcome.kind !== "accepted" ||
+        action.tick !== response.respondedAtTick
+      ) {
+        throw new Error(
+          `Coup Coordination response ${response.eventId} has missing or mismatched ActionRecord provenance.`,
+        );
+      }
+
+      const payload = decodeCoupCoordinationResponseAction(
+        action as ValidatedActionRecord,
+      );
+      if (
+        payload === null ||
+        payload.conflictId !== response.conflictId ||
+        payload.nodeId !== response.nodeId ||
+        payload.alignment !== response.alignment
+      ) {
+        throw new Error(
+          `Coup Coordination response ${response.eventId} does not match its ActionRecord payload.`,
+        );
+      }
+    }
+
+    assertCoupCoordinationOutcomeConsistency(
+      conflict,
+      profile,
+      responsesByNode,
+    );
+  }
+}
+
+function assertCoupCoordinationResponseIdentity(
+  scenario: ScenarioDefinition,
+  conflictId: string,
+  nodeId: string,
+  response: CoupCoordinationResponseState,
+): void {
+  if (
+    response.conflictId !== conflictId ||
+    response.nodeId !== nodeId ||
+    !COUP_COORDINATION_ALIGNMENTS.includes(response.alignment) ||
+    response.actionId.length === 0 ||
+    response.eventId.length === 0 ||
+    !Number.isInteger(response.respondedAtTick) ||
+    response.respondedAtTick < 0
+  ) {
+    throw new Error(
+      `Coup Coordination response ${conflictId}/${nodeId} has invalid identity or alignment.`,
+    );
+  }
+
+  const node = (scenario.coupCoordinationNodes ?? []).find(
+    (candidate) => candidate.id === response.nodeId,
+  );
+  if (node === undefined) {
+    throw new Error(
+      `Coup Coordination response ${response.eventId} references an unknown node.`,
+    );
+  }
+}
+
+function assertCoupCoordinationOutcomeConsistency(
+  conflict: Conflict,
+  profile: Pick<
+    CoupCoordinationProfile,
+    "countryId" | "coupFactionId" | "requiredNodeIds" | "successorGovernmentId"
+  >,
+  responsesByNode: Readonly<Record<string, CoupCoordinationResponseState>>,
+): void {
+  const requiredResponses = profile.requiredNodeIds.map(
+    (nodeId) => responsesByNode[nodeId],
+  );
+  const anyIncumbent = requiredResponses.some(
+    (response) => response?.alignment === "incumbent",
+  );
+  const allCoup = requiredResponses.every(
+    (response) => response?.alignment === "coup",
+  );
+
+  if (conflict.status === "active" && (anyIncumbent || allCoup)) {
+    throw new Error(
+      `Active Coup Conflict ${conflict.id} has a complete decisive response set without an outcome.`,
+    );
+  }
+
+  if (conflict.status !== "resolved" || conflict.outcome === undefined) {
+    return;
+  }
+
+  if (conflict.outcome.kind === "statusQuo") {
+    if (!anyIncumbent) {
+      throw new Error(
+        `Resolved Coup Conflict ${conflict.id} statusQuo lacks an incumbent response.`,
+      );
+    }
+    return;
+  }
+
+  if (
+    conflict.outcome.kind !== "governmentTransition" ||
+    !allCoup ||
+    conflict.outcome.countryId !== profile.countryId ||
+    conflict.outcome.nextGovernmentId !== profile.successorGovernmentId ||
+    conflict.outcome.winner.kind !== "faction" ||
+    conflict.outcome.winner.factionId !== profile.coupFactionId
+  ) {
+    throw new Error(
+      `Resolved Coup Conflict ${conflict.id} outcome does not match its decisive response set.`,
+    );
+  }
+}
+
 /** Validate only the append-only ActionRecord suffix at a trusted step. */
 export function assertActionRecordDelta(
   previousWorld: WorldState,
@@ -779,6 +959,7 @@ export function assertScenarioRuntimeClosure(
   assertActionCommitmentProvenance(scenario, world);
   assertFactionFundMovementCommitmentProvenance(scenario, world);
   assertPoliticalProposalProvenance(scenario, world);
+  assertCoupCoordinationResponseProvenance(scenario, world);
   assertConflictOutcomeReferences(world);
 }
 
@@ -849,5 +1030,6 @@ export function assertScenarioRuntimeClosureIncremental(
   assertInterventionCommitmentDelta(scenario, previousWorld, nextWorld);
   assertFactionFundMovementCommitmentDelta(scenario, previousWorld, nextWorld);
   assertPoliticalProposalProvenance(scenario, nextWorld);
+  assertCoupCoordinationResponseProvenance(scenario, nextWorld);
   assertConflictOutcomeReferences(nextWorld);
 }
