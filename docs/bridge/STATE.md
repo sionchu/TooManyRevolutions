@@ -18,35 +18,38 @@ F05_FIX15: War-as-Politics requires new authoritative domain
 F05_FIX16: COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE / PASS / ACCEPTED
 F05_FIX17: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED / PASS / ACCEPTED
 F05_FIX18: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE_IMPLEMENTED / PASS / ACCEPTED
+F05_FIX19: COUP_RESPONSE_SOURCE_EXTERNAL_INPUT_ONLY_AT_CURRENT_SCOPE / PASS / ACCEPTED
 ```
 
-## F05_FIX18 accepted result
+## F05_FIX19 accepted result
 
 ```text
-REVIEWED_HEAD: ccde3f4299b39d03ee80f097381c1efd4dd678e6
-PRIMARY_CLASSIFICATION: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE_IMPLEMENTED
-RUNTIME_STATE: SPARSE_DECISIVE_NODE_RESPONSES_BY_COUP_CONFLICT
-ACTION_TYPE: COUP_COORDINATION_RESPONSE
-OUTCOME_SINK: EXISTING_APPLY_CONFLICT_OUTCOME
-AUTONOMOUS_RESPONSE_PRODUCER: NO
-PERSISTENCE_FORMAT: V7
-NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_RESPONSE_SOURCE_GROUNDING
-```
-
-The accepted FIX18 seam resolves only explicit decisive node responses. It does not justify how production node responses are generated.
-
-## Current authorization
-
-```text
-CURRENT_TASK_ID: F05_FIX19
-CURRENT_TASK_STATUS: AUTHORIZED
-TASK_FILE: docs/bridge/tasks/F05_FIX19.md
-IMPLEMENTATION_BASE: ccde3f4299b39d03ee80f097381c1efd4dd678e6
 REVIEW_BRANCH: f05-fix19-review
-NEXT_AUTHORIZED_TASK_ID: F05_FIX19
+REVIEW_BASE: ccde3f4299b39d03ee80f097381c1efd4dd678e6
+REVIEWED_HEAD: e300fb2e51435e0f1eeedc1c2dd3db006ac0c08e
+PRIMARY_CLASSIFICATION: COUP_RESPONSE_SOURCE_EXTERNAL_INPUT_ONLY_AT_CURRENT_SCOPE
+EXISTING_WORLDSTATE_SUFFICIENT: NO
+GENERIC_SCALAR_INFERENCE_ALLOWED: NO
+RANDOM_OR_TIMER_ALLOWED: NO
+PREAUTHORED_ALIGNMENT_ALLOWED: NO
+LLM_DIRECT_MUTATION_ALLOWED: NO
+FIX18_RESPONSE_SEAM_REUSED: YES
+PERSISTENCE_FORMAT: V7_UNCHANGED
+NEXT_IMPLEMENTATION_READINESS: EXPLICIT_RESPONSE_INPUT_INTEGRATION_ONLY
 ```
 
-F05_FIX19 is docs-only Coup Coordination response-source grounding. It must determine whether a minimal signal/decision domain is historically and architecturally defensible before any autonomous producer is implemented.
+The accepted grounding finds no existing authoritative node-level information, expectation, command, or public-signal domain sufficient to generate autonomous `incumbent | coup` responses. Existing Country/Faction/Government/Agenda/Region/territorial scalars and labels cannot be promoted into a response writer. RNG, timers, hidden scores, pre-authored final alignment, node-name inference, and direct LLM mutation remain forbidden.
+
+The currently grounded response source is therefore explicit schema-valid external input entering the existing F05_FIX18 `COUP_COORDINATION_RESPONSE` ActionRecord path. This is a replayable input boundary, not evidence that autonomous coup coordination has been solved, and it makes no Gate 1F pacing-improvement claim.
+
+## Authorization
+
+```text
+CURRENT_TASK_ID: NONE
+CURRENT_TASK_STATUS: WAITING_FOR_USER_NEXT
+F05_FIX20: NOT_AUTHORIZED
+NEXT_AUTHORIZED_TASK_ID: NONE
+```
 
 ## Preserved architecture constraints
 
@@ -61,9 +64,7 @@ F05_FIX19 is docs-only Coup Coordination response-source grounding. It must dete
 - no random/timer/majority coup resolution;
 - no scalar/label/Agenda/territory inference of coup-node alignment;
 - no pre-authored initial coup-node alignment;
-- no autonomous coup-node response producer until separately grounded and authorized;
+- no autonomous coup-node response producer at the accepted current scope;
 - no FUND_MOVEMENT extension;
 - rebellion persistence remains unresolved and separate;
-- no persistence V8 in F05_FIX19;
-- no V02 until Gate 1F PASS;
-- no F05_FIX20 self-authorization.
+- no V02 until Gate 1F PASS.
