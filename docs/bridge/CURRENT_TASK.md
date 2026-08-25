@@ -6,7 +6,9 @@ BASE_IMPLEMENTATION_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
 BASE_IMPLEMENTATION_BRANCH: f05-fix23-review
 WORK_BRANCH: gamebuilders-demo-sprint-01
 TASK_FILE: docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01.md
+TIMEFLOW_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01_TIMEFLOW_ADDENDUM.md
 DEPLOYMENT_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01_DEPLOYMENT_ADDENDUM.md
+OVERNIGHT_CONTINUATION: docs/bridge/tasks/GAMEBUILDERS_OVERNIGHT_CONTINUATION_01.md
 RESULT_PATH: docs/bridge/results/GAMEBUILDERS_DEMO_SPRINT_01_RESULT.md
 
 ## Event sprint override
@@ -20,20 +22,26 @@ GATE1F: NOT_READY
 V02: NOT_STARTED
 ```
 
-`F05_FIX24` was authorized previously but is now **DEFERRED_FOR_GAMEBUILDERS** before review/acceptance. Its historical task file remains as an audit artifact. Do not execute F05_FIX24 or F05_FIX25 during this sprint.
+`F05_FIX24` was authorized previously but is deferred while the GameBuilders P0 demo is built. The overnight continuation explicitly permits F05_FIX24 to resume **docs-only** after the playable/deployed demo, horizon audit, and product QA are safely committed.
 
 ## Mission
 
-Execute the full authorized overnight sprint in `docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01.md` **and the mandatory ChatGPT Sites deployment addendum** in `docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01_DEPLOYMENT_ADDENDUM.md`.
+Execute the full authorized overnight queue in this order:
 
-The sprint is one continuous task with internal checkpoints. Codex Desktop is explicitly authorized to continue from checkpoint to checkpoint without waiting for human review, committing and pushing after each checkpoint.
+1. `docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01.md`
+2. `docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01_TIMEFLOW_ADDENDUM.md`
+3. `docs/bridge/tasks/GAMEBUILDERS_DEMO_SPRINT_01_DEPLOYMENT_ADDENDUM.md`
+4. `docs/bridge/tasks/GAMEBUILDERS_OVERNIGHT_CONTINUATION_01.md`
+
+This is one unattended 4–5 hour work window. Codex Desktop is explicitly authorized to continue through all internal checkpoints and the bounded continuation queue without waiting for human review, committing and pushing at safe checkpoints.
 
 Target outcome:
 
 ```text
 product title/start/reset
 + deterministic curated demo scenario
-+ real simulation time controls
++ continuous pause/play/speed-controlled daily simulation
++ optional (not forced) important-event auto-pause
 + actual policy/intervention actions through common intake
 + state HUD
 + SVG hex map
@@ -41,12 +49,26 @@ product title/start/reset
 + factual EventStore feed and crisis presentation
 + coherent 2D art direction
 + presentation-only sound if stable
-+ demo QA checklist
++ deterministic 0–20y demo-scenario horizon audit
++ demo QA / repair pass
 + exact 3-minute capture shot list
-+ ChatGPT Sites deployment / real Site URL
++ ChatGPT Sites deployment / real Site URL or maximum available preview
++ if time remains: F05_FIX24 docs-only grounding and conditional next-FIX design memo only
 ```
 
-The final deployment target is **ChatGPT Sites from Codex Desktop**, not GitHub Pages. Codex should invoke Sites explicitly (`@Sites` if needed), deploy the real playable demo, and verify the actual Site URL. If public publishing is unavailable because of account/workspace controls, use the maximum available Sites preview/share access and report the limitation honestly rather than blocking the whole sprint.
+## Critical pacing rule
+
+Fast-forward is not a substitute for Gate 1F. Faster wall-clock time can expose the known late-state interaction stall earlier. Therefore speed presets must be selected after the actual GameBuilders demo scenario horizon audit, and the final result must report `DEMO_HORIZON_STATUS` honestly.
+
+Do not hide a core stall merely by reducing speed. If the likely 3–8 minute judging session can reach a structural stall, treat that as a demo blocker and first tune only safe GameBuilders scenario authoring/presentation. If authoritative core semantics are required, record the blocker for F05 rather than smuggling in a hidden mechanic.
+
+## Time-flow rule
+
+The player controls time flow through pause/play and speed presets. Every simulated day still runs one authoritative daily SimulationStep in order. Major-event automatic pause is a user-configurable presentation option, not a mandatory game rule.
+
+## Sites
+
+The deployment target is ChatGPT Sites from Codex Desktop. Deploy/preview the actual playable application, not a mock. Verify the available Site URL/preview itself where tooling permits. If public publishing is blocked by account/workspace settings, record the maximum available Sites state and exact blocker without derailing the rest of the sprint.
 
 ## Hard boundaries
 
@@ -56,15 +78,15 @@ The final deployment target is **ChatGPT Sites from Codex Desktop**, not GitHub 
 - no fake Agenda/EventStore facts;
 - no fake/mock simulation for Sites;
 - no new hidden pacing score/timer/RNG mechanic;
-- no new F05 evidence/settlement domain work;
+- no unreviewed new F05 evidence/settlement runtime writer;
 - no persistence V9;
 - no Three.js/new 3D pipeline;
 - no LLM/server dependency;
 - no copyrighted/unlicensed downloaded media;
-- no GitHub Pages/other hosting fallback during the overnight sprint unless user later authorizes it;
 - accepted persistence remains V8;
 - Gate 1F remains NOT_READY;
 - V02 remains NOT_STARTED;
-- no successor task self-authorization.
+- F05_FIX24 may only resume in its existing docs-only scope after demo safety work;
+- no F05_FIX25 implementation/self-authorization; at most the explicitly permitted conditional design memo.
 
-Execute only the main sprint task plus its mandatory Sites deployment addendum, then stop after publishing the final result and Sites deployment status.
+Stop only after the applicable overnight queue is exhausted or a documented stop condition in `GAMEBUILDERS_OVERNIGHT_CONTINUATION_01.md` is reached.
