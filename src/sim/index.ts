@@ -27,6 +27,7 @@ export * from "./state/interventionFixture";
 export * from "./state/policy";
 export * from "./state/policyFixture";
 export * from "./state/politicalCrisisFixture";
+export * from "./state/rebellionPersistence";
 export * from "./state/region";
 export * from "./state/run";
 export * from "./state/scenario";

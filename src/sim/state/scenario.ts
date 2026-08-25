@@ -16,6 +16,7 @@ import {
   type IdeologyId,
   type InterventionId,
   type PolicyId,
+  type RebellionOperationalChannelId,
   type RegionId,
   type ScenarioId,
 } from "./ids";
@@ -27,6 +28,17 @@ export type {
   CoupCoordinationNodeDefinition,
   CoupCoordinationProfile,
 } from "./coupCoordination";
+import {
+  REBELLION_OPERATIONAL_CHANNEL_KINDS,
+  type RebellionOperationalChannelDefinition,
+  type RebellionPersistenceProfile,
+} from "./rebellionPersistence";
+export { REBELLION_OPERATIONAL_CHANNEL_KINDS } from "./rebellionPersistence";
+export type {
+  RebellionOperationalChannelDefinition,
+  RebellionOperationalChannelKind,
+  RebellionPersistenceProfile,
+} from "./rebellionPersistence";
 import type { PolicyDefinition, PolicyState } from "./policy";
 import type { ScenarioRegion } from "./region";
 import type { SovereignFunction } from "./run";
@@ -121,6 +133,8 @@ export interface ScenarioDefinition {
   >;
   readonly factionProposalTemplates?: readonly FactionProposalTemplate[];
   readonly factionFundMovementTemplates?: readonly FactionFundMovementTemplate[];
+  readonly rebellionOperationalChannels?: readonly RebellionOperationalChannelDefinition[];
+  readonly rebellionPersistenceProfiles?: readonly RebellionPersistenceProfile[];
   readonly coupCoordinationNodes?: CoupCoordinationNodeDefinitions;
   readonly coupCoordinationProfiles?: readonly CoupCoordinationProfile[];
   readonly initialCountryPolicies: Readonly<Record<CountryId, PolicyState>>;
@@ -473,6 +487,198 @@ export function assertScenarioCoupCoordinationAuthoring(
   }
 }
 
+/** Validate the static, scenario-authored rebellion-persistence seam only. */
+export function assertScenarioRebellionPersistenceAuthoring(
+  scenario: Pick<
+    ScenarioDefinition,
+    | "initialCountries"
+    | "initialFactions"
+    | "factionCapabilities"
+    | "rebellionOperationalChannels"
+    | "rebellionPersistenceProfiles"
+  >,
+): void {
+  const countriesById = new Map(
+    scenario.initialCountries.map((country) => [country.id, country]),
+  );
+  const factionsById = new Map(
+    scenario.initialFactions.map((faction) => [faction.id, faction]),
+  );
+  const channelsById = new Map<
+    RebellionOperationalChannelId,
+    RebellionOperationalChannelDefinition
+  >();
+
+  for (const channel of scenario.rebellionOperationalChannels ?? []) {
+    if (channel.id.length === 0) {
+      throw new Error(
+        "Rebellion operational channel identity must not be empty.",
+      );
+    }
+
+    if (channelsById.has(channel.id)) {
+      throw new Error(
+        "Rebellion operational channels repeat " + channel.id + ".",
+      );
+    }
+
+    if (!countriesById.has(channel.countryId)) {
+      throw new Error(
+        "Rebellion operational channel " +
+          channel.id +
+          " references missing country " +
+          channel.countryId +
+          ".",
+      );
+    }
+
+    if (!REBELLION_OPERATIONAL_CHANNEL_KINDS.includes(channel.kind)) {
+      throw new Error(
+        "Rebellion operational channel " +
+          channel.id +
+          " has an invalid kind " +
+          channel.kind +
+          ".",
+      );
+    }
+
+    if (channel.name.trim().length === 0) {
+      throw new Error(
+        "Rebellion operational channel " +
+          channel.id +
+          " must have a non-empty name.",
+      );
+    }
+
+    channelsById.set(channel.id, channel);
+  }
+
+  const profileIds = new Set<string>();
+  const profileFactionIdsByCountry = new Map<CountryId, Set<FactionId>>();
+
+  for (const profile of scenario.rebellionPersistenceProfiles ?? []) {
+    if (profile.id.length === 0) {
+      throw new Error(
+        "Rebellion persistence profile identity must not be empty.",
+      );
+    }
+
+    if (profileIds.has(profile.id)) {
+      throw new Error(
+        "Rebellion persistence profiles repeat " + profile.id + ".",
+      );
+    }
+    profileIds.add(profile.id);
+
+    if (!countriesById.has(profile.countryId)) {
+      throw new Error(
+        "Rebellion persistence profile " +
+          profile.id +
+          " references missing country " +
+          profile.countryId +
+          ".",
+      );
+    }
+
+    const faction = factionsById.get(profile.factionId);
+    if (faction === undefined) {
+      throw new Error(
+        "Rebellion persistence profile " +
+          profile.id +
+          " references missing faction " +
+          profile.factionId +
+          ".",
+      );
+    }
+
+    if (faction.countryId !== profile.countryId) {
+      throw new Error(
+        "Rebellion persistence profile " +
+          profile.id +
+          " faction " +
+          profile.factionId +
+          " must belong to country " +
+          profile.countryId +
+          ".",
+      );
+    }
+
+    const capabilities =
+      scenario.factionCapabilities?.[profile.factionId] ?? [];
+    if (!capabilities.includes("rebellion")) {
+      throw new Error(
+        "Rebellion persistence profile " +
+          profile.id +
+          " faction " +
+          profile.factionId +
+          " must have the rebellion capability.",
+      );
+    }
+
+    let profileFactionIds = profileFactionIdsByCountry.get(profile.countryId);
+    if (profileFactionIds === undefined) {
+      profileFactionIds = new Set<FactionId>();
+      profileFactionIdsByCountry.set(profile.countryId, profileFactionIds);
+    }
+
+    if (profileFactionIds.has(profile.factionId)) {
+      throw new Error(
+        "Rebellion persistence profile repeats Country/Faction pair " +
+          profile.countryId +
+          "/" +
+          profile.factionId +
+          ".",
+      );
+    }
+    profileFactionIds.add(profile.factionId);
+
+    if (profile.channelIds.length === 0) {
+      throw new Error(
+        "Rebellion persistence profile " +
+          profile.id +
+          " must reference at least one channel.",
+      );
+    }
+
+    const channelIds = new Set<RebellionOperationalChannelId>();
+    for (const channelId of profile.channelIds) {
+      if (channelIds.has(channelId)) {
+        throw new Error(
+          "Rebellion persistence profile " +
+            profile.id +
+            " repeats channel " +
+            channelId +
+            ".",
+        );
+      }
+      channelIds.add(channelId);
+
+      const channel = channelsById.get(channelId);
+      if (channel === undefined) {
+        throw new Error(
+          "Rebellion persistence profile " +
+            profile.id +
+            " references missing channel " +
+            channelId +
+            ".",
+        );
+      }
+
+      if (channel.countryId !== profile.countryId) {
+        throw new Error(
+          "Rebellion persistence profile " +
+            profile.id +
+            " channel " +
+            channelId +
+            " must belong to country " +
+            profile.countryId +
+            ".",
+        );
+      }
+    }
+  }
+}
+
 /** Validate the static topology owned by one ScenarioDefinition. */
 export function assertScenarioDefinition(scenario: ScenarioDefinition): void {
   assertScenarioContactTopology(scenario);
@@ -480,6 +686,7 @@ export function assertScenarioDefinition(scenario: ScenarioDefinition): void {
   assertScenarioFactionCapabilities(scenario);
   assertScenarioFactionProposalTemplates(scenario);
   assertScenarioFactionFundMovementTemplates(scenario);
+  assertScenarioRebellionPersistenceAuthoring(scenario);
   assertScenarioCoupCoordinationAuthoring(scenario);
 }
 

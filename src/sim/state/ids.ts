@@ -13,6 +13,14 @@ export type GovernmentId = Brand<string, "GovernmentId">;
 export type ScenarioId = Brand<string, "ScenarioId">;
 export type ContactEdgeId = Brand<string, "ContactEdgeId">;
 export type CoupCoordinationNodeId = Brand<string, "CoupCoordinationNodeId">;
+export type RebellionOperationalChannelId = Brand<
+  string,
+  "RebellionOperationalChannelId"
+>;
+export type RebellionPersistenceProfileId = Brand<
+  string,
+  "RebellionPersistenceProfileId"
+>;
 export type InterventionId = Brand<string, "InterventionId">;
 export type InterventionCommitmentId = Brand<
   string,
@@ -56,6 +64,12 @@ export const asContactEdgeId = (value: string): ContactEdgeId =>
 export const asCoupCoordinationNodeId = (
   value: string,
 ): CoupCoordinationNodeId => value as CoupCoordinationNodeId;
+export const asRebellionOperationalChannelId = (
+  value: string,
+): RebellionOperationalChannelId => value as RebellionOperationalChannelId;
+export const asRebellionPersistenceProfileId = (
+  value: string,
+): RebellionPersistenceProfileId => value as RebellionPersistenceProfileId;
 export const asInterventionId = (value: string): InterventionId =>
   value as InterventionId;
 export const asInterventionCommitmentId = (
