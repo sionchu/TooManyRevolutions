@@ -178,6 +178,27 @@ function responseEventTypes(
   return result.emittedEvents.map((event) => event.type);
 }
 
+function responseRejectionEvents(result: ReturnType<typeof runResponseStep>) {
+  return result.emittedEvents.filter(
+    (event) => event.type === "COUP_COORDINATION_RESPONSE_REJECTED",
+  );
+}
+
+function responseRejectionReasons(
+  result: ReturnType<typeof runResponseStep>,
+): readonly unknown[] {
+  return responseRejectionEvents(result).map((event) => {
+    if (
+      typeof event.payload !== "object" ||
+      event.payload === null ||
+      Array.isArray(event.payload)
+    ) {
+      throw new Error("F05_FIX18 rejection event payload is not an object.");
+    }
+    return (event.payload as Readonly<Record<string, unknown>>).reason;
+  });
+}
+
 describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
   it("accepts the exact v1 action schema and rejects extra, missing, and uncommitted payloads", () => {
     const scenario = createRuntimeScenario();
@@ -253,6 +274,48 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
     ).toBeNull();
   });
 
+  it("emits bounded schema rejection provenance and preserves same-tick event order", () => {
+    const scenario = createRuntimeScenario();
+    const world = createInitialWorldState(scenario, 18018);
+    const malformed = acceptActionProposal(
+      {
+        ...createCoupCoordinationResponseActionProposal(
+          1,
+          "player",
+          CONFLICT_ID,
+          NODE_A,
+          "coup",
+        ),
+        payload: {
+          conflictId: CONFLICT_ID,
+          nodeId: NODE_A,
+          alignment: "coup",
+          extra: "reject",
+        },
+      },
+      0,
+    );
+    const valid = createAction(world, NODE_A, "coup", 1);
+    const result = runResponseStep(scenario, world, [malformed, valid]);
+    const rejection = responseRejectionEvents(result)[0];
+    const response = result.emittedEvents.find(
+      (event) => event.type === "COUP_COORDINATION_NODE_RESPONDED",
+    );
+
+    expect(responseRejectionReasons(result)).toEqual(["invalidPayload"]);
+    expect(rejection?.payload).toEqual({
+      actionId: malformed.id,
+      reason: "invalidPayload",
+    });
+    expect(rejection?.sequence).toBe(0);
+    expect(response?.sequence).toBe(1);
+    expect(result.nextWorld.coupCoordinationResponses).toEqual({
+      [CONFLICT_ID]: {
+        [NODE_A]: expect.objectContaining({ actionId: valid.id }),
+      },
+    });
+  });
+
   it("rejects missing, resolved, and non-coup conflicts without mutating response state", () => {
     const scenario = createRuntimeScenario();
     const world = createInitialWorldState(scenario, 18018);
@@ -270,6 +333,9 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
     );
     const missingResult = runResponseStep(scenario, world, [missing]);
     expect(missingResult.nextWorld.coupCoordinationResponses).toEqual({});
+    expect(responseRejectionReasons(missingResult)).toEqual([
+      "missingConflict",
+    ]);
     expect(responseEventTypes(missingResult)).not.toContain(
       "COUP_COORDINATION_NODE_RESPONDED",
     );
@@ -285,11 +351,13 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
         },
       },
     };
-    expect(
-      runResponseStep(scenario, resolvedWorld, [
-        createAction(resolvedWorld, NODE_A, "coup"),
-      ]).nextWorld.coupCoordinationResponses,
-    ).toEqual({});
+    const resolvedResult = runResponseStep(scenario, resolvedWorld, [
+      createAction(resolvedWorld, NODE_A, "coup"),
+    ]);
+    expect(resolvedResult.nextWorld.coupCoordinationResponses).toEqual({});
+    expect(responseRejectionReasons(resolvedResult)).toEqual([
+      "conflictResolved",
+    ]);
 
     const nonCoupScenario = {
       ...scenario,
@@ -298,11 +366,13 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
       ],
     };
     const nonCoupWorld = createInitialWorldState(nonCoupScenario, 18018);
-    expect(
-      runResponseStep(nonCoupScenario, nonCoupWorld, [
-        createAction(nonCoupWorld, NODE_A, "coup"),
-      ]).nextWorld.coupCoordinationResponses,
-    ).toEqual({});
+    const nonCoupResult = runResponseStep(nonCoupScenario, nonCoupWorld, [
+      createAction(nonCoupWorld, NODE_A, "coup"),
+    ]);
+    expect(nonCoupResult.nextWorld.coupCoordinationResponses).toEqual({});
+    expect(responseRejectionReasons(nonCoupResult)).toEqual([
+      "nonCoupConflict",
+    ]);
   });
 
   it("rejects missing/ambiguous profiles and non-required or foreign nodes", () => {
@@ -312,11 +382,13 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
       includeAuthoring: false,
     });
     const noProfileWorld = createInitialWorldState(noProfileScenario, 18018);
-    expect(
-      runResponseStep(noProfileScenario, noProfileWorld, [
-        createAction(noProfileWorld, NODE_A, "coup"),
-      ]).nextWorld.coupCoordinationResponses,
-    ).toEqual({});
+    const noProfileResult = runResponseStep(noProfileScenario, noProfileWorld, [
+      createAction(noProfileWorld, NODE_A, "coup"),
+    ]);
+    expect(noProfileResult.nextWorld.coupCoordinationResponses).toEqual({});
+    expect(responseRejectionReasons(noProfileResult)).toEqual([
+      "missingOrAmbiguousProfile",
+    ]);
 
     const ambiguousScenario = {
       ...authored,
@@ -325,18 +397,38 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
         { ...authored.coupCoordinationProfiles![0]! },
       ],
     };
-    expect(
-      runResponseStep(ambiguousScenario, world, [
-        createAction(world, NODE_A, "coup"),
-      ]).nextWorld.coupCoordinationResponses,
-    ).toEqual({});
+    const ambiguousResult = runResponseStep(ambiguousScenario, world, [
+      createAction(world, NODE_A, "coup"),
+    ]);
+    expect(ambiguousResult.nextWorld.coupCoordinationResponses).toEqual({});
+    expect(responseRejectionReasons(ambiguousResult)).toEqual([
+      "missingOrAmbiguousProfile",
+    ]);
 
     const unknownNode = asCoupCoordinationNodeId("f018.unknown-node");
-    expect(
-      runResponseStep(authored, world, [
-        createAction(world, unknownNode, "coup"),
-      ]).nextWorld.coupCoordinationResponses,
-    ).toEqual({});
+    const unknownNodeResult = runResponseStep(authored, world, [
+      createAction(world, unknownNode, "coup"),
+    ]);
+    expect(unknownNodeResult.nextWorld.coupCoordinationResponses).toEqual({});
+    expect(responseRejectionReasons(unknownNodeResult)).toEqual([
+      "nonRequiredNode",
+    ]);
+
+    const foreignNodeScenario = {
+      ...authored,
+      coupCoordinationNodes: authored.coupCoordinationNodes!.map((node) =>
+        node.id === NODE_B
+          ? { ...node, countryId: asCountryId("f018.foreign-country") }
+          : node,
+      ),
+    };
+    const foreignNodeResult = runResponseStep(foreignNodeScenario, world, [
+      createAction(world, NODE_B, "coup"),
+    ]);
+    expect(foreignNodeResult.nextWorld.coupCoordinationResponses).toEqual({});
+    expect(responseRejectionReasons(foreignNodeResult)).toEqual([
+      "invalidProfileReferences",
+    ]);
   });
 
   it("keeps a partial coup active and records only decisive accepted responses", () => {
@@ -377,6 +469,7 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
     expect(responseEventTypes(second)).not.toContain(
       "COUP_COORDINATION_NODE_RESPONDED",
     );
+    expect(responseRejectionReasons(second)).toEqual(["duplicateResponse"]);
   });
 
   it("resolves all-coup through applyConflictOutcome with Country continuity and no LandHex mutation", () => {
@@ -471,6 +564,9 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
       },
     });
     expect(equalResult.nextWorld.conflicts[CONFLICT_ID]!.status).toBe("active");
+    expect(responseRejectionReasons(equalResult)).toEqual([
+      "staleSuccessorGovernment",
+    ]);
 
     const missingWorld: WorldState = {
       ...world,
@@ -497,6 +593,9 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
     expect(missingResult.nextWorld.conflicts[CONFLICT_ID]!.status).toBe(
       "active",
     );
+    expect(responseRejectionReasons(missingResult)).toEqual([
+      "staleSuccessorGovernment",
+    ]);
   });
 
   it("is deterministic under required-set insertion order and same-tick action replay", () => {
@@ -669,6 +768,64 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
     ).toEqual(partial.world.coupCoordinationResponses);
   });
 
+  it("round-trips rejection evidence and rejects forged rejection provenance", () => {
+    const scenario = createRuntimeScenario();
+    const initial = createRecord(scenario);
+    const malformed = acceptActionProposal(
+      {
+        ...createCoupCoordinationResponseActionProposal(
+          1,
+          "player",
+          CONFLICT_ID,
+          NODE_A,
+          "coup",
+        ),
+        payload: {
+          conflictId: CONFLICT_ID,
+          nodeId: NODE_A,
+          alignment: "coup",
+          extra: "reject",
+        },
+      },
+      0,
+    );
+    const record = commitResponseStep(scenario, initial, [malformed]);
+    const rejection = record.eventStore.events.find(
+      (event) => event.type === "COUP_COORDINATION_RESPONSE_REJECTED",
+    );
+    expect(rejection?.payload).toEqual({
+      actionId: malformed.id,
+      reason: "invalidPayload",
+    });
+    expect(
+      serializeSimulationSnapshotJson(
+        scenario,
+        deserializeSimulationSnapshot(
+          scenario,
+          serializeSimulationSnapshot(scenario, record),
+        ),
+      ),
+    ).toBe(serializeSimulationSnapshotJson(scenario, record));
+
+    const corrupted = JSON.parse(
+      serializeSimulationSnapshotJson(scenario, record),
+    ) as {
+      eventStore: {
+        events: Array<{ type: string; payload: Record<string, unknown> }>;
+      };
+    };
+    const corruptedRejection = corrupted.eventStore.events.find(
+      (event) => event.type === "COUP_COORDINATION_RESPONSE_REJECTED",
+    );
+    if (corruptedRejection === undefined) {
+      throw new Error("F05_FIX18 rejection event fixture is missing.");
+    }
+    corruptedRejection.payload.reason = "missingConflict";
+    expect(() => deserializeSimulationSnapshot(scenario, corrupted)).toThrow(
+      "does not match invalid ActionRecord provenance",
+    );
+  });
+
   it("rejects unsupported action schema versions before runtime resolution", () => {
     const scenario = createRuntimeScenario();
     const world = createInitialWorldState(scenario, 18018);
@@ -686,10 +843,11 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
       0,
     );
     expect(decodeCoupCoordinationResponseAction(action)).toBeNull();
-    expect(
-      runResponseStep(scenario, world, [action]).nextWorld
-        .coupCoordinationResponses,
-    ).toEqual({});
+    const result = runResponseStep(scenario, world, [action]);
+    expect(result.nextWorld.coupCoordinationResponses).toEqual({});
+    expect(responseRejectionReasons(result)).toEqual([
+      "unsupportedSchemaVersion",
+    ]);
   });
 
   it("rejects an authored node whose runtime country no longer matches the profile", () => {
@@ -739,6 +897,7 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
       result.nextWorld.coupCoordinationResponses![CONFLICT_ID]![NODE_A]!
         .alignment,
     ).toBe("coup");
+    expect(responseRejectionReasons(result)).toEqual(["duplicateResponse"]);
   });
 
   it("includes the incumbent response event as the deterministic status-quo cause", () => {

@@ -4,22 +4,64 @@ import type {
 } from "../core/step";
 import { createGameEvent, type GameEvent } from "../events/event";
 import {
+  COUP_COORDINATION_RESPONSE_ACTION_SCHEMA_VERSION,
   decodeCoupCoordinationResponseAction,
   COUP_COORDINATION_RESPONSE_ACTION_TYPE,
+  type ValidatedActionRecord,
 } from "../state/action";
 import type { Conflict, ConflictOutcome } from "../state/conflict";
 import {
+  COUP_COORDINATION_RESPONSE_REJECTION_REASONS,
   findCoupCoordinationProfilesForConflict,
   type CoupCoordinationProfile,
+  type CoupCoordinationAlignment,
   type CoupCoordinationResponseState,
   type CoupCoordinationResponseStateMap,
+  type CoupCoordinationResponseRejectionReason,
 } from "../state/coupCoordination";
-import type { CoupCoordinationNodeId } from "../state/ids";
+import type { ConflictId, CoupCoordinationNodeId } from "../state/ids";
 import type { ScenarioDefinition } from "../state/scenario";
 import { applyConflictOutcome } from "./conflictResolution";
 
 function compareStableText(first: string, second: string): number {
   return first < second ? -1 : first > second ? 1 : 0;
+}
+
+interface CoupCoordinationResponseRejectionIdentity {
+  readonly conflictId?: ConflictId;
+  readonly nodeId?: CoupCoordinationNodeId;
+  readonly alignment?: CoupCoordinationAlignment;
+}
+
+function createCoupCoordinationResponseRejectionEvent(
+  context: SimulationPhaseContext,
+  sequence: number,
+  action: ValidatedActionRecord,
+  reason: CoupCoordinationResponseRejectionReason,
+  identity: CoupCoordinationResponseRejectionIdentity = {},
+): GameEvent {
+  return createGameEvent({
+    tick: context.nextTick,
+    sequence,
+    type: "COUP_COORDINATION_RESPONSE_REJECTED",
+    ...(identity.nodeId === undefined ? {} : { actorId: identity.nodeId }),
+    ...(identity.conflictId === undefined
+      ? {}
+      : { targetId: identity.conflictId }),
+    causeIds: [],
+    payload: {
+      actionId: action.id,
+      reason,
+      ...(identity.alignment === undefined
+        ? {}
+        : { alignment: identity.alignment }),
+      ...(identity.conflictId === undefined
+        ? {}
+        : { conflictId: identity.conflictId }),
+      ...(identity.nodeId === undefined ? {} : { nodeId: identity.nodeId }),
+    },
+    visibility: "important",
+  });
 }
 
 function getUniqueProfile(
@@ -168,6 +210,35 @@ export function runCoupCoordinationResponsePhase(
   let nextEventSequence = context.nextEventSequence;
   const emittedEvents: GameEvent[] = [];
 
+  const reject = (
+    action: ValidatedActionRecord,
+    reason: CoupCoordinationResponseRejectionReason,
+    identity?: CoupCoordinationResponseRejectionIdentity,
+  ): void => {
+    if (!COUP_COORDINATION_RESPONSE_REJECTION_REASONS.includes(reason)) {
+      throw new Error(
+        `Unknown Coup Coordination response rejection: ${reason}`,
+      );
+    }
+
+    const event = createCoupCoordinationResponseRejectionEvent(
+      context,
+      nextEventSequence,
+      action,
+      reason,
+      identity,
+    );
+    emittedEvents.push(event);
+    nextEventSequence += 1;
+    currentWorld = {
+      ...currentWorld,
+      run: {
+        ...currentWorld.run,
+        nextEventSequence,
+      },
+    };
+  };
+
   for (const action of context.input.actions) {
     if (action.actionType !== COUP_COORDINATION_RESPONSE_ACTION_TYPE) {
       continue;
@@ -175,20 +246,41 @@ export function runCoupCoordinationResponsePhase(
 
     const payload = decodeCoupCoordinationResponseAction(action);
     if (payload === null) {
+      reject(
+        action,
+        action.schemaVersion ===
+          COUP_COORDINATION_RESPONSE_ACTION_SCHEMA_VERSION
+          ? "invalidPayload"
+          : "unsupportedSchemaVersion",
+      );
       continue;
     }
 
     const conflict = currentWorld.conflicts[payload.conflictId];
-    if (conflict === undefined || conflict.status !== "active") {
+    if (conflict === undefined) {
+      reject(action, "missingConflict", payload);
+      continue;
+    }
+    if (conflict.status !== "active") {
+      reject(action, "conflictResolved", payload);
+      continue;
+    }
+    if (conflict.kind !== "coup") {
+      reject(action, "nonCoupConflict", payload);
       continue;
     }
 
     const profile = getUniqueProfile(scenario, conflict);
-    if (
-      profile === null ||
-      !hasValidProfileReferences(scenario, profile) ||
-      !profile.requiredNodeIds.includes(payload.nodeId)
-    ) {
+    if (profile === null) {
+      reject(action, "missingOrAmbiguousProfile", payload);
+      continue;
+    }
+    if (!hasValidProfileReferences(scenario, profile)) {
+      reject(action, "invalidProfileReferences", payload);
+      continue;
+    }
+    if (!profile.requiredNodeIds.includes(payload.nodeId)) {
+      reject(action, "nonRequiredNode", payload);
       continue;
     }
 
@@ -196,12 +288,14 @@ export function runCoupCoordinationResponsePhase(
       (candidate) => candidate.id === payload.nodeId,
     );
     if (node === undefined || node.countryId !== profile.countryId) {
+      reject(action, "invalidProfileReferences", payload);
       continue;
     }
 
     const previousResponses = currentWorld.coupCoordinationResponses ?? {};
     const previousByNode = previousResponses[payload.conflictId] ?? {};
     if (previousByNode[payload.nodeId] !== undefined) {
+      reject(action, "duplicateResponse", payload);
       continue;
     }
 
@@ -214,6 +308,7 @@ export function runCoupCoordinationResponsePhase(
       finalAllCoup &&
       !validateGovernmentTransitionTarget(currentWorld, conflict, profile)
     ) {
+      reject(action, "staleSuccessorGovernment", payload);
       continue;
     }
 

@@ -31,6 +31,22 @@ export const COUP_COORDINATION_ALIGNMENTS = ["incumbent", "coup"] as const;
 export type CoupCoordinationAlignment =
   (typeof COUP_COORDINATION_ALIGNMENTS)[number];
 
+/** Bounded provenance vocabulary for explicit response attempts that no-op. */
+export const COUP_COORDINATION_RESPONSE_REJECTION_REASONS = [
+  "invalidPayload",
+  "unsupportedSchemaVersion",
+  "missingConflict",
+  "conflictResolved",
+  "nonCoupConflict",
+  "missingOrAmbiguousProfile",
+  "invalidProfileReferences",
+  "nonRequiredNode",
+  "duplicateResponse",
+  "staleSuccessorGovernment",
+] as const;
+export type CoupCoordinationResponseRejectionReason =
+  (typeof COUP_COORDINATION_RESPONSE_REJECTION_REASONS)[number];
+
 /**
  * One accepted, decisive response. Absence from the response map is the only
  * representation of an uncommitted node; no third alignment is persisted.

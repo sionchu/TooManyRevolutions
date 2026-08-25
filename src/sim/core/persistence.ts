@@ -12,7 +12,14 @@ import {
   getNextEventSequence,
   type EventStore,
 } from "../events/eventStore";
-import type { ActionRecord, ActionSource } from "../state/action";
+import {
+  COUP_COORDINATION_RESPONSE_ACTION_SCHEMA_VERSION,
+  COUP_COORDINATION_RESPONSE_ACTION_TYPE,
+  decodeCoupCoordinationResponseAction,
+  type ActionRecord,
+  type ActionSource,
+  type ValidatedActionRecord,
+} from "../state/action";
 import type {
   Conflict,
   ConflictOutcome,
@@ -22,9 +29,11 @@ import type {
   ContactEdgeRuntimeState,
   ContactEdgeRuntimeStateMap,
 } from "../state/contact";
-import type {
-  CoupCoordinationResponseState,
-  CoupCoordinationResponseStateMap,
+import {
+  COUP_COORDINATION_RESPONSE_REJECTION_REASONS,
+  type CoupCoordinationResponseState,
+  type CoupCoordinationResponseStateMap,
+  type CoupCoordinationResponseRejectionReason,
 } from "../state/coupCoordination";
 import type { Country, DiplomaticRelation } from "../state/country";
 import type {
@@ -2684,6 +2693,113 @@ function assertCoupCoordinationEventProvenance(
   }
 }
 
+function assertCoupCoordinationResponseRejectionEventProvenance(
+  world: WorldState,
+  eventStore: EventStore,
+): void {
+  const actionsById = new Map(
+    world.run.actionLog.map((action) => [action.id, action]),
+  );
+  const responseActionIds = new Set(
+    Object.values(world.coupCoordinationResponses ?? {})
+      .flatMap((byNode) => Object.values(byNode))
+      .map((response) => response.actionId),
+  );
+  const rejectionActionIds = new Set<string>();
+
+  for (const event of eventStore.events.filter(
+    (candidate) => candidate.type === "COUP_COORDINATION_RESPONSE_REJECTED",
+  )) {
+    if (
+      typeof event.payload !== "object" ||
+      event.payload === null ||
+      Array.isArray(event.payload)
+    ) {
+      throw new Error(
+        `Coup Coordination rejection ${event.id} must have an object payload.`,
+      );
+    }
+
+    const actionId = eventPayloadValue(event, "actionId");
+    const reason = eventPayloadValue(event, "reason");
+    if (
+      typeof actionId !== "string" ||
+      actionId.length === 0 ||
+      typeof reason !== "string" ||
+      !COUP_COORDINATION_RESPONSE_REJECTION_REASONS.includes(
+        reason as CoupCoordinationResponseRejectionReason,
+      )
+    ) {
+      throw new Error(
+        `Coup Coordination rejection ${event.id} has invalid action or reason provenance.`,
+      );
+    }
+
+    const action = actionsById.get(asActionId(actionId));
+    if (
+      action === undefined ||
+      action.validationOutcome.kind !== "accepted" ||
+      action.actionType !== COUP_COORDINATION_RESPONSE_ACTION_TYPE ||
+      action.tick !== event.tick
+    ) {
+      throw new Error(
+        `Coup Coordination rejection ${event.id} has no matching accepted ActionRecord.`,
+      );
+    }
+
+    if (rejectionActionIds.has(actionId)) {
+      throw new Error(
+        `Coup Coordination ActionRecord ${actionId} has duplicate rejection events.`,
+      );
+    }
+    rejectionActionIds.add(actionId);
+
+    if (responseActionIds.has(asActionId(actionId))) {
+      throw new Error(
+        `Coup Coordination ActionRecord ${actionId} has both rejection and response provenance.`,
+      );
+    }
+
+    const decoded = decodeCoupCoordinationResponseAction(
+      action as ValidatedActionRecord,
+    );
+    const keys = Object.keys(event.payload).sort(compareStableText).join(",");
+    if (decoded === null) {
+      const expectedReason =
+        action.schemaVersion ===
+        COUP_COORDINATION_RESPONSE_ACTION_SCHEMA_VERSION
+          ? "invalidPayload"
+          : "unsupportedSchemaVersion";
+      if (
+        reason !== expectedReason ||
+        keys !== "actionId,reason" ||
+        event.actorId !== undefined ||
+        event.targetId !== undefined
+      ) {
+        throw new Error(
+          `Coup Coordination rejection ${event.id} does not match invalid ActionRecord provenance.`,
+        );
+      }
+      continue;
+    }
+
+    if (
+      reason === "invalidPayload" ||
+      reason === "unsupportedSchemaVersion" ||
+      keys !== "actionId,alignment,conflictId,nodeId,reason" ||
+      event.actorId !== decoded.nodeId ||
+      event.targetId !== decoded.conflictId ||
+      eventPayloadValue(event, "alignment") !== decoded.alignment ||
+      eventPayloadValue(event, "conflictId") !== decoded.conflictId ||
+      eventPayloadValue(event, "nodeId") !== decoded.nodeId
+    ) {
+      throw new Error(
+        `Coup Coordination rejection ${event.id} does not match decoded ActionRecord provenance.`,
+      );
+    }
+  }
+}
+
 function assertEventStoreMatchesWorld(
   world: WorldState,
   eventStore: EventStore,
@@ -2705,6 +2821,7 @@ function assertEventStoreMatchesWorld(
   assertPoliticalProposalEventProvenance(world, eventStore);
   assertFactionFundMovementEventProvenance(world, eventStore);
   assertCoupCoordinationEventProvenance(world, eventStore);
+  assertCoupCoordinationResponseRejectionEventProvenance(world, eventStore);
 
   const outcome = world.run.outcome;
   if (outcome.status === "active") {
@@ -2848,6 +2965,7 @@ function assertIncrementalEventStoreMatchesWorld(
   assertPoliticalProposalEventProvenance(world, eventStore);
   assertFactionFundMovementEventProvenance(world, eventStore);
   assertCoupCoordinationEventProvenance(world, eventStore);
+  assertCoupCoordinationResponseRejectionEventProvenance(world, eventStore);
 
   const outcome = world.run.outcome;
   if (outcome.status === "active") {

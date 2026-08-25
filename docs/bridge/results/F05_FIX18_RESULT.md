@@ -5,6 +5,7 @@ TASK_ID: F05_FIX18
 STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW
 BASE_IMPLEMENTATION_HEAD: 5863d46563b1d7ed6dc5d65a40e1965817662707
 REVIEW_BRANCH: f05-fix18-review
+REVIEW_CORRECTION: REJECTION_PROVENANCE_COMPLETE
 ```
 
 ## Classification
@@ -42,17 +43,27 @@ NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_RESPONSE_SOURCE_GROUNDING
   deterministic `COUP_COORDINATION_NODE_RESPONDED` event per accepted response,
   and calls the existing `applyConflictOutcome()` sink for status quo or
   authored successor Government transition.
+- Added the review-correction rejection path. Every accepted but business-invalid
+  `COUP_COORDINATION_RESPONSE` ActionRecord now emits exactly one bounded
+  `COUP_COORDINATION_RESPONSE_REJECTED` event tied to its ActionRecord ID;
+  malformed payload/schema attempts use schema reasons, decoded attempts retain
+  Conflict/node/alignment identity, and rejection does not mutate response state
+  or Conflict status.
 - Added runtime and persistence provenance checks for action/event/state
   identity, exact payloads, deterministic event causes, outcome consistency,
-  map-key integrity, and orphan/duplicate response rejection.
+  map-key integrity, response rejection evidence, and orphan/duplicate response
+  rejection.
 - Advanced persistence exactly once to
   `SerializedSimulationSnapshotV7` / format version 7. V6 and older snapshots
   are rejected without implicit migration.
-- Added 25 focused F05_FIX18 tests covering schema and business-invalid
-  atomicity, partial/decisive outcomes, duplicate/reopen, successor staleness,
-  Country/Government continuity, LandHex non-mutation, insertion ordering,
-  action/event/state provenance, corruption rejection, no-response horizon,
-  V7 roundtrip, and save/load replay equality.
+- Added focused F05_FIX18 regression coverage for schema-invalid, missing,
+  resolved, non-coup, profile/node, duplicate, and stale-successor rejection
+  reasons, including same-tick event sequencing and V7 rejection provenance.
+  The focused FIX18 suite now contains 27 tests covering schema and
+  business-invalid atomicity, partial/decisive outcomes, duplicate/reopen,
+  successor staleness, Country/Government continuity, LandHex non-mutation,
+  insertion ordering, action/event/state provenance, corruption rejection,
+  no-response horizon, V7 roundtrip, and save/load replay equality.
 - Updated the active T024/architecture persistence contract to describe V7.
 
 ## Verification
@@ -63,7 +74,8 @@ NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_RESPONSE_SOURCE_GROUNDING
 | `pnpm run typecheck` | PASS |
 | `pnpm run lint` | PASS |
 | `pnpm run build` | PASS — TypeScript build and Vite production build |
-| Focused `src/sim/systems/coupCoordination.test.ts` | PASS — 1 file / 25 tests |
+| Focused `src/sim/systems/coupCoordination.test.ts` | PASS — 1 file / 27 tests |
+| Focused FIX18 + persistence/baseline set | PASS — 6 files / 92 tests |
 | `src/sim/state/coupCoordination.test.ts` | PASS — 1 file / 12 tests |
 | `pnpm run inspect:t018` | PASS |
 | `pnpm run inspect:t024` | PASS — V7 snapshot, roundtrip/replay, corruption, terminal and ordering checks |
@@ -72,7 +84,7 @@ NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_RESPONSE_SOURCE_GROUNDING
 | `pnpm run inspect:f05fix14` | PASS — no-response 1200d unresolved; existing response resolved at tick 60; available resources `0.5 -> 0.8`; duplicate/churn 0; forbidden writers none; historical F05/FIX9/FIX13 unchanged |
 | `git diff --check` | PASS |
 
-`pnpm test` completed all assertions successfully: 61 test files and 514 tests
+`pnpm test` completed all assertions successfully: 61 test files and 516 tests
 passed. The process exit was 1 because Vitest reported three existing
 `[vitest-worker]: Timeout calling "onTaskUpdate"` unhandled runner errors after
 the assertions completed. This is recorded as a test-runner/IPC environment

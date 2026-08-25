@@ -50,9 +50,14 @@ the node belongs to the profile Country, and the node has not already received
 a decisive response. Invalid schema/payload, missing or resolved Conflict,
 non-coup Conflict, missing/ambiguous profile, non-required/foreign node,
 profile-reference inconsistency, and duplicate/reopen attempts are deterministic
-no-ops. A final all-coup response is preflighted before writing response state,
-so a missing, foreign, or current-at-resolution successor Government cannot
-partially record the invalid final action.
+rejections. Each rejected accepted ActionRecord emits exactly one
+`COUP_COORDINATION_RESPONSE_REJECTED` event with its ActionRecord ID and a
+bounded reason. Malformed schema/payload rejections carry only that direct
+provenance; decoded response attempts also carry their Conflict/node/alignment
+identity. Rejections do not create response state, resolve/reopen the Conflict,
+or change any other gameplay state. A final all-coup response is preflighted
+before writing response state, so a missing, foreign, or current-at-resolution
+successor Government cannot partially record the invalid final action.
 
 Successful responses emit exactly one
 `COUP_COORDINATION_NODE_RESPONDED` event. Its actor/target and payload preserve
@@ -77,9 +82,13 @@ Runtime closure verifies that every response has an accepted matching action,
 exact v1 payload, authored profile/node references, and valid outcome
 consistency. Persistence verifies that every response has exactly the matching
 `COUP_COORDINATION_NODE_RESPONDED` event with stable actor/target/payload
-provenance, and rejects orphan response events. Empty, partial, and resolved
-response maps round-trip canonically; save/load continuation retains action,
-event, cause, Government, Conflict, and response-state equality.
+provenance, and rejects orphan response events. It also verifies each
+`COUP_COORDINATION_RESPONSE_REJECTED` event against exactly one accepted
+`COUP_COORDINATION_RESPONSE` ActionRecord, its bounded reason, and decoded
+identity when available; forged, duplicate, or response-and-rejection-mixed
+provenance is rejected. Empty, partial, and resolved response maps round-trip
+canonically; save/load continuation retains action, event, cause, Government,
+Conflict, response-state, and rejection-evidence equality.
 
 ## Boundaries preserved
 
