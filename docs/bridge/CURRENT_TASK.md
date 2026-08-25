@@ -1,36 +1,31 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX17
-STATUS: CORRECTION_AND_VERIFICATION_REQUIRED
+TASK_ID: NONE
+STATUS: WAITING_FOR_USER_NEXT
 BASE_BRANCH: master
-TASK_FILE: docs/bridge/tasks/F05_FIX17.md
-RESULT_PATH: docs/bridge/results/F05_FIX17_RESULT.md
+
+## Last reviewed task
+
+```text
+F05_FIX17: COMPLETE / REVIEWED / PASS / ACCEPTED
+PRIMARY_CLASSIFICATION: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED
+NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE
 REVIEW_BRANCH: f05-fix17-review
 REVIEW_BASE: d3908e1f30390131e12cced6e1b80bd03c5c1a4f
-REVIEW_HEAD: ce425ddc063e20186476acf9f4fcf0676e52195b
+REVIEWED_HEAD: 5863d46563b1d7ed6dc5d65a40e1965817662707
+```
 
-## ChatGPT review
+ChatGPT independently reviewed the GitHub implementation and correction diff. The exact `(countryId, coupFactionId)` uniqueness issue is fixed with collision-free nested identity, the delimiter-collision regression is present, root `HANDOFF.md` is removed, and the required verification completed.
 
-The GitHub diff has been independently reviewed. The FIX17 architecture/scope is provisionally acceptable: static scenario authoring only, no Coup Coordination runtime state, no response action, no coup outcome writer, no T018/T021/T022/T023 behavior change, no persistence change, and no production Gate 1F coup-node content.
+Full-suite assertions pass (`60 files / 489 tests`); the remaining nonzero process exit is the known Vitest `onTaskUpdate` runner/IPC error reported separately after assertions.
 
-F05_FIX17 is not yet PASS because one correctness issue and verification remain.
+## Current gate
 
-## Required correction
+```text
+GATE1F_CHATGPT_DECISION: NOT_READY
+V02: NOT_STARTED
+F05_FIX18: NOT_AUTHORIZED
+NEXT_AUTHORIZED_TASK_ID: NONE
+```
 
-In `assertScenarioCoupCoordinationAuthoring()`, profile uniqueness must be checked by the exact `(countryId, coupFactionId)` pair. Do not derive pair identity by joining the two IDs with a delimiter, because distinct IDs containing that delimiter can collide. Use a collision-free pair structure such as a nested map/set.
-
-Add a focused regression test where two distinct valid pairs would collide under delimiter joining but must both be accepted. Preserve rejection of a true duplicate exact pair.
-
-## Cleanup
-
-Remove root `HANDOFF.md`. Update `docs/bridge/results/F05_FIX17_RESULT.md` so its publication and verification fields match reality.
-
-## Verification
-
-Rerun: format, typecheck, lint, build, focused FIX17 tests, full tests, inspect:t018, inspect:t024, inspect:f05, inspect:f05fix9, inspect:f05fix14, and git diff --check.
-
-If the known Vitest process/IPC issue occurs after assertions pass, report it separately. If esbuild still cannot start, report the environment error and do not claim verification PASS.
-
-## Completion
-
-Commit only these FIX17 corrections/cleanup on `f05-fix17-review`, publish the updated branch to GitHub, and stop. Do not start F05_FIX18, Gate 1F PASS, or V02.
+No successor task is authorized until the user requests the next progression.
