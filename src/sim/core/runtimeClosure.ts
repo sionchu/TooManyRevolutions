@@ -36,6 +36,7 @@ import {
   assertScenarioDefinition,
   type ScenarioDefinition,
 } from "../state/scenario";
+import type { RebellionOperationalPersistenceEpisode } from "../state/rebellionPersistence";
 import { assertLandHexRuntimeStateInvariants } from "../state/territorialControl";
 import type { WorldState } from "../state/world";
 import {
@@ -87,6 +88,19 @@ function assertCatalogIdentityKeys(
   catalog: Readonly<Record<string, IdentifiedValue>>,
 ): void {
   assertRecordIdentityKeys(label, catalog);
+}
+
+function assertRebellionPersistenceEpisodeKeys(
+  label: string,
+  episodes: Readonly<Record<string, RebellionOperationalPersistenceEpisode>>,
+): void {
+  for (const [key, episode] of Object.entries(episodes)) {
+    if (key !== episode.conflictId) {
+      throw new Error(
+        `${label} key ${key} does not match ${episode.conflictId}.`,
+      );
+    }
+  }
 }
 
 export function assertScenarioIdeologyCoverage(
@@ -702,6 +716,65 @@ function assertCoupCoordinationResponseProvenance(
   }
 }
 
+function assertRebellionPersistenceEpisodeClosure(
+  scenario: ScenarioDefinition,
+  world: WorldState,
+): void {
+  const profilesById = new Map(
+    (scenario.rebellionPersistenceProfiles ?? []).map((profile) => [
+      profile.id,
+      profile,
+    ]),
+  );
+  const seenConflictIds = new Set<string>();
+
+  for (const [conflictId, episode] of Object.entries(
+    world.rebellionPersistenceEpisodes ?? {},
+  )) {
+    const typedEpisode = episode as RebellionOperationalPersistenceEpisode;
+    if (seenConflictIds.has(typedEpisode.conflictId)) {
+      throw new Error(
+        `Rebellion persistence episode ${typedEpisode.conflictId} is duplicated.`,
+      );
+    }
+    seenConflictIds.add(typedEpisode.conflictId);
+
+    if (conflictId !== typedEpisode.conflictId) {
+      throw new Error(
+        `Rebellion persistence episode key ${conflictId} does not match ${typedEpisode.conflictId}.`,
+      );
+    }
+
+    const conflict = world.conflicts[typedEpisode.conflictId];
+    if (conflict === undefined || conflict.kind !== "rebellion") {
+      throw new Error(
+        `Rebellion persistence episode ${typedEpisode.conflictId} references a missing or non-rebellion Conflict.`,
+      );
+    }
+
+    if (
+      !conflict.participantCountryIds.includes(typedEpisode.countryId) ||
+      !conflict.participantFactionIds.includes(typedEpisode.factionId) ||
+      conflict.startedAtTick !== typedEpisode.bootstrappedAtTick
+    ) {
+      throw new Error(
+        `Rebellion persistence episode ${typedEpisode.conflictId} has participant or start-tick provenance that does not match its Conflict.`,
+      );
+    }
+
+    const profile = profilesById.get(typedEpisode.profileId);
+    if (
+      profile === undefined ||
+      profile.countryId !== typedEpisode.countryId ||
+      profile.factionId !== typedEpisode.factionId
+    ) {
+      throw new Error(
+        `Rebellion persistence episode ${typedEpisode.conflictId} has missing or mismatched authored profile provenance.`,
+      );
+    }
+  }
+}
+
 function assertCoupCoordinationResponseIdentity(
   scenario: ScenarioDefinition,
   conflictId: string,
@@ -929,6 +1002,10 @@ export function assertScenarioRuntimeClosure(
   assertRecordIdentityKeys("WorldState.factions", world.factions);
   assertRecordIdentityKeys("WorldState.governments", world.governments);
   assertRecordIdentityKeys("WorldState.conflicts", world.conflicts);
+  assertRebellionPersistenceEpisodeKeys(
+    "WorldState.rebellionPersistenceEpisodes",
+    world.rebellionPersistenceEpisodes ?? {},
+  );
   assertRecordIdentityKeys(
     "WorldState.interventionCommitments",
     world.interventionCommitments,
@@ -960,6 +1037,7 @@ export function assertScenarioRuntimeClosure(
   assertFactionFundMovementCommitmentProvenance(scenario, world);
   assertPoliticalProposalProvenance(scenario, world);
   assertCoupCoordinationResponseProvenance(scenario, world);
+  assertRebellionPersistenceEpisodeClosure(scenario, world);
   assertConflictOutcomeReferences(world);
 }
 
@@ -999,6 +1077,10 @@ export function assertScenarioRuntimeClosureIncremental(
   assertRecordIdentityKeys("WorldState.factions", nextWorld.factions);
   assertRecordIdentityKeys("WorldState.governments", nextWorld.governments);
   assertRecordIdentityKeys("WorldState.conflicts", nextWorld.conflicts);
+  assertRebellionPersistenceEpisodeKeys(
+    "WorldState.rebellionPersistenceEpisodes",
+    nextWorld.rebellionPersistenceEpisodes ?? {},
+  );
   assertRecordIdentityKeys(
     "WorldState.interventionCommitments",
     nextWorld.interventionCommitments,
@@ -1031,5 +1113,6 @@ export function assertScenarioRuntimeClosureIncremental(
   assertFactionFundMovementCommitmentDelta(scenario, previousWorld, nextWorld);
   assertPoliticalProposalProvenance(scenario, nextWorld);
   assertCoupCoordinationResponseProvenance(scenario, nextWorld);
+  assertRebellionPersistenceEpisodeClosure(scenario, nextWorld);
   assertConflictOutcomeReferences(nextWorld);
 }

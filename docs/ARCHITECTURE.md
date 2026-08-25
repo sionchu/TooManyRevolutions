@@ -2283,7 +2283,7 @@ No core control may require experimental APIs.
 
 T024는 authoritative runtime과 이미 커밋된 causal history를 함께 보존하는
 versioned in-memory snapshot boundary를 구현했다. 현재 public contract는
-`SerializedSimulationSnapshotV7`, `serializeSimulationSnapshot()`/
+`SerializedSimulationSnapshotV8`, `serializeSimulationSnapshot()`/
 `serializeSimulationSnapshotJson()`, `deserializeSimulationSnapshot()`,
 `commitSimulationStep()`, `cloneRunRecordViaSnapshot()`이다. 브라우저 파일,
 `localStorage`/IndexedDB, cloud save slot은 이 경계의 책임이 아니다.
@@ -2293,7 +2293,8 @@ snapshot envelope에는 다음만 들어간다.
 - `formatVersion`, `scenarioId`, `scenarioVersion`
 - 현재 `WorldState`의 tick/date, Country/Region/Faction/Government/Conflict,
   policy/institution runtime, intervention commitment, faction fund-movement
-  commitment, political proposal,
+  commitment, political proposal, Conflict-scoped rebellion persistence
+  bootstrap episode,
   mutable ContactGraph edge state, `LandHexRuntimeState`, `RunState`, `rngState`
 - `RunState.actionLog`의 player/heuristic/LLM 공통 `ActionRecord` history
 - 별도로 보관되는 `EventStore`의 전체 ordered `GameEvent` history
@@ -2306,7 +2307,7 @@ consolidation/dissolution eligibility, UI/presentation state도 저장하지 않
 
 ```text
 static ScenarioDefinition (별도 로드)
-  + SerializedSimulationSnapshotV7
+  + SerializedSimulationSnapshotV8
   -> validated WorldState + EventStore
   -> derived selectors/read models
 ```
@@ -2316,7 +2317,7 @@ static ScenarioDefinition (별도 로드)
 deserialize는 외부/저장 데이터를 `WorldState`로 직접 cast하지 않는다. JSON
 primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unknown key,
 잘못된 format version, 필수 필드 누락, 잘못된 reference를 거부한다. decode 뒤에는
-`assertScenarioRuntimeClosure(scenario, world)`가 현재 V7 시나리오와 runtime 전체가
+`assertScenarioRuntimeClosure(scenario, world)`가 현재 V8 시나리오와 runtime 전체가
 닫혀 있는지 검증한다.
 
 - snapshot top-level identity와 `WorldState.run.scenarioId/version`이 전달된
@@ -2330,7 +2331,7 @@ primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unk
   않는다. 이 static identity/membership/topology는 scenario에서만 읽는다.
 - Region에 `controller`를 만들지 않으며, physical territory authority는 계속
   `WorldState.landHexStates[*].controller` 하나다.
-- V7에는 Country/Region/Faction/PolicyState의 identity lifecycle이 없으므로
+- V8에는 Country/Region/Faction/PolicyState의 identity lifecycle이 없으므로
   `initialCountries`, `initialRegions`, `initialFactions`,
   `initialCountryPolicies`와 각각의 runtime identity set이 정확히 일치해야
   한다. 후속 state successor나 동적 actor 생성을 도입할 때는 별도 lifecycle
@@ -2351,15 +2352,17 @@ primitive/array/record와 각 domain enum/id를 명시적으로 decode하고 unk
   resolved record에는 일치하는 `FACTION_FUND_MOVEMENT_RESOLVED` event가 정확히
   하나 있어야 한다.
 
-현재 format은 `version: 7`만 지원한다. resolved FUND_MOVEMENT lifecycle과
-Coup Coordination response provenance를 표현하지 못하는 V6와 그 이전
-version, unknown version은 명확히 reject한다.
+현재 format은 `version: 8`만 지원한다. V8은 T018이 새 rebellion을 만들 때
+기존 `REBELLION_STARTED` event에 결박된 Conflict-scoped bootstrap episode를
+추가한다. 이 episode는 identity/provenance only이며 operational capacity,
+evidence, collapse, settlement, territorial mutation, Conflict outcome을
+의미하지 않는다. V7와 그 이전 version, unknown version은 명확히 reject한다.
 migration framework나 과거 format chain은 만들지 않았다. 별도 content hash는
 아직 도입하지 않으며, 정적 ScenarioDefinition 호환성은 `scenarioId`와
 `scenarioVersion`으로 관리한다. 호환되지 않는 content 변경은 version bump를
 요구한다.
 
-V7의 `coupCoordinationResponses`는 authored necessary set의 decisive
+V8의 `coupCoordinationResponses`는 authored necessary set의 decisive
 `incumbent`/`coup` 응답만 저장한다. accepted response는
 `COUP_COORDINATION_RESPONSE` ActionRecord와
 `COUP_COORDINATION_NODE_RESPONDED` EventStore event를 모두 가져야 하며,
@@ -2371,7 +2374,7 @@ alignment writer, territorial coup writer는 이 persistence contract의 일부�
 명시적 `REJECT` proposal episode만 현재 Government와 요청된
 InterventionDefinition의 feasibility boolean/이산 failure class를
 `reconsiderationBasis`로 보존한다. 이 basis는 raw treasury/headroom 값이나
-Agenda/read-model 결과를 저장하지 않으며, V7 decoder와 runtime closure가
+Agenda/read-model 결과를 저장하지 않으며, V8 decoder와 runtime closure가
 Government provenance, canonical class ordering, feasible/failed 조합을
 검증한다. 같은 stable demand는 basis가 바뀌기 전에는 다시 열리지 않고,
 Government 또는 named feasibility basis가 바뀐 경우에만 새 episode가 될 수

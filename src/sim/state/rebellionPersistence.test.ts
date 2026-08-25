@@ -582,10 +582,10 @@ describe("Rebellion Persistence static authoring seam", () => {
     expect(firstProfile.channelIds).toEqual([...CHANNEL_IDS]);
   });
 
-  it("creates no runtime persistence state, evidence, action, or event", () => {
+  it("creates only the deliberate empty V8 episode map", () => {
     const world = createInitialWorldState(createAuthoringScenario(), 22022);
 
-    expect(world).not.toHaveProperty("rebellionPersistenceEpisodes");
+    expect(world.rebellionPersistenceEpisodes).toEqual({});
     expect(world).not.toHaveProperty("rebellionOperationalEvidence");
     expect(world).not.toHaveProperty("rebellionPersistenceState");
     expect(world.run.actionLog).toEqual([]);

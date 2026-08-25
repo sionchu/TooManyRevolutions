@@ -748,11 +748,11 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
     );
   });
 
-  it("uses V7 snapshots for empty and partial response state", () => {
+  it("uses V8 snapshots for empty and partial response state", () => {
     const scenario = createRuntimeScenario();
     const initial = createRecord(scenario);
     const emptySnapshot = serializeSimulationSnapshot(scenario, initial);
-    expect(emptySnapshot.formatVersion).toBe(7);
+    expect(emptySnapshot.formatVersion).toBe(8);
     expect(emptySnapshot.world.coupCoordinationResponses).toEqual({});
 
     const partial = commitResponseStep(scenario, initial, [
@@ -967,7 +967,7 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
     expect(response.respondedAtTick).toBe(event.tick);
   });
 
-  it("canonicalizes nested response-map insertion order on V7 load", () => {
+  it("canonicalizes nested response-map insertion order on V8 load", () => {
     const scenario = createRuntimeScenario();
     const initial = createRecord(scenario);
     const record = commitResponseStep(scenario, initial, [
@@ -1029,7 +1029,7 @@ describe("F05_FIX18 Coup Coordination runtime vertical slice", () => {
     ).toBe(false);
   });
 
-  it("rejects a mismatched ActionRecord payload at the V7 trust boundary", () => {
+  it("rejects a mismatched ActionRecord payload at the V8 trust boundary", () => {
     const scenario = createRuntimeScenario();
     const initial = createRecord(scenario);
     const record = commitResponseStep(scenario, initial, [

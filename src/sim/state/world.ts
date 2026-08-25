@@ -13,6 +13,7 @@ import {
 } from "./intervention";
 import type { PolicyState } from "./policy";
 import type { PoliticalProposal } from "./politicalProposal";
+import type { RebellionOperationalPersistenceEpisode } from "./rebellionPersistence";
 import type { Region } from "./region";
 import type { ScenarioRegion, TerritorialController } from "./region";
 import type { RunState } from "./run";
@@ -44,6 +45,10 @@ export interface WorldState {
   readonly governments: Readonly<Record<GovernmentId, Government>>;
   readonly factions: Readonly<Record<FactionId, Faction>>;
   readonly conflicts: Readonly<Record<ConflictId, Conflict>>;
+  /** Conflict-scoped T018 bootstrap provenance; never operational evidence. */
+  readonly rebellionPersistenceEpisodes?: Readonly<
+    Record<ConflictId, RebellionOperationalPersistenceEpisode>
+  >;
   /** Sparse decisive Coup Coordination responses; omitted on legacy hand-authored worlds. */
   readonly coupCoordinationResponses?: CoupCoordinationResponseStateMap;
   readonly interventionCommitments: Readonly<
@@ -255,6 +260,7 @@ export function createInitialWorldState(
     governments: indexGovernments(scenario.initialGovernments),
     factions: indexFactions(scenario.initialFactions),
     conflicts: indexConflicts(scenario.initialConflicts),
+    rebellionPersistenceEpisodes: {},
     coupCoordinationResponses: {},
     interventionCommitments: {},
     factionFundMovementCommitments: {},

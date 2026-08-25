@@ -140,3 +140,22 @@ and missing or mismatched `COUP_COORDINATION_NODE_RESPONDED` events. T024
 roundtrip and replay checks therefore cover empty, partial, and resolved coup
 response state without serializing ScenarioDefinition authoring data or any
 derived read model.
+
+## F05_FIX23 V8 amendment
+
+F05_FIX23 advances the authoritative snapshot contract to
+`SerializedSimulationSnapshotV8` / format version 8. V8 adds only the
+Conflict-scoped `WorldState.rebellionPersistenceEpisodes` bootstrap map. A
+record is created only when T018 creates a new rebellion Conflict under an
+exact authored Country/Faction `RebellionPersistenceProfile`, and it points to
+the same existing `REBELLION_STARTED` event. The record is identity/provenance
+only; it is not operational evidence, a capacity score, a collapse signal, a
+settlement state, or a territorial/outcome writer.
+
+The V8 decoder requires the episode map and rejects missing or malformed maps,
+empty or mismatched IDs, non-rebellion or missing Conflicts, participant and
+profile mismatches, invalid bootstrap ticks, and missing or mismatched
+`REBELLION_STARTED` source events. V7 and older snapshots are rejected without
+silent migration. T024 roundtrip/replay coverage now includes the empty and
+populated episode maps, source-event provenance, corruption rejection, and
+save/load deterministic replay.

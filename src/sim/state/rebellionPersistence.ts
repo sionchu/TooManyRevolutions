@@ -1,5 +1,7 @@
 import type {
+  ConflictId,
   CountryId,
+  EventId,
   FactionId,
   RebellionOperationalChannelId,
   RebellionPersistenceProfileId,
@@ -32,4 +34,17 @@ export interface RebellionPersistenceProfile {
   readonly factionId: FactionId;
   /** Non-empty set; array order has no gameplay semantics. */
   readonly channelIds: readonly RebellionOperationalChannelId[];
+}
+
+/**
+ * Conflict-scoped runtime identity for a T018-created rebellion. This is
+ * provenance only; it is not operational evidence or a persistence score.
+ */
+export interface RebellionOperationalPersistenceEpisode {
+  readonly conflictId: ConflictId;
+  readonly profileId: RebellionPersistenceProfileId;
+  readonly countryId: CountryId;
+  readonly factionId: FactionId;
+  readonly bootstrappedAtTick: number;
+  readonly sourceEventId: EventId;
 }

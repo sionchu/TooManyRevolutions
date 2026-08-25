@@ -20,6 +20,7 @@ import {
 } from "../state/politicalProposal";
 import type { WorldState } from "../state/world";
 import { COUP_COORDINATION_ALIGNMENTS } from "../state/coupCoordination";
+import type { RebellionOperationalPersistenceEpisode } from "../state/rebellionPersistence";
 import type { SimDate } from "./clock";
 import type { SeedState } from "./rng";
 
@@ -676,6 +677,29 @@ function assertCoupCoordinationResponses(world: WorldState): void {
   }
 }
 
+function assertRebellionPersistenceEpisodes(world: WorldState): void {
+  for (const [conflictId, episode] of Object.entries(
+    world.rebellionPersistenceEpisodes ?? {},
+  )) {
+    const typedEpisode = episode as RebellionOperationalPersistenceEpisode;
+    if (
+      conflictId.length === 0 ||
+      typedEpisode.conflictId !== conflictId ||
+      typedEpisode.profileId.length === 0 ||
+      typedEpisode.countryId.length === 0 ||
+      typedEpisode.factionId.length === 0 ||
+      !Number.isInteger(typedEpisode.bootstrappedAtTick) ||
+      typedEpisode.bootstrappedAtTick < 0 ||
+      typedEpisode.bootstrappedAtTick > world.tick ||
+      typedEpisode.sourceEventId.length === 0
+    ) {
+      throw new Error(
+        `Rebellion persistence episode ${conflictId} has invalid identity or bootstrap provenance.`,
+      );
+    }
+  }
+}
+
 function assertRunState(
   world: WorldState,
   options: { readonly validateActionHistory?: boolean } = {},
@@ -855,6 +879,7 @@ export function assertWorldStateInvariants(
   assertFactionFundMovementCommitments(world);
   assertPoliticalProposals(world);
   assertCoupCoordinationResponses(world);
+  assertRebellionPersistenceEpisodes(world);
 
   for (const government of Object.values(world.governments)) {
     if (world.countries[government.countryId] === undefined) {

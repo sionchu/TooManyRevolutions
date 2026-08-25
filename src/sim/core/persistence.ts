@@ -75,6 +75,7 @@ import {
   asInterventionId,
   asPolicyId,
   asPoliticalProposalId,
+  asRebellionPersistenceProfileId,
   asRegionId,
   asScenarioId,
   type CountryId,
@@ -101,6 +102,7 @@ import type {
 import { assertScenarioDefinition } from "../state/scenario";
 import type { ScenarioDefinition } from "../state/scenario";
 import type { LandHexRuntimeState } from "../state/territorialControl";
+import type { RebellionOperationalPersistenceEpisode } from "../state/rebellionPersistence";
 import type { WorldState } from "../state/world";
 import type { SimDate } from "./clock";
 import type { SeedState } from "./rng";
@@ -113,7 +115,7 @@ import {
 import { freezeCanonicalGraph } from "./canonicalFreeze";
 import { claimCanonicalSimulationStepResult } from "./tick";
 
-export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 7 as const;
+export const SIMULATION_SNAPSHOT_FORMAT_VERSION = 8 as const;
 
 const canonicalRunRecords = new WeakMap<RunRecord, ScenarioDefinition>();
 
@@ -134,7 +136,7 @@ function registerCanonicalRunRecord<T extends RunRecord>(
   return record;
 }
 
-export interface SerializedWorldStateV7 {
+export interface SerializedWorldStateV8 {
   readonly tick: number;
   readonly date: SimDate;
   readonly countries: Readonly<Record<string, Country>>;
@@ -143,6 +145,9 @@ export interface SerializedWorldStateV7 {
   readonly governments: Readonly<Record<string, Government>>;
   readonly factions: Readonly<Record<string, Faction>>;
   readonly conflicts: Readonly<Record<string, Conflict>>;
+  readonly rebellionPersistenceEpisodes: Readonly<
+    Record<string, RebellionOperationalPersistenceEpisode>
+  >;
   readonly coupCoordinationResponses: CoupCoordinationResponseStateMap;
   readonly interventionCommitments: Readonly<
     Record<string, InterventionCommitment>
@@ -162,11 +167,11 @@ export interface SerializedEventStoreV2 {
 }
 
 /** Versioned runtime snapshot. Static ScenarioDefinition content is excluded. */
-export interface SerializedSimulationSnapshotV7 {
+export interface SerializedSimulationSnapshotV8 {
   readonly formatVersion: typeof SIMULATION_SNAPSHOT_FORMAT_VERSION;
   readonly scenarioId: string;
   readonly scenarioVersion: number;
-  readonly world: SerializedWorldStateV7;
+  readonly world: SerializedWorldStateV8;
   readonly eventStore: SerializedEventStoreV2;
 }
 
@@ -386,6 +391,12 @@ function clonePoliticalProposal(
   };
 }
 
+function cloneRebellionPersistenceEpisode(
+  episode: RebellionOperationalPersistenceEpisode,
+): RebellionOperationalPersistenceEpisode {
+  return { ...episode };
+}
+
 function cloneContactEdgeRuntimeState(
   state: ContactEdgeRuntimeState,
 ): ContactEdgeRuntimeState {
@@ -490,7 +501,7 @@ function cloneEvent(event: GameEvent): GameEvent {
   };
 }
 
-function cloneWorldState(world: WorldState): SerializedWorldStateV7 {
+function cloneWorldState(world: WorldState): SerializedWorldStateV8 {
   return {
     tick: world.tick,
     date: { ...world.date },
@@ -502,6 +513,10 @@ function cloneWorldState(world: WorldState): SerializedWorldStateV7 {
     governments: cloneRecord(world.governments, cloneGovernment),
     factions: cloneRecord(world.factions, cloneFaction),
     conflicts: cloneRecord(world.conflicts, cloneConflict),
+    rebellionPersistenceEpisodes: cloneRecord(
+      world.rebellionPersistenceEpisodes ?? {},
+      cloneRebellionPersistenceEpisode,
+    ),
     coupCoordinationResponses: cloneCoupCoordinationResponses(
       world.coupCoordinationResponses,
     ),
@@ -2226,6 +2241,95 @@ function decodeCoupCoordinationResponses(
   return decoded as CoupCoordinationResponseStateMap;
 }
 
+function decodeRebellionPersistenceEpisode(
+  value: unknown,
+  label: string,
+): RebellionOperationalPersistenceEpisode {
+  const record = expectRecord(value, label);
+  assertKnownKeys(
+    record,
+    [
+      "conflictId",
+      "profileId",
+      "countryId",
+      "factionId",
+      "bootstrappedAtTick",
+      "sourceEventId",
+    ],
+    label,
+  );
+
+  return {
+    conflictId: asConflictId(
+      expectNonEmptyString(
+        required(record, "conflictId", label),
+        `${label}.conflictId`,
+      ),
+    ),
+    profileId: asRebellionPersistenceProfileId(
+      expectNonEmptyString(
+        required(record, "profileId", label),
+        `${label}.profileId`,
+      ),
+    ),
+    countryId: asCountryId(
+      expectNonEmptyString(
+        required(record, "countryId", label),
+        `${label}.countryId`,
+      ),
+    ),
+    factionId: asFactionId(
+      expectNonEmptyString(
+        required(record, "factionId", label),
+        `${label}.factionId`,
+      ),
+    ),
+    bootstrappedAtTick: expectNonNegativeInteger(
+      required(record, "bootstrappedAtTick", label),
+      `${label}.bootstrappedAtTick`,
+    ),
+    sourceEventId: asEventId(
+      expectNonEmptyString(
+        required(record, "sourceEventId", label),
+        `${label}.sourceEventId`,
+      ),
+    ),
+  };
+}
+
+function decodeRebellionPersistenceEpisodes(
+  value: unknown,
+  label: string,
+): Readonly<Record<string, RebellionOperationalPersistenceEpisode>> {
+  const record = expectRecord(value, label);
+  const decoded = Object.create(null) as Record<
+    string,
+    RebellionOperationalPersistenceEpisode
+  >;
+
+  for (const conflictId of Object.keys(record).sort(compareStableText)) {
+    if (conflictId.length === 0) {
+      throw new Error(`${label} cannot contain an empty Conflict ID.`);
+    }
+
+    const episode = decodeRebellionPersistenceEpisode(
+      record[conflictId],
+      `${label}.${conflictId}`,
+    );
+    if (episode.conflictId !== conflictId) {
+      throw new Error(
+        `${label}.${conflictId} key does not match episode Conflict identity.`,
+      );
+    }
+    if (decoded[conflictId] !== undefined) {
+      throw new Error(`${label} contains a duplicate Conflict identity.`);
+    }
+    decoded[conflictId] = episode;
+  }
+
+  return decoded;
+}
+
 function decodeWorldState(value: unknown, label: string): WorldState {
   const record = expectRecord(value, label);
   assertKnownKeys(
@@ -2239,6 +2343,7 @@ function decodeWorldState(value: unknown, label: string): WorldState {
       "governments",
       "factions",
       "conflicts",
+      "rebellionPersistenceEpisodes",
       "coupCoordinationResponses",
       "interventionCommitments",
       "factionFundMovementCommitments",
@@ -2289,6 +2394,10 @@ function decodeWorldState(value: unknown, label: string): WorldState {
       required(record, "conflicts", label),
       `${label}.conflicts`,
       decodeConflict,
+    ),
+    rebellionPersistenceEpisodes: decodeRebellionPersistenceEpisodes(
+      required(record, "rebellionPersistenceEpisodes", label),
+      `${label}.rebellionPersistenceEpisodes`,
     ),
     coupCoordinationResponses: decodeCoupCoordinationResponses(
       required(record, "coupCoordinationResponses", label),
@@ -2800,6 +2909,57 @@ function assertCoupCoordinationResponseRejectionEventProvenance(
   }
 }
 
+function isRebellionStartedEventForEpisode(
+  event: GameEvent,
+  episode: RebellionOperationalPersistenceEpisode,
+): boolean {
+  return (
+    event.type === "REBELLION_STARTED" &&
+    event.tick === episode.bootstrappedAtTick &&
+    event.actorId === episode.factionId &&
+    event.targetId === episode.countryId &&
+    eventPayloadValue(event, "conflictId") === episode.conflictId &&
+    eventPayloadValue(event, "kind") === "rebellion" &&
+    eventPayloadValue(event, "countryId") === episode.countryId &&
+    eventPayloadValue(event, "factionId") === episode.factionId
+  );
+}
+
+function assertRebellionPersistenceEventProvenance(
+  world: WorldState,
+  eventStore: EventStore,
+): void {
+  const rebellionStartedEvents = eventStore.events.filter(
+    (event) => event.type === "REBELLION_STARTED",
+  );
+
+  for (const episode of Object.values(
+    world.rebellionPersistenceEpisodes ?? {},
+  )) {
+    const sourceEvent = findEventById(eventStore, episode.sourceEventId);
+    if (
+      sourceEvent === undefined ||
+      !isRebellionStartedEventForEpisode(sourceEvent, episode)
+    ) {
+      throw new Error(
+        `Rebellion persistence episode ${episode.conflictId} has missing or mismatched REBELLION_STARTED provenance.`,
+      );
+    }
+
+    const matchingEvents = rebellionStartedEvents.filter((event) =>
+      isRebellionStartedEventForEpisode(event, episode),
+    );
+    if (
+      matchingEvents.length !== 1 ||
+      matchingEvents[0]!.id !== sourceEvent.id
+    ) {
+      throw new Error(
+        `Rebellion persistence episode ${episode.conflictId} must reference exactly one matching REBELLION_STARTED event.`,
+      );
+    }
+  }
+}
+
 function assertEventStoreMatchesWorld(
   world: WorldState,
   eventStore: EventStore,
@@ -2822,6 +2982,7 @@ function assertEventStoreMatchesWorld(
   assertFactionFundMovementEventProvenance(world, eventStore);
   assertCoupCoordinationEventProvenance(world, eventStore);
   assertCoupCoordinationResponseRejectionEventProvenance(world, eventStore);
+  assertRebellionPersistenceEventProvenance(world, eventStore);
 
   const outcome = world.run.outcome;
   if (outcome.status === "active") {
@@ -2862,7 +3023,7 @@ function assertRunRecordForPersistence(
 export function serializeSimulationSnapshot(
   scenario: ScenarioDefinition,
   record: RunRecord,
-): SerializedSimulationSnapshotV7 {
+): SerializedSimulationSnapshotV8 {
   assertRunRecordForPersistence(scenario, record);
 
   return {
@@ -2966,6 +3127,7 @@ function assertIncrementalEventStoreMatchesWorld(
   assertFactionFundMovementEventProvenance(world, eventStore);
   assertCoupCoordinationEventProvenance(world, eventStore);
   assertCoupCoordinationResponseRejectionEventProvenance(world, eventStore);
+  assertRebellionPersistenceEventProvenance(world, eventStore);
 
   const outcome = world.run.outcome;
   if (outcome.status === "active") {

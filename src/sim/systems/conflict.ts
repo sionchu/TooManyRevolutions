@@ -7,6 +7,8 @@ import type {
 } from "../core/step";
 import { asConflictId, type ConflictId } from "../state/ids";
 import type { Conflict, ConflictKind } from "../state/conflict";
+import type { RebellionPersistenceProfile } from "../state/rebellionPersistence";
+import type { ScenarioDefinition } from "../state/scenario";
 import type {
   CrisisGate,
   CoupPrerequisiteSnapshot,
@@ -74,6 +76,29 @@ function hasActiveDuplicate(
       conflict.participantCountryIds.includes(candidate.countryId) &&
       conflict.participantFactionIds.includes(candidate.factionId),
   );
+}
+
+function findExactRebellionPersistenceProfile(
+  scenario: ScenarioDefinition,
+  candidate: EligibleCrisis,
+): RebellionPersistenceProfile | undefined {
+  if (candidate.kind !== "rebellion") {
+    return undefined;
+  }
+
+  const matches = (scenario.rebellionPersistenceProfiles ?? []).filter(
+    (profile) =>
+      profile.countryId === candidate.countryId &&
+      profile.factionId === candidate.factionId,
+  );
+
+  if (matches.length > 1) {
+    throw new Error(
+      `T018 rebellion ${candidate.countryId}/${candidate.factionId} has ambiguous persistence profiles.`,
+    );
+  }
+
+  return matches[0];
 }
 
 function serializeGate(gate: CrisisGate): {
@@ -266,6 +291,9 @@ export function runConflictPhase(
 
   let nextConflicts = currentWorld.conflicts;
   let conflictsChanged = false;
+  let nextRebellionPersistenceEpisodes =
+    currentWorld.rebellionPersistenceEpisodes;
+  let rebellionPersistenceEpisodesChanged = false;
 
   for (const candidate of eligibleCandidates) {
     if (hasActiveDuplicate(nextConflicts, candidate)) {
@@ -289,21 +317,46 @@ export function runConflictPhase(
       contestedRegionIds: [],
       startedAtTick: context.nextTick,
     };
+    const persistenceProfile = findExactRebellionPersistenceProfile(
+      scenario,
+      candidate,
+    );
 
     nextConflicts = {
       ...nextConflicts,
       [conflict.id]: conflict,
     };
     conflictsChanged = true;
-    emittedEvents.push(
-      createCrisisEvent(
-        candidate,
-        conflict,
-        context.nextTick,
-        nextEventSequence,
-        completionCauseIdsForCandidate(context.emittedEvents, candidate),
-      ),
+    const startEvent = createCrisisEvent(
+      candidate,
+      conflict,
+      context.nextTick,
+      nextEventSequence,
+      completionCauseIdsForCandidate(context.emittedEvents, candidate),
     );
+    emittedEvents.push(startEvent);
+
+    if (persistenceProfile !== undefined) {
+      const existingEpisodes = nextRebellionPersistenceEpisodes ?? {};
+      if (existingEpisodes[conflict.id] !== undefined) {
+        throw new Error(
+          `T018 rebellion ${conflict.id} already has a persistence episode.`,
+        );
+      }
+
+      nextRebellionPersistenceEpisodes = {
+        ...existingEpisodes,
+        [conflict.id]: {
+          conflictId: conflict.id,
+          profileId: persistenceProfile.id,
+          countryId: candidate.countryId,
+          factionId: candidate.factionId,
+          bootstrappedAtTick: startEvent.tick,
+          sourceEventId: startEvent.id,
+        },
+      };
+      rebellionPersistenceEpisodesChanged = true;
+    }
     nextEventSequence += 1;
   }
 
@@ -319,6 +372,9 @@ export function runConflictPhase(
     nextWorld: {
       ...currentWorld,
       conflicts: nextConflicts,
+      ...(rebellionPersistenceEpisodesChanged
+        ? { rebellionPersistenceEpisodes: nextRebellionPersistenceEpisodes }
+        : {}),
     },
     emittedEvents,
     nextEventSequence,
