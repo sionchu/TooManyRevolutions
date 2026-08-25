@@ -25,46 +25,76 @@ ChatGPT:
 
 Codex:
 
-- pulls the latest authorized branch;
-- reads `STATE.md`, `CURRENT_TASK.md`, and its referenced immutable task file;
-- validates `TASK_ID`, `BASE_BRANCH`, and `BASE_COMMIT` before work;
-- executes only `AUTHORIZED_SCOPE` and respects `FORBIDDEN_SCOPE`;
-- writes the historical result, refreshes `LAST_RESULT.md`, and updates task
-  status in `STATE.md`;
-- verifies the result and commits/pushes only when the task policy permits it.
+- reads the repository snapshot supplied by the active Codex project/task;
+- reads `STATE.md`, `CURRENT_TASK.md`, and its referenced task file;
+- executes only the authorized scope and respects forbidden scope;
+- writes the historical result and required bridge completion metadata;
+- runs the required verification and exposes a reviewable diff/commit through
+  the Codex product handoff available for that environment.
 
 ChatGPT/user review remains the gate authority. Codex must not infer a gate pass,
 change a phase from ready to started, or authorize the next major task merely
 because implementation checks pass.
 
+## Remote Codex execution policy
+
+For Codex cloud/remote tasks, the repository snapshot supplied by the Codex
+product is the execution input. **Shell `git fetch`, `git pull`, `git push`, `gh`
+authentication, or direct `github.com:443` access are not prerequisites for
+starting or completing the coding task.** Remote sandboxes may have network
+access disabled or restricted independently of repository access provided by
+the product.
+
+Do not tell a remote Codex task to repair a stale workspace by reaching GitHub
+from inside the sandbox. If the supplied snapshot does not contain the currently
+authorized `CURRENT_TASK.md` or its referenced task file, that remote task was
+started from a stale repository snapshot. Stop that task and start a new remote
+Codex task against the current repository/branch snapshot instead of using
+reset/rebase/force/fetch/pull workarounds inside the sandbox.
+
+After execution, use the Codex product's normal review/handoff path available in
+that environment (for example a reviewable diff, apply/sync flow, commit, or pull
+request handoff). A shell-level `git push` is optional only when the environment
+already supports it; failure or absence of shell GitHub network access is not a
+code failure and must not trigger manual network workarounds.
+
+## Local Codex execution policy
+
+For a genuinely local Codex workspace, ordinary Git synchronization may be used
+when helpful. Never reset, rebase, force-update, or discard user work merely to
+match Bridge metadata. Local Git mechanics are an environment concern, not part
+of the gameplay task's acceptance criteria.
+
 ## Task cycle
 
-Before execution, Codex must confirm the repository root, inspect `git status`,
-run `git pull --ff-only`, read the bridge state and current task, validate branch
-and base commit, and read `docs/bridge/tasks/<TASK_ID>.md`. If local changes block
-the pull, Codex must not reset or blindly stash them. If the branch or commit does
-not match, Codex must refuse the stale task unless the task explicitly permits a
-newer fast-forward state and explains why.
+Before execution, Codex confirms that the supplied repository snapshot contains
+the authorized `CURRENT_TASK.md` and referenced task file, then executes that
+task only. Exact SHA matching is not a universal prerequisite for remote Codex;
+the task may name a reviewed predecessor for architecture provenance without
+requiring shell network synchronization.
 
 After execution, Codex writes
-`docs/bridge/results/<TASK_ID>_RESULT.md`, updates `LAST_RESULT.md`, updates only
-the completed task status in `STATE.md`, runs the required verification, and
-inspects the final diff/status. Historical task and result files are immutable;
-use explicit IDs such as `F05_REVIEW` or `F05_FIX1` for later cycles. The active
-pointer files may be replaced each cycle.
+`docs/bridge/results/<TASK_ID>_RESULT.md`, updates the required active bridge
+metadata, runs verification, and inspects the final diff/status. Historical task
+and result files remain audit records; explicit task IDs such as `F05_FIX17` are
+used for later cycles.
 
 Future long prompts should normally be committed under `tasks/`; manual
-copy/paste is a fallback. ChatGPT should base each new task on the latest remote
-commit.
+copy/paste is a fallback. ChatGPT should author new tasks from the latest GitHub
+state it can inspect.
 
-## Commit policy
+## Handoff policy
 
-Each executable task chooses one policy; neither is globally hardcoded.
+Each executable task chooses an execution/handoff policy.
 
-- `COMMIT_AND_PUSH_ON_PASS`: Codex may implement, verify, write the result,
-  commit, push, and report the final hash.
-- `LEAVE_REVIEWABLE_DIFF`: Codex implements and verifies locally, writes the
-  result, and leaves all changes uncommitted and unpushed for review.
+- `REMOTE_HANDOFF_ON_PASS`: preferred for Codex cloud/remote. Implement and
+  verify in the product-provided repository snapshot, then expose the completed
+  change through the product's normal review/handoff path. Do not require shell
+  GitHub network access.
+- `COMMIT_AND_PUSH_ON_PASS`: use only in an environment already known to have
+  working Git credentials and network access.
+- `LEAVE_REVIEWABLE_DIFF`: implement and verify without committing when manual
+  review of the working tree is intentionally desired.
 
 The policy never expands authorized scope and never permits Codex to create the
 next major task.
