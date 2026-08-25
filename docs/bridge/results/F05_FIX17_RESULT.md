@@ -5,11 +5,12 @@ TASK_ID: F05_FIX17
 STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW (KNOWN VITEST RUNNER ERROR)
 BASE_BRANCH: master
 BASE_COMMIT: d3908e1f30390131e12cced6e1b80bd03c5c1a4f
-TASK_COMMIT: PENDING_CORRECTION_COMMIT
-RESULT_COMMIT: PENDING_REVIEW_COMMIT
-COMMIT_CREATED: PENDING
-PUSHED: PENDING
+TASK_COMMIT: c65eb5cce25388cc7a81f0e8a27ce34d591b1333
+RESULT_COMMIT: REVIEW_METADATA_UPDATE
+COMMIT_CREATED: YES
+PUSHED: YES
 REVIEW_BRANCH: f05-fix17-review
+PUBLISHED_TASK_COMMIT: c65eb5cce25388cc7a81f0e8a27ce34d591b1333
 ```
 
 ## Outcome
@@ -102,8 +103,8 @@ rebellion, FUND_MOVEMENT, Gate 1F, or V02 behavior was introduced.
 
 ## Publication
 
-The corrected result is committed on `f05-fix17-review` and published to the
-same remote branch after the pending commit fields above are replaced with the
-actual local commit metadata.
+The corrected result is committed on `f05-fix17-review` and the correction
+commit above is published to the same remote branch. A document-only metadata
+commit records this publication state.
 
 F05_FIX18, Gate 1F PASS, and V02 were not started or authorized.
