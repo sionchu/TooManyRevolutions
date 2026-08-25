@@ -39,18 +39,20 @@ FUND_MOVEMENT changes, Gate 1F, V02, and F05_FIX18 are outside this handoff.
 - `docs/bridge/results/F05_FIX17_RESULT.md` contains the required
   classification and verification boundary.
 - Final local implementation/documentation commit is
-  `dbe41766dea27ff7bd8ae00aeb8fb21b74d537b5`.
+  `dbe41766dea27ff7bd8ae00aeb8fb21b74d537b5`; the handoff is preserved in
+  `49d97dc3bbad93ea0b88315d94f9da2c7a14e985`.
 
 ## Current checkpoint
 
 - Nested repository: `<LOCAL_USER_HOME>\OneDrive\Documents\ChatGPT\Game-TMR\TooManyRevolutions`.
-- `HEAD`: `dbe41766dea27ff7bd8ae00aeb8fb21b74d537b5`.
+- `HEAD`: `49d97dc3bbad93ea0b88315d94f9da2c7a14e985`.
 - `origin/master`: `d3908e1f30390131e12cced6e1b80bd03c5c1a4f`.
-- The worktree was clean before this handoff file was created.
+- The worktree is clean after the handoff update.
 - No `git fetch`, `git pull`, or `git push` was run for this handoff.
 - `docs/bridge/CURRENT_TASK.md` still describes F05_FIX16; this run followed
-  the explicit user instruction to execute F05_FIX17 and did not rewrite the
-  bridge task metadata.
+  the explicit user instruction to execute F05_FIX17. It specifies
+  `TASK_FILE: NONE`, and `docs/bridge/tasks/F05_FIX17.md` is absent; neither
+  bridge task metadata nor a new task file was created.
 
 ## Decisions and reasons
 
