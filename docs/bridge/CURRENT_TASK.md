@@ -1,59 +1,45 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX18
-STATUS: AUTHORIZED
+TASK_ID: F05_FIX17
+STATUS: IMPLEMENTED_LOCALLY / AWAITING_GITHUB_REVIEW_UPLOAD
 BASE_BRANCH: master
-TASK_FILE: docs/bridge/tasks/F05_FIX18.md
-RESULT_PATH: docs/bridge/results/F05_FIX18_RESULT.md
+TASK_FILE: docs/bridge/tasks/F05_FIX17.md
+RESULT_PATH: docs/bridge/results/F05_FIX17_RESULT.md
+REVIEW_BRANCH: f05-fix17-review
 
-## Accepted predecessor
+## Current state
 
-F05_FIX17 was completed in the active local Codex workspace and reported as:
+F05_FIX17 has been implemented in the active Codex Desktop local repository and reported with:
 
 ```text
 PRIMARY_CLASSIFICATION: COUP_COORDINATION_AUTHORING_SEAM_IMPLEMENTED
 NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_RUNTIME_VERTICAL_SLICE
 ```
 
-The local implementation workspace is expected to already contain the FIX17 static authoring seam. Do not recreate or reset it.
+ChatGPT has **not** independently reviewed the actual FIX17 source diff/result on GitHub yet. Therefore F05_FIX17 is not accepted and F05_FIX18 is not authorized.
 
-## Mission
+## Codex Desktop action
 
-F05_FIX18 implements the minimal Coup Coordination runtime vertical slice:
+Do not reimplement, reset, or rewrite F05_FIX17.
+
+Publish the existing local FIX17 implementation/result to GitHub so ChatGPT can review the actual diff. A review branch already exists on GitHub:
 
 ```text
-explicit COUP_COORDINATION_RESPONSE ActionRecord
--> sparse decisive node response state
--> deterministic node-response event provenance
--> authored necessary-set evaluation
--> existing applyConflictOutcome() sink
--> statusQuo OR nonterminal governmentTransition OR remain active
--> strict persistence V7 / replay
+f05-fix17-review
 ```
 
-`uncommitted` means absence of an accepted decisive response; it is not a stored progress value.
+It starts from the reviewed F05_FIX16 predecessor `d3908e1f30390131e12cced6e1b80bd03c5c1a4f`, matching the lineage of the existing local FIX17 implementation.
 
-## Hard boundaries
+Push the current completed FIX17 local HEAD to `f05-fix17-review` using the normal GitHub workflow available in Codex Desktop. Do not fetch/pull/merge Bridge-only master metadata into the implementation merely to publish it. Do not force-push or rewrite history.
 
-- no autonomous node-response producer in this task;
-- no random/timer/score/majority/weighted coup resolution;
-- no scalar or label inference of node alignment;
-- no fake coup LandHex front/writer;
-- no direct Government mutation outside existing conflict-outcome sink;
-- no coup State Dissolution writer;
-- no T021/T022/T023 semantic changes;
-- no rebellion implementation;
-- no FUND_MOVEMENT extension;
-- no Gate 1F PASS;
-- no V02;
-- no F05_FIX19 self-authorization.
+After the branch is published, stop. Do not start F05_FIX18, Gate 1F PASS, or V02.
 
-## Codex Desktop execution
+## Review sequence
 
-Read this file and `docs/bridge/tasks/F05_FIX18.md` from GitHub as the task authority, then implement in the current local `TooManyRevolutions` workspace.
-
-The local copy of `docs/bridge/CURRENT_TASK.md` does **not** need to be current and is not an execution gate. Do not run shell `git fetch`, `git pull`, exact-SHA synchronization, reset, rebase, or force merely to mirror Bridge metadata locally.
-
-If the local workspace contains the completed FIX17 authoring types, proceed directly. If the expected FIX17 authoring seam is absent, stop and report `BLOCKED_MISSING_FIX17_AUTHORING_SEAM` rather than reimplementing FIX17.
-
-Execute only `docs/bridge/tasks/F05_FIX18.md`.
+```text
+FIX17 branch published
+-> ChatGPT compares d390... to f05-fix17-review
+-> ChatGPT reviews code/tests/result
+-> PASS or correction
+-> only then may next task be authorized
+```
