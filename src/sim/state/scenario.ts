@@ -9,6 +9,7 @@ import {
 import type { IdeologyDefinition } from "./ideology";
 import {
   asScenarioId,
+  type CoupCoordinationNodeId,
   type ContactEdgeId,
   type CountryId,
   type FactionId,
@@ -18,6 +19,14 @@ import {
   type RegionId,
   type ScenarioId,
 } from "./ids";
+import type {
+  CoupCoordinationNodeDefinition,
+  CoupCoordinationProfile,
+} from "./coupCoordination";
+export type {
+  CoupCoordinationNodeDefinition,
+  CoupCoordinationProfile,
+} from "./coupCoordination";
 import type { PolicyDefinition, PolicyState } from "./policy";
 import type { ScenarioRegion } from "./region";
 import type { SovereignFunction } from "./run";
@@ -86,6 +95,10 @@ export interface FactionFundMovementTemplate {
   readonly resourceAmount: number;
 }
 
+/** Static coup-coordination identities; no runtime state is created from this field. */
+export type CoupCoordinationNodeDefinitions =
+  readonly CoupCoordinationNodeDefinition[];
+
 /**
  * Immutable scenario input. It owns definitions and initial snapshots;
  * WorldState contains only the mutable state of a particular run.
@@ -108,6 +121,8 @@ export interface ScenarioDefinition {
   >;
   readonly factionProposalTemplates?: readonly FactionProposalTemplate[];
   readonly factionFundMovementTemplates?: readonly FactionFundMovementTemplate[];
+  readonly coupCoordinationNodes?: CoupCoordinationNodeDefinitions;
+  readonly coupCoordinationProfiles?: readonly CoupCoordinationProfile[];
   readonly initialCountryPolicies: Readonly<Record<CountryId, PolicyState>>;
   readonly ideologyCatalog: Readonly<Record<IdeologyId, IdeologyDefinition>>;
   readonly policyCatalog: Readonly<Record<PolicyId, PolicyDefinition>>;
@@ -311,6 +326,147 @@ function assertScenarioFactionFundMovementTemplates(
   }
 }
 
+/** Validate the static, scenario-authored coup-coordination seam only. */
+export function assertScenarioCoupCoordinationAuthoring(
+  scenario: Pick<
+    ScenarioDefinition,
+    | "initialCountries"
+    | "initialFactions"
+    | "factionCapabilities"
+    | "initialGovernments"
+    | "coupCoordinationNodes"
+    | "coupCoordinationProfiles"
+  >,
+): void {
+  const countriesById = new Map(
+    scenario.initialCountries.map((country) => [country.id, country]),
+  );
+  const factionsById = new Map(
+    scenario.initialFactions.map((faction) => [faction.id, faction]),
+  );
+  const governmentsById = new Map(
+    scenario.initialGovernments.map((government) => [
+      government.id,
+      government,
+    ]),
+  );
+  const nodesById = new Map<
+    CoupCoordinationNodeId,
+    CoupCoordinationNodeDefinition
+  >();
+
+  for (const node of scenario.coupCoordinationNodes ?? []) {
+    if (node.id.length === 0) {
+      throw new Error("Coup coordination node identity must not be empty.");
+    }
+
+    if (nodesById.has(node.id)) {
+      throw new Error(`Coup coordination nodes repeat ${node.id}.`);
+    }
+
+    if (!countriesById.has(node.countryId)) {
+      throw new Error(
+        `Coup coordination node ${node.id} references missing country ${node.countryId}.`,
+      );
+    }
+
+    if (node.name.trim().length === 0) {
+      throw new Error(
+        `Coup coordination node ${node.id} must have a non-empty name.`,
+      );
+    }
+
+    nodesById.set(node.id, node);
+  }
+
+  const seenProfileKeys = new Set<string>();
+  for (const profile of scenario.coupCoordinationProfiles ?? []) {
+    const faction = factionsById.get(profile.coupFactionId);
+    if (faction === undefined) {
+      throw new Error(
+        `Coup coordination profile references missing faction ${profile.coupFactionId}.`,
+      );
+    }
+
+    const country = countriesById.get(profile.countryId);
+    if (country === undefined) {
+      throw new Error(
+        `Coup coordination profile references missing country ${profile.countryId}.`,
+      );
+    }
+
+    if (faction.countryId !== profile.countryId) {
+      throw new Error(
+        `Coup coordination profile faction ${profile.coupFactionId} must belong to country ${profile.countryId}.`,
+      );
+    }
+
+    const factionCapabilities =
+      scenario.factionCapabilities?.[profile.coupFactionId] ?? [];
+    if (!factionCapabilities.includes("coup")) {
+      throw new Error(
+        `Coup coordination profile faction ${profile.coupFactionId} must have the coup capability.`,
+      );
+    }
+
+    const profileKey = `${profile.countryId}:${profile.coupFactionId}`;
+    if (seenProfileKeys.has(profileKey)) {
+      throw new Error(`Coup coordination profile repeats ${profileKey}.`);
+    }
+    seenProfileKeys.add(profileKey);
+
+    if (profile.requiredNodeIds.length === 0) {
+      throw new Error(
+        `Coup coordination profile ${profileKey} must require at least one node.`,
+      );
+    }
+
+    const seenNodeIds = new Set<CoupCoordinationNodeId>();
+    for (const nodeId of profile.requiredNodeIds) {
+      if (seenNodeIds.has(nodeId)) {
+        throw new Error(
+          `Coup coordination profile ${profileKey} repeats required node ${nodeId}.`,
+        );
+      }
+      seenNodeIds.add(nodeId);
+
+      const node = nodesById.get(nodeId);
+      if (node === undefined) {
+        throw new Error(
+          `Coup coordination profile ${profileKey} references missing node ${nodeId}.`,
+        );
+      }
+
+      if (node.countryId !== profile.countryId) {
+        throw new Error(
+          `Coup coordination profile ${profileKey} node ${nodeId} must belong to country ${profile.countryId}.`,
+        );
+      }
+    }
+
+    const successorGovernment = governmentsById.get(
+      profile.successorGovernmentId,
+    );
+    if (successorGovernment === undefined) {
+      throw new Error(
+        `Coup coordination profile ${profileKey} references missing successor Government ${profile.successorGovernmentId}.`,
+      );
+    }
+
+    if (successorGovernment.countryId !== profile.countryId) {
+      throw new Error(
+        `Coup coordination profile ${profileKey} successor Government must belong to country ${profile.countryId}.`,
+      );
+    }
+
+    if (country.currentGovernmentId === profile.successorGovernmentId) {
+      throw new Error(
+        `Coup coordination profile ${profileKey} successor Government must differ from the current Government.`,
+      );
+    }
+  }
+}
+
 /** Validate the static topology owned by one ScenarioDefinition. */
 export function assertScenarioDefinition(scenario: ScenarioDefinition): void {
   assertScenarioContactTopology(scenario);
@@ -318,6 +474,7 @@ export function assertScenarioDefinition(scenario: ScenarioDefinition): void {
   assertScenarioFactionCapabilities(scenario);
   assertScenarioFactionProposalTemplates(scenario);
   assertScenarioFactionFundMovementTemplates(scenario);
+  assertScenarioCoupCoordinationAuthoring(scenario);
 }
 
 /** A non-playable bootstrap scenario; T025 supplies the first playable data. */

@@ -12,6 +12,7 @@ export type ConflictId = Brand<string, "ConflictId">;
 export type GovernmentId = Brand<string, "GovernmentId">;
 export type ScenarioId = Brand<string, "ScenarioId">;
 export type ContactEdgeId = Brand<string, "ContactEdgeId">;
+export type CoupCoordinationNodeId = Brand<string, "CoupCoordinationNodeId">;
 export type InterventionId = Brand<string, "InterventionId">;
 export type InterventionCommitmentId = Brand<
   string,
@@ -34,6 +35,7 @@ export type EntityId =
   | PolicyId
   | ConflictId
   | GovernmentId
+  | CoupCoordinationNodeId
   | InterventionId
   | InterventionCommitmentId
   | FactionFundMovementCommitmentId
@@ -51,6 +53,9 @@ export const asGovernmentId = (value: string): GovernmentId =>
 export const asScenarioId = (value: string): ScenarioId => value as ScenarioId;
 export const asContactEdgeId = (value: string): ContactEdgeId =>
   value as ContactEdgeId;
+export const asCoupCoordinationNodeId = (
+  value: string,
+): CoupCoordinationNodeId => value as CoupCoordinationNodeId;
 export const asInterventionId = (value: string): InterventionId =>
   value as InterventionId;
 export const asInterventionCommitmentId = (

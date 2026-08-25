@@ -9,6 +9,7 @@ export * from "./core/tick";
 export * from "./events/event";
 export * from "./events/eventStore";
 export * from "./state/conflict";
+export * from "./state/coupCoordination";
 export * from "./state/contact";
 export * from "./state/contactFixture";
 export * from "./state/conflictFixture";
