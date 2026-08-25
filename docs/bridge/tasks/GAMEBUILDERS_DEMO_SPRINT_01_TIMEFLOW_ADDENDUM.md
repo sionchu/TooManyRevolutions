@@ -1,46 +1,23 @@
-# GAMEBUILDERS_DEMO_SPRINT_01 — Mandatory Time-Flow Addendum
+# GAMEBUILDERS_DEMO_SPRINT_01 — Time-Flow & Pacing Addendum
 
 STATUS: REQUIRED
 APPLIES_TO: GAMEBUILDERS_DEMO_SPRINT_01
 PRIORITY: P0
 
-## Why this is required
+## 1. Core correction
 
-The player must not experience the product as a manual simulation console where they repeatedly click `+7 days` or `+30 days` to make anything happen.
+The player controls the **flow rate of history**. The normal game must not feel like a debug console where the player repeatedly presses `+7 days` or `+30 days` just to make the world move.
 
-The primary game-time interaction must feel like a strategy game:
-
-```text
-pause / play
-+ selectable simulation speed
-+ real day-by-day authoritative simulation
-+ automatic pause on major political events
-```
-
-Manual `+1/+7/+30 day` controls may remain only as secondary debug/capture conveniences if they do not clutter the player-facing UI. They are not the primary gameplay clock.
-
-## Required player-facing controls
-
-Implement a compact time control strip with at minimum:
+Primary controls should therefore be strategy-game-style:
 
 ```text
-⏸ Pause
-▶ 1×
-▶▶ 3×
-▶▶▶ 10×
+Pause / Play
+1x / 2x / 4x (or another small readable set chosen after pacing verification)
 ```
 
-A faster optional speed may be added only if stable and readable.
+Manual day-jump controls may exist as secondary capture/debug conveniences but are not the primary player clock.
 
-Starting the game paused is acceptable and recommended so the player can read the initial Agenda before time begins.
-
-The current active speed must be visually obvious.
-
-## Authoritative simulation boundary
-
-Speed is presentation scheduling only.
-
-Every simulated day must still execute the accepted authoritative daily pipeline in order:
+Every simulated day MUST still execute the accepted authoritative daily pipeline in order:
 
 ```text
 runSimulationStep(...)
@@ -48,87 +25,143 @@ runSimulationStep(...)
 -> next day
 ```
 
-Do NOT implement speed by directly changing `tick`, `date`, faction state, crisis state, or any other WorldState value.
+Speed is presentation scheduling only. Never directly mutate tick/date or skip intermediate authoritative days.
 
-Do NOT skip intermediate daily simulation steps when running at 3×/10×. A high speed only means executing valid one-day steps more frequently in wall-clock time.
+## 2. Auto-pause is a user option, not a forced rule
 
-Wall-clock timing must never become an authoritative gameplay input.
+Do NOT hard-code mandatory automatic pause on coup/rebellion as the normal game rule.
 
-## Runtime safety
+Provide an option such as:
+
+```text
+[ ] 중요 사건 발생 시 자동 일시정지
+```
+
+The option may default ON or OFF based on the best UX observed during the sprint, but it must be user-controllable and presentation-only.
+
+When disabled, major events still need a prominent factual banner/toast/feed treatment without forcibly changing time speed.
+
+Terminal RunOutcome naturally stops further authoritative simulation because the existing core already treats terminal runs as non-advancing; this is not the same as optional major-event auto-pause.
+
+## 3. The real pacing risk: accelerated time exposes late-state silence faster
+
+Fast-forward does NOT solve the accepted Gate 1F problem. It can expose it sooner in real time.
+
+The accepted F05 state still has a known long-horizon risk: after enough simulated time, the world can enter an active-conflict / low-reassessment state where meaningful political interaction becomes sparse. Therefore the demo client must not assume that adding a faster speed makes the game fun.
+
+This sprint MUST perform a dedicated deterministic horizon audit of the actual GameBuilders demo scenario before finalizing normal speed choices.
+
+## 4. Mandatory demo-scenario horizon audit
+
+After the first playable client exists, run the exact fixed-seed GameBuilders demo ScenarioDefinition headlessly under several representative trajectories. At minimum:
+
+```text
+A. no player action
+B. material/economic relief-oriented response
+C. political accommodation/legalization-oriented response
+D. coercive/restrictive response
+```
+
+Use only actions that actually exist and validate in the demo scenario. If a named branch is unavailable, replace it with another genuinely distinct legal response and document that substitution.
+
+Observe checkpoints at approximately:
+
+```text
+Day 0
+Day 90
+Day 180
+Day 360
+Day 720
+Day 1080
+Day 1800
+Day 3600
+Day 7200  (~20 years)
+```
+
+Do NOT force the simulation to reach a pre-authored crisis. This is an audit, not a story script.
+
+Record at minimum per trajectory/checkpoint:
+
+- RunOutcome;
+- active Conflict count/kinds/status;
+- Agenda count/highest severity;
+- accepted/rejected meaningful player-action availability;
+- meaningful GameEvent density since prior checkpoint;
+- last meaningful political reassessment/event tick;
+- major Country state values;
+- faction grievance/organization/currentStrategy summaries;
+- territorial control summary/front presence;
+- whether the state appears interactively alive, temporarily quiet, or structurally stalled.
+
+Create `docs/GAMEBUILDERS_DEMO_HORIZON_AUDIT.md` with the actual results.
+
+## 5. Demo blocker classification
+
+Classify the demo scenario honestly:
+
+```text
+DEMO_HORIZON_STATUS: ROBUST_SHORT_AND_MEDIUM_HORIZON
+DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
+DEMO_HORIZON_STATUS: EARLY_STALL_DEMO_BLOCKER
+```
+
+Definitions:
+
+- `ROBUST_SHORT_AND_MEDIUM_HORIZON`: meaningful interaction continues through the expected hands-on demo horizon and no obvious stall appears early.
+- `STRONG_SHORT_HORIZON_LATE_STALL`: the first several minutes / early simulated years are strong, but the known late-state stall appears later. This is acceptable for the event vertical slice only if disclosed internally; do not claim the full campaign is complete.
+- `EARLY_STALL_DEMO_BLOCKER`: the actual player can reach a quiet/stalled state within the likely 3–8 minute judge session even on normal speeds. This must be addressed before visual polish is treated as done.
+
+## 6. What may be changed if the demo scenario stalls early
+
+First use **scenario authoring and UI pacing**, not new hidden simulation mechanics.
+
+Allowed:
+
+- tune GameBuilders-only initial conditions;
+- choose a better existing intervention/policy catalog composition;
+- set starting pressures so multiple real responses are immediately relevant;
+- change presentation speed presets after measurement;
+- make event/Agenda consequences more legible;
+- choose a better fixed demo seed only if deterministic and documented.
+
+Forbidden:
+
+- scheduled rebellion/coup;
+- hidden crisis countdown;
+- scripted event chain;
+- fake Agenda/EventStore entries;
+- automatic Conflict deletion;
+- arbitrary late-state reset;
+- timers/randomness solely to create activity;
+- pretending the 20-year Gate 1F problem is solved when it is not.
+
+If the **core** rather than the demo authoring is the blocker, record it for the F05 continuation instead of smuggling a gameplay rule into the demo branch.
+
+## 7. Runtime scheduler safety
 
 The client scheduler must:
 
 - have exactly one active simulation loop;
 - prevent overlapping/re-entrant day steps;
-- stop cleanly on Pause;
-- stop on Reset / return to title;
-- clean up timers on component unmount;
-- use the newest committed RunRecord rather than a stale React closure;
-- stop automatically when RunOutcome is terminal;
-- remain responsive enough that the user can pause at any time.
+- stop cleanly on Pause and Reset;
+- clean up timers on unmount;
+- use the newest committed RunRecord rather than stale React closure state;
+- remain responsive at the fastest supported speed;
+- safely queue or pause around player ActionRecord submission so actions do not race day stepping.
 
-If rendering every day at 10× is expensive, rendering may be throttled carefully, but authoritative simulation steps must still occur one day at a time and in order.
+## 8. Verification
 
-## Major-event auto-pause — P0
+Verify at minimum:
 
-Automatically pause the presentation clock when a newly committed event contains any of:
-
-```text
-COUP_ATTEMPT_STARTED
-REBELLION_STARTED
-ORDER_CONSOLIDATED
-STATE_DISSOLVED
-```
-
-The corresponding factual crisis/outcome presentation should become visible immediately.
-
-Do not auto-resolve the event. Auto-pause is UI behavior only.
-
-Optional additional auto-pause triggers are allowed only for genuinely important existing events and should remain sparse.
-
-## Action UX
-
-The player must be able to pause, inspect an Agenda, choose an actual action, and resume time.
-
-Submitting an action while time is running must not race the simulation loop. Either:
-
-1. queue it through the existing next-tick/common action boundary safely; or
-2. briefly pause during submission and resume the prior speed after the accepted/rejected action is committed.
-
-Never bypass the common ActionRecord pipeline.
-
-## Demo feel target
-
-A first-time player should be able to do this without explanation:
-
-```text
-Start
--> inspect current national pressure while paused
--> press Play / choose speed
--> watch dates and state change continuously
--> pause or choose an intervention
--> resume
--> see Agenda / map / events react
--> major coup/rebellion appears
--> game automatically pauses
--> inspect the crisis and choose what to do next
-```
-
-The resulting interaction should feel like controlling the flow of history, not clicking a date-advance debug button.
-
-## Verification
-
-Add focused UI/runtime tests where practical and manually verify:
-
-- Start begins in a readable paused state;
-- 1× advances continuously;
-- 3× and 10× advance more quickly while still executing one-day steps;
-- Pause stops advancement;
-- switching speeds does not create multiple loops;
-- Reset stops the old loop and restores deterministic initial state;
-- coup/rebellion auto-pause works;
-- terminal outcome auto-pause works;
+- start/reset deterministic;
+- Pause stops time;
+- each speed executes one-day steps in correct order;
+- speed switching does not create multiple loops;
+- optional auto-pause setting works both enabled and disabled;
+- major-event presentation is visible even when auto-pause is disabled;
 - action submission does not double-step or race;
-- no direct clock/WorldState mutation is introduced.
+- no direct clock/WorldState mutation;
+- the mandatory horizon audit is completed and documented;
+- the 3-minute shot list uses a trajectory actually observed in the audit, not an invented sequence.
 
-Document the final time-control behavior in `GAMEBUILDERS_DEMO_SPRINT_01_RESULT.md` and include the real interaction in the 3-minute shot list.
+Document final speed presets, auto-pause default, and `DEMO_HORIZON_STATUS` in `GAMEBUILDERS_DEMO_SPRINT_01_RESULT.md`.
