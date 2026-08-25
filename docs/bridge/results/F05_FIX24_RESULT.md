@@ -68,6 +68,20 @@ GameEvent, cause IDs, observed tick, idempotence, save/load replay 계약을
 Production test/build는 docs-only task의 필수 범위가 아니므로 실행하지 않았다.
 이 문서는 runtime behavior나 evidence writer의 PASS를 주장하지 않는다.
 
+## Overnight queue revalidation
+
+```text
+REVALIDATED_AFTER_GAMEBUILDERS_O1_O4: YES
+CURRENT_BRANCH_SCOPE: DOCS_ONLY
+PRODUCTION_SRC_TEST_PERSISTENCE_CHANGES: NONE
+FORMAT_RECHECK: PASS
+DIFF_CHECK: PASS
+```
+
+GameBuilders O1–O4는 별도 `gamebuilders-demo-sprint-01` branch에서 완료했다.
+이 branch에는 그 구현을 merge하지 않았고, FIX24의 accepted FIX23 계보와
+docs-only 경계를 유지했다.
+
 ## Completion markers
 
 F05_FIX24: COMPLETE / AWAITING_CHATGPT_REVIEW
