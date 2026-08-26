@@ -89,7 +89,15 @@ export function PolicyCard({
         </span>
       </div>
       <details className="decision-details">
-        <summary>조건·변화 보기</summary>
+        <summary>
+          <TmrIcon
+            iconId={TMR_ICON_IDS.ui.why}
+            size={16}
+            decorative
+            tone="accent"
+          />
+          <span>왜 그런가 · 변화 보기</span>
+        </summary>
         <div className="decision-sections">
           <section className="decision-section decision-change">
             <h4>확정 변화</h4>

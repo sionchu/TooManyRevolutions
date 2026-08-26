@@ -98,8 +98,27 @@ export function DecisionPanel({
         정책과 개입은 공통 action pipeline으로 다음 tick에 반영됩니다. 카드는
         확정 변화만 먼저 보여주고, 세부 조건은 접어 둡니다.
       </p>
-      <InstitutionalRoadmapPanel roadmap={roadmap} />
-      <StateProjectPanel projects={projects} onFocusRegion={onFocusProject} />
+      <details className="decision-support-details">
+        <summary>
+          <span className="decision-support-summary-label">
+            <TmrIcon
+              iconId={TMR_ICON_IDS.ui.details}
+              size={16}
+              decorative
+              tone="neutral"
+            />
+            <span>중기 계획·사업 기록</span>
+          </span>
+          <span className="decision-support-summary-meta">선택 사항</span>
+        </summary>
+        <div className="decision-support-content">
+          <InstitutionalRoadmapPanel roadmap={roadmap} />
+          <StateProjectPanel
+            projects={projects}
+            onFocusRegion={onFocusProject}
+          />
+        </div>
+      </details>
       <div className="decision-group">
         <div className="decision-group-heading">
           <TmrIcon
@@ -174,18 +193,29 @@ export function DecisionPanel({
             </span>
           ) : null}
         </div>
-        <div className="rule-list">
-          {policyState === undefined
-            ? null
-            : Object.entries(policyState.institutionalRules).map(
-                ([rule, value]) => (
-                  <div key={rule}>
-                    <span>{RULE_LABELS[rule] ?? "제도"}</span>
-                    <b>{RULE_VALUE_LABELS[String(value)] ?? String(value)}</b>
-                  </div>
-                ),
-              )}
-        </div>
+        <details className="institution-details">
+          <summary>
+            <TmrIcon
+              iconId={TMR_ICON_IDS.ui.details}
+              size={16}
+              decorative
+              tone="neutral"
+            />
+            <span>현재 규칙 자세히 보기</span>
+          </summary>
+          <div className="rule-list">
+            {policyState === undefined
+              ? null
+              : Object.entries(policyState.institutionalRules).map(
+                  ([rule, value]) => (
+                    <div key={rule}>
+                      <span>{RULE_LABELS[rule] ?? "제도"}</span>
+                      <b>{RULE_VALUE_LABELS[String(value)] ?? String(value)}</b>
+                    </div>
+                  ),
+                )}
+          </div>
+        </details>
       </div>
     </aside>
   );

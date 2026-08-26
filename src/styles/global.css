@@ -3919,3 +3919,279 @@ body,
     font-size: 0.72rem;
   }
 }
+
+/* P0 Demo UI Polish V1: keep the map as the surface and make drawer content
+   read as headline -> action -> optional details. Existing component data and
+   semantic tone variables remain the source of truth. */
+.contextual-drawer .drawer-content {
+  padding: 0.65rem 0.8rem 0.8rem;
+}
+
+.contextual-drawer .panel-heading {
+  margin-bottom: 0.4rem;
+}
+
+.contextual-drawer .panel-heading h2 {
+  font-size: 1.08rem;
+}
+
+.contextual-drawer .panel-intro {
+  margin-bottom: 0.65rem;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.contextual-drawer .action-list,
+.contextual-drawer .agenda-list {
+  gap: 0.05rem;
+}
+
+.contextual-drawer .action-card {
+  padding: 0.6rem 0.35rem 0.7rem;
+  border: 0;
+  border-top: 1px solid #d2c2a9;
+  background: transparent;
+}
+
+.contextual-drawer .action-list > .action-card:first-child {
+  border-top: 0;
+}
+
+.contextual-drawer .action-card.action-available {
+  border-left: 3px solid #b79b69;
+  padding-left: 0.55rem;
+}
+
+.contextual-drawer .action-card.action-locked {
+  border-left: 3px solid #bcae9b;
+  padding-left: 0.55rem;
+}
+
+.contextual-drawer .action-card h3 {
+  margin: 0.3rem 0 0.35rem;
+  font-size: 0.94rem;
+}
+
+.contextual-drawer .decision-summary {
+  margin-top: 0.25rem;
+}
+
+.contextual-drawer .decision-badge {
+  background: rgb(238 225 204 / 58%);
+}
+
+.contextual-drawer .badge-confirmed {
+  background: rgb(226 238 223 / 72%);
+}
+
+.contextual-drawer .decision-details,
+.contextual-drawer .agenda-why,
+.contextual-drawer .agenda-support-details,
+.contextual-drawer .decision-support-details,
+.contextual-drawer .institution-details {
+  margin-top: 0.25rem;
+}
+
+.contextual-drawer .decision-details > summary,
+.contextual-drawer .agenda-why > summary,
+.contextual-drawer .agenda-support-details > summary,
+.contextual-drawer .decision-support-details > summary,
+.contextual-drawer .institution-details > summary {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.2rem 0.35rem;
+  color: #8b5c3b;
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.contextual-drawer .decision-details > summary::marker,
+.contextual-drawer .agenda-why > summary::marker,
+.contextual-drawer .agenda-support-details > summary::marker,
+.contextual-drawer .decision-support-details > summary::marker,
+.contextual-drawer .institution-details > summary::marker {
+  color: #a48655;
+}
+
+.contextual-drawer .decision-details[open] > summary {
+  margin-bottom: 0.25rem;
+}
+
+.contextual-drawer .agenda-card {
+  padding: 0.6rem 0.35rem 0.65rem;
+  background: transparent;
+}
+
+.contextual-drawer .agenda-card.severity-critical {
+  background: rgb(245 226 215 / 52%);
+}
+
+.contextual-drawer .agenda-card h3 {
+  margin: 0.35rem 0 0.25rem;
+}
+
+.contextual-drawer .agenda-meta {
+  margin-bottom: 0.25rem;
+}
+
+.contextual-drawer .agenda-why .cause-list {
+  margin: 0.15rem 0 0.2rem;
+  padding: 0.5rem 0.55rem;
+  border-left: 2px solid #cbb99c;
+  background: rgb(255 250 238 / 48%);
+}
+
+.contextual-drawer .agenda-support-details,
+.contextual-drawer .decision-support-details {
+  border-top: 1px solid #d2c2a9;
+}
+
+.contextual-drawer .agenda-support-details > summary,
+.contextual-drawer .decision-support-details > summary,
+.contextual-drawer .institution-details > summary {
+  color: #725f4a;
+}
+
+.contextual-drawer .agenda-support-details .consolidation-box {
+  margin-top: 0.35rem;
+  padding: 0.65rem 0.2rem 0.15rem;
+  border: 0;
+  border-top: 1px solid #d2c2a9;
+  background: transparent;
+}
+
+.contextual-drawer .thesis-note {
+  margin-top: 0.6rem;
+  padding: 0.65rem 0.2rem 0;
+  border: 0;
+  border-top: 1px solid #d2c2a9;
+  background: transparent;
+}
+
+.decision-support-summary-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+}
+
+.decision-support-summary-meta {
+  margin-left: auto;
+  color: #a48655;
+  font-size: 0.61rem;
+  font-weight: 800;
+}
+
+.decision-support-content {
+  padding-top: 0.45rem;
+}
+
+.contextual-drawer .decision-support-content .roadmap-panel,
+.contextual-drawer .decision-support-content .state-project-panel {
+  margin: 0 0 0.6rem;
+  padding: 0.55rem 0.45rem;
+  border-color: #d2c2a9;
+  background: rgb(248 240 226 / 58%);
+}
+
+.contextual-drawer .institution-box {
+  margin-top: 0.7rem;
+  padding-top: 0.65rem;
+}
+
+.contextual-drawer .institution-details .rule-list {
+  margin-top: 0.35rem;
+  padding: 0.5rem 0.55rem;
+  background: rgb(255 250 238 / 48%);
+}
+
+.contextual-drawer .action-button {
+  border-color: #6e4c2e;
+  color: #fff8e9;
+  background: #8b5c3b;
+  --tmr-icon-color: #fff8e9;
+  --tmr-icon-color-accent: #fff8e9;
+  --tmr-icon-color-crisis: #ffd6c7;
+  --tmr-icon-color-inverse: #fff8e9;
+  box-shadow: 0 4px 10px rgb(67 47 29 / 14%);
+  font-weight: 900;
+}
+
+.contextual-drawer .action-button:hover {
+  border-color: #4d3524;
+  background: #6e4c2e;
+}
+
+.contextual-drawer .drawer-close {
+  min-width: 44px;
+}
+
+.contextual-drawer .locked-reason {
+  margin: 0.45rem 0 0;
+  padding: 0.35rem 0.45rem;
+  background: rgb(245 226 215 / 58%);
+}
+
+@media (min-width: 761px) {
+  .map-first-shell .world-stage .contextual-drawer {
+    top: 2.9rem;
+    right: 0.75rem;
+    bottom: 4.45rem;
+    width: min(360px, 24vw);
+    min-width: 300px;
+  }
+
+  .map-first-shell .world-stage > .crisis-banner {
+    width: min(36rem, calc(100% - 1.6rem));
+    max-width: 36rem;
+    gap: 0.55rem;
+    padding: 0.55rem 0.65rem;
+  }
+}
+
+@media (min-width: 901px) {
+  .map-first-shell .world-stage:has(.contextual-drawer) > .crisis-banner {
+    right: calc(360px + 1.25rem);
+    width: min(30rem, calc(100% - 360px - 2.5rem));
+  }
+}
+
+@media (max-width: 760px) {
+  .map-first-shell > .metric-strip .time-controls button,
+  .map-first-shell > .metric-strip .manual-jumps-mobile > summary {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .map-first-shell .world-stage .contextual-drawer {
+    top: auto;
+    right: 0.55rem;
+    bottom: 4.05rem;
+    left: 0.55rem;
+    width: auto;
+    max-height: min(52svh, 27rem);
+    border-bottom: 0;
+    border-radius: 0.8rem 0.8rem 0 0;
+    box-shadow: 0 -12px 30px rgb(67 47 29 / 24%);
+  }
+
+  .map-first-shell .world-stage .drawer-heading {
+    padding: 0.6rem 0.7rem 0.5rem;
+  }
+
+  .map-first-shell .world-stage .drawer-content {
+    padding: 0.5rem 0.7rem 0.7rem;
+  }
+
+  .map-first-shell .world-stage .contextual-drawer .panel-heading h2 {
+    font-size: 1rem;
+  }
+
+  .map-first-shell .world-stage > .crisis-banner {
+    width: auto;
+    gap: 0.35rem;
+    padding: 0.45rem 0.5rem;
+  }
+}
