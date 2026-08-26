@@ -3,20 +3,20 @@ import type { DemoSpeed } from "./demoSpeed";
 export function TimeControls({
   isPlaying,
   speed,
-  autoPauseMajorEvents,
+  autoSlowCrises,
   flowNotice,
   onTogglePlaying,
   onSetSpeed,
-  onSetAutoPause,
+  onSetAutoSlow,
   onAdvance,
 }: {
   readonly isPlaying: boolean;
   readonly speed: DemoSpeed;
-  readonly autoPauseMajorEvents: boolean;
+  readonly autoSlowCrises: boolean;
   readonly flowNotice: string;
   readonly onTogglePlaying: () => void;
   readonly onSetSpeed: (speed: DemoSpeed) => void;
-  readonly onSetAutoPause: (enabled: boolean) => void;
+  readonly onSetAutoSlow: (enabled: boolean) => void;
   readonly onAdvance: (days: number) => void;
 }) {
   return (
@@ -44,16 +44,13 @@ export function TimeControls({
           </button>
         ))}
       </div>
-      <label
-        className="auto-pause-toggle"
-        data-auto-pause-scope="consequential-transitions"
-      >
+      <label className="auto-slow-toggle" data-auto-slow-scope="crises">
         <input
           type="checkbox"
-          checked={autoPauseMajorEvents}
-          onChange={(event) => onSetAutoPause(event.target.checked)}
+          checked={autoSlowCrises}
+          onChange={(event) => onSetAutoSlow(event.target.checked)}
         />
-        중대 전환 때만 자동 일시정지
+        위기 발생 시 자동 감속
       </label>
       <span className="time-status" role="status" aria-live="polite">
         {flowNotice}

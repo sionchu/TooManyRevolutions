@@ -1,17 +1,46 @@
 import type { GameEvent } from "../sim/events/event";
+import type { DemoSpeed } from "./demoSpeed";
 
-export const AUTO_PAUSE_EVENT_TYPES = [
-  "COUP_ATTEMPT_STARTED",
-  "REBELLION_STARTED",
-  "CIVIL_WAR_STARTED",
-  "GOVERNMENT_TRANSITIONED",
-  "ORDER_CONSOLIDATED",
-  "STATE_DISSOLVED",
-] as const satisfies readonly GameEvent["type"][];
+export type TimeReaction = "NONE" | "SLOW" | "STOP";
 
-const AUTO_PAUSE_TYPES = new Set<GameEvent["type"]>(AUTO_PAUSE_EVENT_TYPES);
+const TIME_REACTION_PRIORITY: Readonly<Record<TimeReaction, number>> = {
+  NONE: 0,
+  SLOW: 1,
+  STOP: 2,
+};
 
-/** Routine feedback remains observable; only consequential transitions pause. */
-export function isAutoPauseWorthyEvent(event: GameEvent): boolean {
-  return AUTO_PAUSE_TYPES.has(event.type);
+/** Map one recorded event to its player-facing time reaction. */
+export function deriveEventTimeReaction(event: GameEvent): TimeReaction {
+  switch (event.type) {
+    case "COUP_ATTEMPT_STARTED":
+    case "REBELLION_STARTED":
+    case "CIVIL_WAR_STARTED":
+      return "SLOW";
+    case "ORDER_CONSOLIDATED":
+    case "STATE_DISSOLVED":
+      return "STOP";
+    default:
+      return "NONE";
+  }
+}
+
+/** Apply STOP > SLOW > NONE deterministically to one simulation tick. */
+export function deriveTimeReaction(events: readonly GameEvent[]): TimeReaction {
+  let reaction: TimeReaction = "NONE";
+  for (const event of events) {
+    const candidate = deriveEventTimeReaction(event);
+    if (TIME_REACTION_PRIORITY[candidate] > TIME_REACTION_PRIORITY[reaction]) {
+      reaction = candidate;
+    }
+  }
+  return reaction;
+}
+
+/** Auto-slow crises to 1x without changing speed for routine or disabled cases. */
+export function nextSpeedAfterTimeReaction(
+  speed: DemoSpeed,
+  reaction: TimeReaction,
+  autoSlowCrises: boolean,
+): DemoSpeed {
+  return reaction === "SLOW" && autoSlowCrises ? 1 : speed;
 }

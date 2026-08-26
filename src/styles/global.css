@@ -98,7 +98,7 @@
 
   .map-first-shell > .metric-strip .time-controls {
     display: grid;
-    grid-template-areas: "playback status pause manual";
+    grid-template-areas: "playback status slow manual";
     grid-template-columns: auto minmax(8rem, 1fr) auto auto;
     align-items: center;
     min-width: 0;
@@ -120,8 +120,8 @@
     white-space: nowrap;
   }
 
-  .map-first-shell > .metric-strip .auto-pause-toggle {
-    grid-area: pause;
+  .map-first-shell > .metric-strip .auto-slow-toggle {
+    grid-area: slow;
     align-self: center;
     white-space: nowrap;
   }
@@ -642,20 +642,20 @@ h3 {
   color: #fff8e9;
   background: #a33d34;
 }
-.auto-pause-toggle,
+.auto-slow-toggle,
 .time-status,
 .manual-jumps-desktop,
 .manual-jumps-mobile {
   color: #806e58;
   font-size: 0.64rem;
 }
-.auto-pause-toggle {
+.auto-slow-toggle {
   display: flex;
   align-items: center;
   gap: 0.3rem;
   align-self: stretch;
 }
-.auto-pause-toggle input {
+.auto-slow-toggle input {
   accent-color: #a33d34;
 }
 .time-status {
@@ -1931,7 +1931,7 @@ h3 {
     grid-template-areas:
       "playback manual"
       "status status"
-      "pause pause";
+      "slow slow";
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: stretch;
     gap: 0.25rem 0.35rem;
@@ -1949,8 +1949,8 @@ h3 {
     grid-area: manual;
     justify-self: stretch;
   }
-  .auto-pause-toggle {
-    grid-area: pause;
+  .auto-slow-toggle {
+    grid-area: slow;
     font-size: 0.57rem;
   }
   .time-status {
@@ -2215,14 +2215,14 @@ body,
   .map-first-shell > .metric-strip .time-controls {
     grid-template-areas:
       "playback manual"
-      "status pause";
+      "status slow";
     gap: 0.12rem 0.18rem;
     padding: 0.15rem;
   }
 
   .map-first-shell > .metric-strip .time-controls button,
   .map-first-shell > .metric-strip .manual-jumps-mobile,
-  .map-first-shell > .metric-strip .auto-pause-toggle {
+  .map-first-shell > .metric-strip .auto-slow-toggle {
     min-height: 44px;
   }
 
@@ -3764,14 +3764,14 @@ body,
   .map-first-shell > .metric-strip .time-controls {
     grid-template-areas:
       "playback manual"
-      "status pause";
+      "status slow";
     gap: 0.12rem 0.18rem;
     padding: 0.15rem;
   }
 
   .map-first-shell > .metric-strip .time-controls button,
   .map-first-shell > .metric-strip .manual-jumps-mobile,
-  .map-first-shell > .metric-strip .auto-pause-toggle {
+  .map-first-shell > .metric-strip .auto-slow-toggle {
     min-height: 44px;
   }
 
