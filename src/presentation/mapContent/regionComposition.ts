@@ -232,17 +232,24 @@ export const REGION_COMPOSITION_TEMPLATES: Readonly<
       "field-plot",
     ],
     objects: [
-      placement("water-shelf", [0, 0], macroMesoMicro, "DECORATIVE_SUBSTRATE"),
-      placement("port-dock", [0, 0], mesoMicro, "AUTHORED_STATIC_POI"),
-      placement("dense-town", [-0.48, 0.28], mesoMicro, "AUTHORED_SETTLEMENT"),
-      placement("small-settlement", [0.5, -0.3], micro, "AUTHORED_SETTLEMENT"),
+      // Positive Z is the waterside read; the remaining offsets pull the
+      // authored dock, route, and settlement context back toward land.
+      placement(
+        "water-shelf",
+        [0, 0.24],
+        macroMesoMicro,
+        "DECORATIVE_SUBSTRATE",
+      ),
+      placement("port-dock", [0, -0.02], mesoMicro, "AUTHORED_STATIC_POI"),
+      placement("dense-town", [-0.58, -0.42], mesoMicro, "AUTHORED_SETTLEMENT"),
+      placement("small-settlement", [0.62, -0.3], micro, "AUTHORED_SETTLEMENT"),
       placement(
         "road-corridor",
-        [-0.04, 0.58],
+        [-0.04, -0.76],
         macroMesoMicro,
         "RECORDED_ROUTE",
       ),
-      placement("field-plot", [0.52, 0.48], mesoMicro, "DECORATIVE_SUBSTRATE"),
+      placement("field-plot", [0.76, 0.42], mesoMicro, "DECORATIVE_SUBSTRATE"),
     ],
     source: "TMR-authored-region-template",
   },
@@ -300,23 +307,25 @@ export const REGION_COMPOSITION_TEMPLATES: Readonly<
       "road-corridor",
     ],
     objects: [
-      placement("field-plot", [0, 0], mesoMicro, "DECORATIVE_SUBSTRATE"),
+      // Keep the agricultural read open and horizontal rather than stacking
+      // another compact civic cluster around the project anchor.
+      placement("field-plot", [0, 0.12], mesoMicro, "DECORATIVE_SUBSTRATE"),
       placement(
         "granary-storehouse",
-        [0.48, -0.08],
+        [0.82, -0.28],
         mesoMicro,
         "RECORDED_PROJECT",
       ),
       placement(
         "distribution-yard",
-        [-0.5, 0.26],
+        [-0.82, 0.08],
         mesoMicro,
         "RECORDED_PROJECT",
       ),
-      placement("small-settlement", [0.3, 0.48], micro, "AUTHORED_SETTLEMENT"),
+      placement("small-settlement", [0.55, 0.62], micro, "AUTHORED_SETTLEMENT"),
       placement(
         "road-corridor",
-        [0.02, -0.58],
+        [0.02, -0.82],
         macroMesoMicro,
         "RECORDED_ROUTE",
       ),

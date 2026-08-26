@@ -52,6 +52,14 @@ import {
 } from "./worldVisualDelta";
 import { TitleScreen } from "./TitleScreen";
 import { transitionProductScreen, type ProductScreen } from "./screenFlow";
+import {
+  AudioManager,
+  createSoundCueResolverState,
+  resolveAmbientCue,
+  resolveSoundCues,
+  type AudioAvailabilityStatus,
+  type SoundCueResolverInput,
+} from "../presentation/audioSystem";
 
 const PLAYER_COUNTRY_ID = GAMEBUILDERS_DEMO_SCENARIO.playerCountryId;
 
@@ -84,11 +92,18 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const [flowNotice, setFlowNotice] = useState(
     "일시정지 · 재생을 누르면 하루씩 진행합니다.",
   );
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const audioManager = useMemo(() => new AudioManager(), []);
+  const audioResolverStateRef = useRef(createSoundCueResolverState());
+  const [audioStatus, setAudioStatus] = useState<
+    AudioAvailabilityStatus | "idle"
+  >("idle");
+  const [soundEnabled, setSoundEnabled] = useState(
+    () => !audioManager.getPreferences().muted,
+  );
+  const soundEnabledRef = useRef(soundEnabled);
   const recordRef = useRef(record);
   const intervalRef = useRef<number | null>(null);
   const stepLockRef = useRef(false);
-  const audioContextRef = useRef<AudioContext | null>(null);
   const [selectedRegionId, setSelectedRegionId] = useState<RegionId | null>(
     GAMEBUILDERS_DEMO_SCENARIO.initialRegions[0]?.id ?? null,
   );
@@ -107,6 +122,17 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     recordRef.current = record;
   }, [record]);
 
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+
+  useEffect(
+    () => () => {
+      audioManager.dispose();
+    },
+    [audioManager],
+  );
+
   const clearClock = useCallback(() => {
     if (intervalRef.current !== null) {
       window.clearInterval(intervalRef.current);
@@ -114,39 +140,30 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     }
   }, []);
 
-  const playTone = useCallback(
-    (tone: "confirm" | "crisis") => {
-      if (!soundEnabled || typeof window === "undefined") return;
-      const AudioContextConstructor =
-        window.AudioContext ??
-        (
-          window as typeof window & {
-            webkitAudioContext?: typeof AudioContext;
-          }
-        ).webkitAudioContext;
-      if (AudioContextConstructor === undefined) return;
+  const activateAudioFromGesture = useCallback(async () => {
+    if (!soundEnabledRef.current) return;
+    const availability = await audioManager.startFromUserGesture();
+    setAudioStatus(availability.status);
+    if (availability.status !== "ready") return;
+    await audioManager.startAmbience(resolveAmbientCue("map"), {
+      fadeMs: 250,
+      replaceExisting: true,
+    });
+  }, [audioManager]);
 
-      const context =
-        audioContextRef.current ??
-        (audioContextRef.current = new AudioContextConstructor());
-      void context.resume();
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      const start = context.currentTime;
-      const duration = tone === "crisis" ? 0.28 : 0.12;
-      oscillator.type = tone === "crisis" ? "sawtooth" : "triangle";
-      oscillator.frequency.setValueAtTime(tone === "crisis" ? 150 : 520, start);
-      if (tone === "crisis") {
-        oscillator.frequency.exponentialRampToValueAtTime(90, start + duration);
+  const playResolvedAudio = useCallback(
+    (input: SoundCueResolverInput) => {
+      const resolution = resolveSoundCues(input, audioResolverStateRef.current);
+      audioResolverStateRef.current = resolution.nextState;
+      for (const cue of resolution.cues) {
+        void audioManager.playCue(cue.cueId).then((result) => {
+          if (result.status === "autoplay-blocked") {
+            setAudioStatus("autoplay-blocked");
+          }
+        });
       }
-      gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(0.045, start + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-      oscillator.connect(gain).connect(context.destination);
-      oscillator.start(start);
-      oscillator.stop(start + duration + 0.02);
     },
-    [soundEnabled],
+    [audioManager],
   );
 
   const presentation = useMemo(
@@ -172,6 +189,12 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
         nextPolicy: next.world.policies[PLAYER_ID],
       });
       setVisualDeltas(deltas);
+      playResolvedAudio({
+        events: newEvents,
+        visualDeltas: deltas,
+        world: next.world,
+        currentTick: next.world.tick,
+      });
       const focusRegionId = deltas.flatMap((delta) => delta.regionIds)[0];
       if (focusRegionId !== undefined) {
         setMapFocusRegionId(focusRegionId as RegionId);
@@ -180,7 +203,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       setRecord(next);
       return newEvents;
     },
-    [],
+    [playResolvedAudio],
   );
   const agendas = useMemo(
     () =>
@@ -352,7 +375,6 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
         setFlowNotice(
           `${mapped.title} · ${next.world.tick}일차${autoPauseMajorEvents ? " · 자동 일시정지" : " · 계속 진행"}`,
         );
-        playTone("crisis");
         if (autoPauseMajorEvents) setIsPlaying(false);
       } else if (next.world.run.outcome.status !== "active") {
         setFlowNotice("실행 결과가 확정되어 시간이 멈췄습니다.");
@@ -360,7 +382,6 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       } else if (significantEvent !== undefined) {
         const mapped = eventLabel(significantEvent, GAMEBUILDERS_DEMO_SCENARIO);
         setFlowNotice(`${mapped.title} · ${next.world.tick}일차`);
-        playTone("confirm");
       } else {
         setFlowNotice(`${speed}x 재생 중 · ${next.world.tick}일차`);
       }
@@ -369,9 +390,9 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     }
   }, [
     autoPauseMajorEvents,
+    activateAudioFromGesture,
     clearClock,
     commitRuntimeTransition,
-    playTone,
     speed,
   ]);
 
@@ -391,57 +412,121 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       return;
     }
     const nextPlaying = !isPlaying;
+    void activateAudioFromGesture();
+    playResolvedAudio({
+      interactionCues: [
+        {
+          cueId: "ui.confirm",
+          dedupeKey: `interaction:playback:${nextPlaying}:${recordRef.current.world.tick}`,
+          sourceId: `playback:${nextPlaying}:${recordRef.current.world.tick}`,
+        },
+      ],
+      currentTick: recordRef.current.world.tick,
+    });
     setIsPlaying(nextPlaying);
     setFlowNotice(
       nextPlaying ? `${speed}x 재생 시작 · 하루씩 진행합니다.` : "일시정지됨",
     );
-    playTone("confirm");
   };
 
   const advance = (days: number) => {
+    void activateAudioFromGesture();
     clearClock();
     setIsPlaying(false);
     const current = recordRef.current;
     const next = advanceDemoRuntime(current, days);
     commitRuntimeTransition(current, next);
     setFlowNotice(`수동 보조 진행 · ${next.world.tick}일차`);
-    playTone("confirm");
+    playResolvedAudio({
+      interactionCues: [
+        {
+          cueId: "ui.confirm",
+          dedupeKey: `interaction:advance:${days}:${current.world.tick}`,
+          sourceId: `advance:${days}:${current.world.tick}`,
+        },
+      ],
+      currentTick: current.world.tick,
+    });
   };
 
   const submitAction = (interventionId: InterventionDefinition["id"]) => {
+    void activateAudioFromGesture();
     clearClock();
     setIsPlaying(false);
     const current = recordRef.current;
     const next = submitRuntimeIntervention(current, interventionId);
     commitRuntimeTransition(current, next);
     setFlowNotice("행동 제출 완료 · 시간이 일시정지되었습니다.");
-    playTone("confirm");
+    playResolvedAudio({
+      interactionCues: [
+        {
+          cueId: "ui.confirm",
+          dedupeKey: `interaction:submit:${interventionId}:${current.world.tick}`,
+          sourceId: `submit:${interventionId}:${current.world.tick}`,
+        },
+      ],
+      currentTick: current.world.tick,
+    });
   };
 
   const submitPolicy = (policyId: PolicyDefinition["id"]) => {
+    void activateAudioFromGesture();
     clearClock();
     setIsPlaying(false);
     const current = recordRef.current;
     const next = submitRuntimePolicy(current, policyId);
     commitRuntimeTransition(current, next);
     setFlowNotice("정책 제출 완료 · 제도 기록을 갱신했습니다.");
-    playTone("confirm");
+    playResolvedAudio({
+      interactionCues: [
+        {
+          cueId: "ui.confirm",
+          dedupeKey: `interaction:policy:${policyId}:${current.world.tick}`,
+          sourceId: `policy:${policyId}:${current.world.tick}`,
+        },
+      ],
+      currentTick: current.world.tick,
+    });
   };
 
   const focusRegion = (regionId: RegionId) => {
+    void activateAudioFromGesture();
+    playResolvedAudio({
+      interactionCues: [
+        {
+          cueId: "ui.select",
+          dedupeKey: `interaction:region:${regionId}:${recordRef.current.world.tick}`,
+          sourceId: `region:${regionId}:${recordRef.current.world.tick}`,
+        },
+      ],
+      currentTick: recordRef.current.world.tick,
+    });
     setSelectedRegionId(regionId);
     setMapFocusRegionId(regionId);
     setActivePanel("region");
   };
 
+  const toggleSound = () => {
+    const nextEnabled = !soundEnabled;
+    audioManager.setMuted(!nextEnabled);
+    soundEnabledRef.current = nextEnabled;
+    setSoundEnabled(nextEnabled);
+    if (nextEnabled) void activateAudioFromGesture();
+  };
+
   return (
-    <main className="game-shell map-first-shell">
+    <main
+      className="game-shell map-first-shell"
+      data-audio-status={audioStatus}
+      data-audio-enabled={soundEnabled ? "true" : "false"}
+      data-audio-ambient-cue={resolveAmbientCue("map")}
+    >
       <GameHeader
         playerCountry={playerCountry}
         date={record.world.date}
         tick={record.world.tick}
         soundEnabled={soundEnabled}
-        onToggleSound={() => setSoundEnabled((enabled) => !enabled)}
+        onToggleSound={toggleSound}
         onReset={onReset}
       />
 

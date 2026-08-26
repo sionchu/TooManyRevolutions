@@ -5,6 +5,10 @@ export {
   regionCompositionRoles,
 } from "./regionComposition";
 export { resolveRegionCompositionPlacements } from "./regionCompositionAdapter";
+export {
+  deriveIntegratedRegionArtPlan,
+  isEvidenceCoveredByRegionComposition,
+} from "./regionCompositionIntegration";
 export type {
   CompositionObjectRequirement,
   CompositionVisibility,
@@ -23,3 +27,7 @@ export type {
   RegionCompositionTemplate,
 } from "./regionComposition";
 export type { ResolvedRegionCompositionPlacement } from "./regionCompositionAdapter";
+export type {
+  IntegratedRegionArtPlacement,
+  IntegratedRegionArtPlan,
+} from "./regionCompositionIntegration";

@@ -4,8 +4,10 @@ import {
   PLAYER_COPY,
   PRODUCT_IDENTITY,
 } from "../presentation/design/copyRegistry.ko";
+import { TMR_ICON_IDS } from "../presentation/design/iconRegistry";
 import { BrandMark } from "./BrandMark";
 import { formatDate } from "./gamePresentation";
+import { TmrIcon } from "./icons/TmrIcon";
 
 export function GameHeader({
   playerCountry,
@@ -44,6 +46,12 @@ export function GameHeader({
           aria-pressed={soundEnabled}
           onClick={onToggleSound}
         >
+          <TmrIcon
+            iconId={TMR_ICON_IDS.ui.audio}
+            size={20}
+            decorative
+            tone={soundEnabled ? "accent" : "neutral"}
+          />
           소리 {soundEnabled ? "켜짐" : "꺼짐"}
         </button>
         <button className="quiet-button" type="button" onClick={onReset}>

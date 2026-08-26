@@ -10,6 +10,8 @@ import {
 } from "react";
 
 import { TMR_LAYER_REGISTRY } from "../presentation/design/layerRegistry";
+import { TMR_ICON_IDS } from "../presentation/design/iconRegistry";
+import { TmrIcon } from "./icons/TmrIcon";
 import {
   deriveWorldSceneModel,
   type WorldSceneModel,
@@ -32,9 +34,17 @@ import {
 import {
   deriveMapVisualSystem,
   MAP_MATERIAL_SYSTEM,
-  type MapRegionComposition,
   type MapVisualSystem,
 } from "../presentation/mapVisualSystem";
+import {
+  deriveIntegratedRegionArtPlan,
+  isEvidenceCoveredByRegionComposition,
+  type IntegratedRegionArtPlan,
+} from "../presentation/mapContent";
+import {
+  PROCEDURAL_WORLD_ART_KITS,
+  ProceduralWorldArtKitRenderer,
+} from "../presentation/mapVisual";
 import {
   deriveMapRuntimeGeometry,
   type MapRuntimeGeometry,
@@ -51,6 +61,10 @@ const CONTROLLER_COLORS = {
   faction: "#e0524f",
   uncontrolled: "#d2d0bd",
 } as const;
+
+const PROCEDURAL_WORLD_ART_KIT_COUNT = Object.keys(
+  PROCEDURAL_WORLD_ART_KITS,
+).length;
 const IDEOLOGY_SURFACE_COLORS = [
   "#d2a45a",
   "#8a6db1",
@@ -89,12 +103,14 @@ function SceneLine({
   opacity = 1,
   width = 1,
   dashed = false,
+  renderOrder = 0,
 }: {
   readonly points: readonly THREE.Vector3[];
   readonly color: string;
   readonly opacity?: number;
   readonly width?: number;
   readonly dashed?: boolean;
+  readonly renderOrder?: number;
 }) {
   const geometry = useMemo(
     () => new THREE.BufferGeometry().setFromPoints([...points]),
@@ -117,9 +133,10 @@ function SceneLine({
           linewidth: width,
         });
     const nextLine = new THREE.Line(geometry, material);
+    nextLine.renderOrder = renderOrder;
     if (dashed) nextLine.computeLineDistances();
     return nextLine;
-  }, [color, dashed, geometry, opacity, width]);
+  }, [color, dashed, geometry, opacity, renderOrder, width]);
   useEffect(
     () => () => {
       geometry.dispose();
@@ -151,16 +168,18 @@ function RuntimeSurfaceMesh({
   color,
   opacity = 1,
   depthWrite = false,
+  renderOrder = 1,
 }: {
   readonly polygon: MapRuntimePolygon;
   readonly color: string;
   readonly opacity?: number;
   readonly depthWrite?: boolean;
+  readonly renderOrder?: number;
 }) {
   const geometry = useMemo(() => runtimePolygonGeometry(polygon), [polygon]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   return (
-    <mesh geometry={geometry} renderOrder={1}>
+    <mesh geometry={geometry} renderOrder={renderOrder}>
       <meshBasicMaterial
         color={color}
         transparent={opacity < 1}
@@ -678,63 +697,61 @@ function CrisisBeaconKit({ scale = 1 }: { readonly scale?: number }) {
   );
 }
 
-function CompositionLayer({
-  compositions,
-  showMeso,
+function IntegratedRegionArtLayer({
+  plan,
+  lodTier,
 }: {
-  readonly compositions: readonly MapRegionComposition[];
-  readonly showMeso: boolean;
+  readonly plan: IntegratedRegionArtPlan;
+  readonly lodTier: MapLodTier;
 }) {
-  if (!showMeso) return null;
+  const lod = compositionLodForMapLod(lodTier);
   return (
     <group
-      userData={{ mapLayer: "MapSemanticContent", composition: "authored" }}
+      userData={{
+        mapLayer: "MapSemanticContent",
+        composition: "resolved-world-scene-evidence",
+        renderer: "ProceduralWorldArtKitRenderer",
+      }}
     >
-      {compositions.map((composition) => {
-        const roleScale = composition.dominantScale;
-        const assetSet = new Set(composition.assetIds);
-        return (
-          <group
-            key={`composition:${composition.regionId}`}
-            position={composition.anchor}
-          >
-            {assetSet.has("asset.settlement.urban-cluster") ? (
-              <group position={[-0.54, 0.03, 0.26]}>
-                <UrbanClusterKit scale={roleScale * 0.72} />
-              </group>
-            ) : null}
-            {assetSet.has("asset.capital.palace") ? (
-              <group position={[0.12, 0.05, -0.18]}>
-                <CapitalPalaceKit scale={roleScale} />
-              </group>
-            ) : null}
-            {assetSet.has("asset.institution.assembly") ? (
-              <group position={[0.5, 0.04, 0.25]}>
-                <AssemblyKit scale={roleScale * 0.82} />
-              </group>
-            ) : null}
-            {assetSet.has("asset.industry.works") ||
-            assetSet.has("asset.project.works") ? (
-              <group position={[0.18, 0.04, 0.34]}>
-                <IndustryWorksKit scale={roleScale * 0.82} />
-              </group>
-            ) : null}
-            {assetSet.has("asset.agriculture.fields") ||
-            assetSet.has("asset.project.granary") ? (
-              <group position={[0.08, 0.04, 0.38]}>
-                <FieldsKit scale={roleScale * 0.9} />
-              </group>
-            ) : null}
-            {assetSet.has("asset.frontier.fort-gate") ? (
-              <group position={[0.46, 0.05, -0.32]}>
-                <FortGateKit scale={roleScale * 0.82} />
-              </group>
-            ) : null}
-          </group>
-        );
-      })}
+      {plan.placements.map((placement) => (
+        <ProceduralWorldArtKitRenderer
+          key={`${placement.regionId}:${placement.family}:${placement.assetId}`}
+          resolvedPlacement={placement}
+          position={placement.worldPosition}
+          lod={lod}
+          scale={integratedPlacementScale(placement.role, placement.family)}
+        />
+      ))}
     </group>
   );
+}
+
+/**
+ * Decorative terrain kits use the shared map scale hierarchy. A composition
+ * may enlarge only its spatial substrate so that a water body, open field, or
+ * route remains a geographic relationship instead of a tiny token beside the
+ * authored POI. Buildings retain their authored relative scale.
+ */
+function integratedPlacementScale(
+  role: IntegratedRegionArtPlan["placements"][number]["role"],
+  family: IntegratedRegionArtPlan["placements"][number]["family"],
+): number {
+  if (role === "port") {
+    if (family === "water-shelf") return 2.35;
+    if (family === "road-corridor") return 1.7;
+    if (family === "field-plot") return 1.75;
+  }
+  if (role === "agrarian-distribution") {
+    if (family === "field-plot") return 2.25;
+    if (family === "road-corridor") return 1.7;
+  }
+  return 1;
+}
+
+function compositionLodForMapLod(
+  lodTier: MapLodTier,
+): "macro" | "meso" | "micro" {
+  return lodTier === "far" ? "macro" : lodTier === "medium" ? "meso" : "micro";
 }
 
 function projectWorldPointsToCanvas(
@@ -890,12 +907,12 @@ function IdeologySurfaceLayer({
     architecture.political.factionTerritories.map((territory) => [
       territory.factionId,
       Math.min(
-        0.24,
+        0.3,
         0.11 +
           Math.max(
             ...architecture.activity.factionPresence
               .filter((presence) => presence.factionId === territory.factionId)
-              .map((presence) => presence.organization * 0.12),
+              .map((presence) => presence.organization * 0.16),
             0,
           ),
       ),
@@ -922,6 +939,7 @@ function IdeologySurfaceLayer({
                 DEFAULT_MAP_STYLE.ideologySurfaceOpacity *
                 (0.55 + surface.support * 0.5)
               }
+              renderOrder={2}
             />
             <SurfaceDirectionalTreatment
               polygon={polygon}
@@ -944,7 +962,8 @@ function IdeologySurfaceLayer({
             key={`faction-surface:${territory.factionId}:${polygon.id}`}
             polygon={polygon}
             color={CONTROLLER_COLORS.faction}
-            opacity={factionOpacity.get(territory.factionId) ?? 0.12}
+            opacity={factionOpacity.get(territory.factionId) ?? 0.16}
+            renderOrder={6}
           />
         )),
       )}
@@ -1005,6 +1024,7 @@ function SurfaceDirectionalTreatment({
             color={color}
             opacity={Math.min(0.38, opacity)}
             width={1.2}
+            renderOrder={4}
           />
         );
       })}
@@ -1032,6 +1052,7 @@ function BoundaryLayer({
     color: string,
     width: number,
     opacity: number,
+    renderOrder: number,
   ) =>
     segments.map((segment) => (
       <SceneLine
@@ -1043,6 +1064,7 @@ function BoundaryLayer({
         color={color}
         opacity={opacity}
         width={width}
+        renderOrder={renderOrder}
       />
     ));
   return (
@@ -1059,18 +1081,21 @@ function BoundaryLayer({
         DEFAULT_MAP_STYLE.ownerBoundaryColor,
         DEFAULT_MAP_STYLE.ownerBoundaryWidth,
         0.52,
+        8,
       )}
       {renderSegments(
         visibleControllerSegments,
         DEFAULT_MAP_STYLE.controllerBoundaryColor,
         DEFAULT_MAP_STYLE.controllerBoundaryWidth,
         0.84,
+        10,
       )}
       {renderSegments(
         visibleFrontSegments,
         DEFAULT_MAP_STYLE.frontBoundaryColor,
-        DEFAULT_MAP_STYLE.frontBoundaryWidth,
-        0.96,
+        Math.max(DEFAULT_MAP_STYLE.frontBoundaryWidth, 3.2),
+        1,
+        12,
       )}
     </group>
   );
@@ -1240,16 +1265,20 @@ function routeLineColor(
 
 function Settlement({
   settlement,
+  lodTier,
 }: {
   readonly settlement: WorldSceneModel["settlements"][number];
+  readonly lodTier: MapLodTier;
 }) {
   return (
-    <group
+    <ProceduralWorldArtKitRenderer
+      family="palace"
       position={settlement.position}
-      userData={{ assetId: "asset.capital.palace" }}
-    >
-      <CapitalPalaceKit scale={0.94} />
-    </group>
+      lod={
+        lodTier === "far" ? "macro" : lodTier === "medium" ? "meso" : "micro"
+      }
+      scale={0.94}
+    />
   );
 }
 
@@ -1529,6 +1558,32 @@ function PoiObject({ poi }: { readonly poi: WorldSceneModel["pois"][number] }) {
   );
 }
 
+function ProceduralPoiObject({
+  poi,
+  lodTier,
+}: {
+  readonly poi: WorldSceneModel["pois"][number];
+  readonly lodTier: MapLodTier;
+}) {
+  const family =
+    poi.kind === "port"
+      ? "port-dock"
+      : poi.kind === "mine"
+        ? "mine"
+        : poi.kind === "fort"
+          ? "fort"
+          : poi.kind === "granary"
+            ? "granary-storehouse"
+            : "assembly-parliament";
+  return (
+    <ProceduralWorldArtKitRenderer
+      family={family}
+      position={poi.position}
+      lod={compositionLodForMapLod(lodTier)}
+    />
+  );
+}
+
 function LegacyInstitutionLandmark({
   landmark,
 }: {
@@ -1603,6 +1658,25 @@ function InstitutionLandmark({
         <AssemblyKit scale={0.72} />
       )}
     </group>
+  );
+}
+
+function ProceduralInstitutionLandmark({
+  landmark,
+  lodTier,
+}: {
+  readonly landmark: WorldSceneModel["institutions"][number];
+  readonly lodTier: MapLodTier;
+}) {
+  return (
+    <ProceduralWorldArtKitRenderer
+      family={
+        landmark.kind === "capital-seat" ? "palace" : "assembly-parliament"
+      }
+      position={landmark.position}
+      lod={compositionLodForMapLod(lodTier)}
+      scale={landmark.kind === "capital-seat" ? 0.78 : 0.72}
+    />
   );
 }
 
@@ -1796,6 +1870,30 @@ function ProjectLandmark({
   );
 }
 
+function ProceduralProjectLandmark({
+  project,
+  lodTier,
+}: {
+  readonly project: WorldSceneModel["projects"][number];
+  readonly lodTier: MapLodTier;
+}) {
+  if (project.status === "not-started") return null;
+  const family =
+    project.landmarkKind === "food"
+      ? "granary-storehouse"
+      : project.landmarkKind === "civic"
+        ? "assembly-parliament"
+        : "factory-iron-works";
+  return (
+    <ProceduralWorldArtKitRenderer
+      family={family}
+      position={project.position}
+      lod={compositionLodForMapLod(lodTier)}
+      scale={project.status === "implementing" ? 0.82 : 0.9}
+    />
+  );
+}
+
 function FactionBanner({ position }: { readonly position: WorldScenePoint }) {
   return (
     <group position={[position[0], position[1] + 0.1, position[2]]}>
@@ -1812,6 +1910,20 @@ function FactionBanner({ position }: { readonly position: WorldScenePoint }) {
         <meshStandardMaterial color="#6c4740" roughness={1} />
       </mesh>
     </group>
+  );
+}
+
+function ProceduralFactionBanner({
+  position,
+}: {
+  readonly position: WorldScenePoint;
+}) {
+  return (
+    <ProceduralWorldArtKitRenderer
+      family="faction-banner"
+      position={position}
+      lod="micro"
+    />
   );
 }
 
@@ -1883,14 +1995,14 @@ function ConflictActivity({
       userData={{ assetId: "asset.activity.crisis-beacon" }}
     >
       <CrisisBeaconKit
-        scale={conflict.visualKind === "rebellion-camp" ? 1.12 : 0.96}
+        scale={conflict.visualKind === "rebellion-camp" ? 0.92 : 0.84}
       />
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0.04, 0]}>
-        <ringGeometry args={[0.42, 0.46, 18]} />
+        <ringGeometry args={[0.32, 0.35, 18]} />
         <meshBasicMaterial
           color="#f0524d"
           transparent
-          opacity={0.32}
+          opacity={0.16}
           depthWrite={false}
         />
       </mesh>
@@ -1903,6 +2015,7 @@ function WorldScene({
   architecture,
   runtimeGeometry,
   visualSystem,
+  integratedArtPlan,
   lodTier,
   cameraState,
   cameraBounds,
@@ -1917,6 +2030,7 @@ function WorldScene({
   readonly architecture: MapArchitecture;
   readonly runtimeGeometry: MapRuntimeGeometry;
   readonly visualSystem: MapVisualSystem;
+  readonly integratedArtPlan: IntegratedRegionArtPlan;
   readonly lodTier: MapLodTier;
   readonly cameraState: CameraState;
   readonly cameraBounds: MapArchitecture["contentBounds"];
@@ -1928,10 +2042,17 @@ function WorldScene({
   readonly onProjectedWorldBounds: (bounds: MapScreenSpaceRect) => void;
 }) {
   const { camera, size } = useThree();
-  const fitZoom = Math.min(
-    size.width / Math.max(cameraBounds.maxX - cameraBounds.minX + 1.2, 1),
-    size.height / Math.max(cameraBounds.maxZ - cameraBounds.minZ + 1.2, 1),
-  );
+  const isMobileTheater = size.width <= 760;
+  const widthFitZoom =
+    size.width / Math.max(cameraBounds.maxX - cameraBounds.minX + 1.2, 1);
+  const heightFitZoom =
+    size.height / Math.max(cameraBounds.maxZ - cameraBounds.minZ + 1.2, 1);
+  // Mobile is a player-theatre view, not a global fit. Bias the fit toward
+  // the vertical stage so the core and immediate border context occupy the
+  // first viewport; the dedicated full-world action remains the escape hatch.
+  const fitZoom = isMobileTheater
+    ? heightFitZoom * 0.76
+    : Math.min(widthFitZoom, heightFitZoom);
   useEffect(() => {
     // A restrained 2.5D tilt keeps the actual terrain mass in the stage,
     // especially on the narrow mobile theater, without switching renderers.
@@ -1990,10 +2111,7 @@ function WorldScene({
       <group>
         <TerrainBackdrop bounds={architecture.geography.worldBounds} />
         <TerrainWorldSurface runtimeGeometry={runtimeGeometry} />
-        <CompositionLayer
-          compositions={visualSystem.compositions}
-          showMeso={showDetailedObjects}
-        />
+        <IntegratedRegionArtLayer plan={integratedArtPlan} lodTier={lodTier} />
         <MapPathLayer architecture={architecture} lodTier={lodTier} />
         <IdeologySurfaceLayer
           architecture={architecture}
@@ -2045,9 +2163,22 @@ function WorldScene({
               ) : null}
             </group>
           ))}
-        {model.settlements.map((settlement) => (
-          <Settlement key={settlement.id} settlement={settlement} />
-        ))}
+        {model.settlements
+          .filter(
+            (settlement) =>
+              !isEvidenceCoveredByRegionComposition(
+                integratedArtPlan,
+                settlement.regionId,
+                settlement.id,
+              ),
+          )
+          .map((settlement) => (
+            <Settlement
+              key={settlement.id}
+              settlement={settlement}
+              lodTier={lodTier}
+            />
+          ))}
         {showDetailedObjects
           ? model.pois
               .filter(
@@ -2057,22 +2188,70 @@ function WorldScene({
                   poi.kind === "mine" ||
                   poi.kind === "fort",
               )
-              .map((poi) => <PoiObject key={poi.id} poi={poi} />)
+              .filter(
+                (poi) =>
+                  !isEvidenceCoveredByRegionComposition(
+                    integratedArtPlan,
+                    poi.regionId,
+                    poi.id,
+                  ),
+              )
+              .map((poi) => (
+                <ProceduralPoiObject key={poi.id} poi={poi} lodTier={lodTier} />
+              ))
           : null}
         {showDetailedObjects
-          ? model.institutions.map((landmark) => (
-              <InstitutionLandmark key={landmark.id} landmark={landmark} />
-            ))
+          ? model.institutions
+              .filter(
+                (landmark) =>
+                  !isEvidenceCoveredByRegionComposition(
+                    integratedArtPlan,
+                    landmark.regionId,
+                    landmark.id,
+                  ),
+              )
+              .map((landmark) => (
+                <ProceduralInstitutionLandmark
+                  key={landmark.id}
+                  landmark={landmark}
+                  lodTier={lodTier}
+                />
+              ))
           : null}
         {showDetailedObjects
-          ? model.projects.map((project) => (
-              <ProjectLandmark key={project.id} project={project} />
-            ))
+          ? model.projects
+              .filter(
+                (project) =>
+                  !isEvidenceCoveredByRegionComposition(
+                    integratedArtPlan,
+                    project.regionId,
+                    project.id,
+                  ),
+              )
+              .map((project) => (
+                <ProceduralProjectLandmark
+                  key={project.id}
+                  project={project}
+                  lodTier={lodTier}
+                />
+              ))
           : null}
         {showMinorObjects && factionPresenceAnchors.length > 0
-          ? factionPresenceAnchors.map((presence) => (
-              <FactionBanner key={presence.id} position={presence.position} />
-            ))
+          ? factionPresenceAnchors
+              .filter(
+                (presence) =>
+                  !isEvidenceCoveredByRegionComposition(
+                    integratedArtPlan,
+                    presence.regionId,
+                    presence.id,
+                  ),
+              )
+              .map((presence) => (
+                <ProceduralFactionBanner
+                  key={presence.id}
+                  position={presence.position}
+                />
+              ))
           : null}
         {model.conflicts.map((conflict) => (
           <ConflictActivity key={conflict.id} conflict={conflict} />
@@ -2118,6 +2297,12 @@ void LegacyPoiObject;
 void LegacyInstitutionLandmark;
 void LegacyProjectLandmark;
 void LegacyConflictActivity;
+void UrbanClusterKit;
+void FortGateKit;
+void PoiObject;
+void InstitutionLandmark;
+void ProjectLandmark;
+void FactionBanner;
 
 function controllerLabel(
   kind: WorldSceneModel["hexes"][number]["controller"]["kind"],
@@ -2228,6 +2413,10 @@ export function PoliticalWorldStage({
   const runtimeGeometry = useMemo(
     () => deriveMapRuntimeGeometry(model),
     [model],
+  );
+  const integratedArtPlan = useMemo(
+    () => deriveIntegratedRegionArtPlan(model, architecture),
+    [architecture, model],
   );
   const factionPresenceAnchors = useMemo(
     () => deriveFactionPresenceAnchors(model),
@@ -2415,6 +2604,24 @@ export function PoliticalWorldStage({
           data-map-label-policy="priority-collision-lod"
           data-map-composition-count={visualSystem.compositions.length}
           data-map-asset-kit={visualSystem.assets.length}
+          data-map-procedural-kit-registry-count={
+            PROCEDURAL_WORLD_ART_KIT_COUNT
+          }
+          data-map-integrated-kit-placement-count={
+            integratedArtPlan.placements.length
+          }
+          data-map-integrated-kit-family-count={
+            new Set(
+              integratedArtPlan.placements.map((placement) => placement.family),
+            ).size
+          }
+          data-map-composed-region-count={
+            integratedArtPlan.composedRegionIds.length
+          }
+          data-map-omitted-region-count={
+            integratedArtPlan.omittedRegionIds.length
+          }
+          data-map-icon-system="tmr-semantic-registry"
           data-land-hex-count={model.hexes.length}
           data-map-runtime-geometry="continuous-surface"
           data-map-runtime-polygon-count={
@@ -2517,6 +2724,7 @@ export function PoliticalWorldStage({
               architecture={architecture}
               runtimeGeometry={runtimeGeometry}
               visualSystem={renderedVisualSystem}
+              integratedArtPlan={integratedArtPlan}
               lodTier={lodTier}
               cameraState={camera}
               cameraBounds={cameraBounds}
@@ -2534,16 +2742,40 @@ export function PoliticalWorldStage({
           </div>
           <div className="world-scene-object-key" aria-label="지도 객체 안내">
             <span>
-              <i className="object-key-settlement" /> 수도
+              <TmrIcon
+                iconId={TMR_ICON_IDS.map.capital}
+                size={16}
+                decorative
+                tone="accent"
+              />{" "}
+              수도
             </span>
             <span>
-              <i className="object-key-project" /> 국가 사업
+              <TmrIcon
+                iconId={TMR_ICON_IDS.map.factory}
+                size={16}
+                decorative
+                tone="accent"
+              />{" "}
+              국가 사업
             </span>
             <span>
-              <i className="object-key-route" /> 접촉 경로
+              <TmrIcon
+                iconId={TMR_ICON_IDS.map.tradeRoute}
+                size={16}
+                decorative
+                tone="accent"
+              />{" "}
+              접촉 경로
             </span>
             <span>
-              <i className="object-key-conflict" /> 활성 충돌
+              <TmrIcon
+                iconId={TMR_ICON_IDS.crisis.civilConflict}
+                size={16}
+                decorative
+                tone="crisis"
+              />{" "}
+              활성 충돌
             </span>
           </div>
           <div className="map-camera-controls" aria-label="지도 카메라">
@@ -2628,11 +2860,23 @@ export function PoliticalWorldStage({
                   backgroundColor: countryColor(model, country.countryId),
                 }}
               />
+              <TmrIcon
+                iconId={TMR_ICON_IDS.map.city}
+                size={16}
+                decorative
+                tone="neutral"
+              />
               {country.name}
             </span>
           ))}
           <span>
-            <i className="legend-line legend-line-route" /> 실제 경로
+            <TmrIcon
+              iconId={TMR_ICON_IDS.map.tradeRoute}
+              size={16}
+              decorative
+              tone="accent"
+            />{" "}
+            실제 경로
           </span>
           <span>
             <i className="legend-controller" /> 물리 통제
