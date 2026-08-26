@@ -91,7 +91,7 @@ describe("MAP_VISUAL_SYSTEM", () => {
       selectIntegratedLandmarksForLod(placements, "medium").map(
         (placement) => placement.family,
       ),
-    ).toEqual(["palace", "water-shelf"]);
+    ).toEqual(["palace"]);
     expect(
       selectIntegratedLandmarksForLod(placements, "near").map(
         (placement) => placement.family,

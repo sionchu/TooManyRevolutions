@@ -13,17 +13,13 @@ export interface MapIntegratedPlacementLodMetadata {
 const DEFAULT_FAR_LANDMARK_FAMILIES: ReadonlySet<MapObjectFamily> = new Set([
   "palace",
   "factory-iron-works",
-  "port-dock",
   "fort",
 ]);
 
 const DEFAULT_MEDIUM_LANDMARK_FAMILIES: ReadonlySet<MapObjectFamily> = new Set([
   "palace",
   "factory-iron-works",
-  "water-shelf",
-  "port-dock",
   "fort",
-  "checkpoint-gate",
 ]);
 
 export type MapVisualAssetId =
@@ -255,9 +251,9 @@ export interface MapMaterialSystem {
 }
 
 export const MAP_MATERIAL_SYSTEM: MapMaterialSystem = {
-  terrainBase: "#8e987b",
-  terrainSecondary: "#a8ad85",
-  terrainShadow: "#59614e",
+  terrainBase: "#a6a47f",
+  terrainSecondary: "#b5ae86",
+  terrainShadow: "#414d40",
   palette: {
     "earth-ochre": "#a9825e",
     "stone-slate": "#646a70",
@@ -266,11 +262,11 @@ export const MAP_MATERIAL_SYSTEM: MapMaterialSystem = {
   },
   roughness: 0.92,
   metalness: 0,
-  ambientFill: 0.72,
-  keyLight: 2.25,
-  fogColor: "#66705f",
-  fogNear: 16,
-  fogFar: 34,
+  ambientFill: 0.84,
+  keyLight: 1.85,
+  fogColor: "#566257",
+  fogNear: 24,
+  fogFar: 52,
   contactShadowColor: "#313a31",
   contactShadowOpacity: 0.28,
 };
@@ -344,10 +340,10 @@ function visualScaleForLod(lodTier: MapLodTier): MapVisualScale {
 }
 
 /**
- * Keep the authored composition plan intact while selecting only its
- * dominant, evidence-backed silhouettes for the default map read. The near
- * tier remains the complete factual composition so focus/zoom can reveal
- * the authored detail without creating a second renderer or LOD system.
+ * Keep the authored composition plan intact while selecting only strategic
+ * silhouettes for the default map read. Terrain substrates, fields, roads,
+ * docks, and other small composition members remain data for focused views;
+ * they are not default map art.
  */
 export function selectIntegratedLandmarksForLod<
   T extends MapIntegratedPlacementLodMetadata,
@@ -599,16 +595,20 @@ export function deriveMapVisualSystem(
       ),
     );
   }
+  const playerCountryId = model.countries.find(
+    (country) => country.isPlayer,
+  )?.countryId;
   for (const settlement of model.settlements) {
+    const isPlayerCapital = settlement.countryId === playerCountryId;
     labels.push(
       labelCandidate(
         settlement.id,
         settlement.name,
         "capital",
         settlement.position,
-        90,
-        0.92,
-        ["macro", "meso", "micro"],
+        isPlayerCapital ? 98 : 86,
+        isPlayerCapital ? 0.98 : 0.84,
+        isPlayerCapital ? ["meso", "micro"] : ["micro"],
         "AUTHORITATIVE_PROJECTION",
       ),
     );

@@ -30,6 +30,10 @@ export interface MapRuntimeTerrainMesh {
 
 export interface MapRuntimeGeometry {
   readonly terrainMesh: MapRuntimeTerrainMesh;
+  /** Connected geography outline used as the visual landmass underlay. */
+  readonly worldSurfaces: readonly MapRuntimePolygon[];
+  /** Broad terrain zones retained for geographic color, never for prop placement. */
+  readonly terrainSurfaces: readonly MapRuntimePolygon[];
   readonly regionSurfaces: readonly MapRuntimePolygon[];
   readonly factionSurfaces: readonly MapRuntimePolygon[];
   readonly renderBounds: MapRuntimeBounds;
@@ -94,8 +98,8 @@ function terrainColor(terrain: RuntimeTerrain): [number, number, number] {
     ((value >> 8) & 255) / 255,
     (value & 255) / 255,
   ];
-  const base: [number, number, number] = [0.51, 0.55, 0.45];
-  const blend = 0.26;
+  const base: [number, number, number] = [0.49, 0.54, 0.45];
+  const blend = 0.2;
   return [
     base[0] * (1 - blend) + raw[0] * blend,
     base[1] * (1 - blend) + raw[1] * blend,
@@ -586,10 +590,18 @@ function createContinuousTerrainMesh(
   for (const hex of [...topology.hexesById.values()].sort((first, second) =>
     compareStableText(first.id, second.id),
   )) {
+    const cornerKeys = cornersForHex(hex);
     const center = centerSamples.get(`center:${hex.id}`);
     if (center === undefined) continue;
-    const centerIndex = addVertex(`center:${hex.id}`, center);
-    const cornerKeys = cornersForHex(hex);
+    const adjacentSamples = cornerKeys.flatMap(
+      (cornerKey) => cornerSamples.get(cornerKey)?.samples ?? [],
+    );
+    const centerIndex = addVertex(
+      `center:${hex.id}`,
+      adjacentSamples.length === 0
+        ? center
+        : { ...center, samples: adjacentSamples },
+    );
     for (let index = 0; index < cornerKeys.length; index += 1) {
       const first = cornerSamples.get(cornerKeys[index]!);
       const second = cornerSamples.get(cornerKeys[(index + 1) % 6]!);
@@ -677,6 +689,9 @@ export function deriveMapRuntimeGeometry(
   ];
   return {
     terrainMesh,
+    worldSurfaces: finalTerrainPolygons,
+    terrainSurfaces:
+      terrainPolygons.length > 0 ? terrainPolygons : macroTerrainPolygons,
     regionSurfaces: finalRegionPolygons,
     factionSurfaces: finalFactionPolygons,
     renderBounds: boundsForPoints(allPoints),

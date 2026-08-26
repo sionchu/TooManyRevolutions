@@ -238,12 +238,12 @@ export const MAP_ARCHITECTURE_LAYER_ORDER = [
 
 export const DEFAULT_MAP_STYLE: MapStyleDefinition = {
   terrainPalette: {
-    plains: "#c8b982",
-    coast: "#6e9ea1",
-    wetlands: "#819879",
-    forest: "#5d8168",
-    hills: "#a0805e",
-    mountains: "#73707a",
+    plains: "#9b9b7d",
+    coast: "#78979a",
+    wetlands: "#879678",
+    forest: "#708670",
+    hills: "#8e896f",
+    mountains: "#7b7d77",
   },
   politicalOpacity: 0.2,
   ownerBoundaryColor: "#f0d9a1",
@@ -254,8 +254,8 @@ export const DEFAULT_MAP_STYLE: MapStyleDefinition = {
   frontBoundaryWidth: 2.6,
   objectScale: 1.24,
   labelScale: { far: 0.86, medium: 1, near: 1.12 },
-  ideologySurfaceOpacity: 0.16,
-  routeOpacity: { far: 0.32, medium: 0.7, near: 0.92 },
+  ideologySurfaceOpacity: 0.08,
+  routeOpacity: { far: 0.22, medium: 0.48, near: 0.78 },
   selectedCellOpacity: 0.96,
 };
 
@@ -949,8 +949,8 @@ function deriveGeography(
 function colorForTerrain(terrain: LandHexTerrain): [number, number, number] {
   const color = DEFAULT_MAP_STYLE.terrainPalette[terrain].slice(1);
   const value = Number.parseInt(color, 16);
-  const base: [number, number, number] = [0.51, 0.55, 0.45];
-  const blend = 0.26;
+  const base: [number, number, number] = [0.49, 0.54, 0.45];
+  const blend = 0.2;
   const raw: [number, number, number] = [
     ((value >> 16) & 255) / 255,
     ((value >> 8) & 255) / 255,
@@ -988,12 +988,37 @@ export function createSharedTerrainMeshData(
     if (existing !== undefined) return existing;
     const next = vertices.length;
     vertexIndex.set(key, next);
+    const adjacentSamples = hexCorners(hex).flatMap(
+      (corner) => cornerSamples.get(pointKey([corner[0], corner[2]])) ?? [],
+    );
+    const centerSamples =
+      adjacentSamples.length === 0
+        ? [{ y: hex.position[1] + hex.height + 0.025 }]
+        : adjacentSamples;
     vertices.push([
       hex.position[0],
-      hex.position[1] + hex.height + 0.025,
+      centerSamples.reduce((total, sample) => total + sample.y, 0) /
+        centerSamples.length,
       hex.position[2],
     ]);
-    colors.push(colorForTerrain(hex.terrain));
+    colors.push(
+      adjacentSamples.length === 0
+        ? colorForTerrain(hex.terrain)
+        : [
+            adjacentSamples.reduce(
+              (total, sample) => total + sample.color[0],
+              0,
+            ) / adjacentSamples.length,
+            adjacentSamples.reduce(
+              (total, sample) => total + sample.color[1],
+              0,
+            ) / adjacentSamples.length,
+            adjacentSamples.reduce(
+              (total, sample) => total + sample.color[2],
+              0,
+            ) / adjacentSamples.length,
+          ],
+    );
     return next;
   };
   for (const hex of canonicalHexes) {
