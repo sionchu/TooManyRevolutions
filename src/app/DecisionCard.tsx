@@ -60,6 +60,19 @@ function observedTargets(
   );
 }
 
+function effectSummaryLabel(effect: InterventionEffect): string {
+  switch (effect.kind) {
+    case "regionResourceProductionCapacityDelta":
+      return "지역 생산능력 변화";
+    case "factionGrievanceDelta":
+      return "세력 불만 변화";
+    case "factionOrganizationDelta":
+      return "세력 조직 변화";
+    case "institutionalRuleSet":
+      return "제도 규칙 변화";
+  }
+}
+
 export function DecisionCard({
   definition,
   feasibility,
@@ -115,18 +128,23 @@ export function DecisionCard({
       </div>
       <h3>{definition.name}</h3>
       <div className="decision-summary">
-        <span className="decision-badge badge-confirmed">
-          국고 {formatAmount(definition.treasuryCost)} ·{" "}
-          {definition.durationDays}일
-        </span>
+        <span className="decision-badge badge-confirmed">국고·행정 여력</span>
         <span className="decision-badge badge-current">
           {effects[0] === undefined
             ? "확정 변화 없음"
-            : effectLabel(effects[0], scenario)}
+            : effectSummaryLabel(effects[0])}
         </span>
       </div>
       <details className="decision-details">
-        <summary>조건·관측·반응 보기</summary>
+        <summary>
+          <TmrIcon
+            iconId={TMR_ICON_IDS.ui.why}
+            size={16}
+            decorative
+            tone="accent"
+          />
+          <span>왜 그런가 · 세부 조건</span>
+        </summary>
         <div className="decision-sections">
           <section className="decision-section decision-cost">
             <h4>{PLAYER_COPY.main.certainty} 비용</h4>

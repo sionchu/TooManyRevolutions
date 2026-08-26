@@ -232,4 +232,81 @@ describe("player-facing TMR icon integration", () => {
       }),
     ).toBe(TMR_ICON_IDS.politics.parliament);
   });
+
+  it("keeps exact agenda and intervention evidence behind collapsed why details", () => {
+    const scenario = GAMEBUILDERS_DEMO_SCENARIO;
+    const world = createInitialWorldState(scenario, 1);
+    const countryId = scenario.playerCountryId;
+    const regionId = scenario.initialRegions[0]?.id;
+    const intervention = Object.values(scenario.interventionCatalog)[0];
+    if (
+      countryId === null ||
+      regionId === undefined ||
+      intervention === undefined
+    ) {
+      throw new Error("Demo scenario needs UI polish fixtures.");
+    }
+
+    const agenda: PrimaryAgenda = {
+      id: "ui-polish-agenda",
+      kind: "fiscalPressure",
+      title: "UI 밀도 확인용 의제",
+      affectedRegionIds: [regionId],
+      severity: 0.7,
+      severityBand: "high",
+      trend: "rising",
+      keyCauses: [
+        { key: "grievance", label: "세력 불만", value: 0.6 },
+        { key: "organization", label: "조직 역량", value: 0.4 },
+      ],
+      involvedFactionIds: [],
+      interventionCategories: ["treasury"],
+      causeEventIds: [],
+    };
+    const agendaMarkup = renderToStaticMarkup(
+      <AgendaPanel
+        agendas={[agenda]}
+        scenario={scenario}
+        consolidation={deriveOrderConsolidationEligibility(scenario, world)}
+      />,
+    );
+    const agendaSummary = agendaMarkup.match(
+      /<details class="agenda-why"><summary>([\s\S]*?)<\/summary>/,
+    )?.[1];
+    expect(agendaSummary).toContain("왜 그런가");
+    expect(agendaSummary).not.toContain("0.6");
+    expect(agendaMarkup).toContain("0.6");
+    expect(agendaMarkup).toContain('class="agenda-support-details"');
+
+    const decisionMarkup = renderToStaticMarkup(
+      <DecisionCard
+        definition={intervention}
+        feasibility={{
+          feasible: true,
+          interventionId: intervention.id,
+          countryId,
+          definition: intervention,
+          treasuryAvailable: 100,
+          committedAdministrativeLoad: 0,
+          administrativeHeadroom: 100,
+          reasons: [],
+        }}
+        scenario={scenario}
+        world={world}
+        agendas={[agenda]}
+        onPreviewRegions={() => undefined}
+        onClearPreview={() => undefined}
+        onSubmit={() => undefined}
+      />,
+    );
+    const decisionSummary = decisionMarkup.match(
+      /<div class="decision-summary">([\s\S]*?)<\/div>/,
+    )?.[1];
+    expect(decisionSummary).toContain("국고·행정 여력");
+    expect(decisionSummary).not.toContain(String(intervention.treasuryCost));
+    expect(decisionMarkup).toContain("왜 그런가 · 세부 조건");
+    expect(decisionMarkup).toContain(
+      `국고 <b>${intervention.treasuryCost}</b>`,
+    );
+  });
 });

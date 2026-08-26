@@ -80,16 +80,29 @@ function AgendaCard({
           <span>지도에서 보기</span>
         </button>
       )}
-      <ul className="cause-list">
-        {agenda.keyCauses.slice(0, 3).map((cause) => (
-          <li key={cause.key}>
-            <span>{cause.label}</span>
-            {cause.value === undefined ? null : (
-              <b>{formatAmount(cause.value)}</b>
-            )}
-          </li>
-        ))}
-      </ul>
+      {agenda.keyCauses.length === 0 ? null : (
+        <details className="agenda-why">
+          <summary>
+            <TmrIcon
+              iconId={TMR_ICON_IDS.ui.why}
+              size={16}
+              decorative
+              tone="accent"
+            />
+            <span>왜 그런가</span>
+          </summary>
+          <ul className="cause-list">
+            {agenda.keyCauses.slice(0, 3).map((cause) => (
+              <li key={cause.key}>
+                <span>{cause.label}</span>
+                {cause.value === undefined ? null : (
+                  <b>{formatAmount(cause.value)}</b>
+                )}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </article>
   );
 }
@@ -129,7 +142,18 @@ export function AgendaPanel({
           ))
         )}
       </div>
-      <ConsolidationChecklist snapshot={consolidation} scenario={scenario} />
+      <details className="agenda-support-details">
+        <summary>
+          <TmrIcon
+            iconId={TMR_ICON_IDS.ui.details}
+            size={16}
+            decorative
+            tone="neutral"
+          />
+          <span>새 질서 정착 조건 보기</span>
+        </summary>
+        <ConsolidationChecklist snapshot={consolidation} scenario={scenario} />
+      </details>
       <div className="thesis-note">
         <span className="eyebrow">플레이 원칙</span>
         <p>
