@@ -155,6 +155,20 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       event.type === "REBELLION_STARTED",
   );
   const leadAgenda = agendas[0] ?? null;
+  const crisisFocusRegionId = (() => {
+    const payload = crisisEvent?.payload;
+    if (typeof payload === "object" && payload !== null) {
+      const affectedRegionIds = (payload as { affectedRegionIds?: unknown })
+        .affectedRegionIds;
+      if (Array.isArray(affectedRegionIds)) {
+        const affectedRegion = presentation.regions.find((region) =>
+          affectedRegionIds.some((regionId) => regionId === region.regionId),
+        );
+        if (affectedRegion !== undefined) return affectedRegion.regionId;
+      }
+    }
+    return presentation.regions[0]?.regionId ?? null;
+  })();
 
   const advanceOneDay = useCallback(() => {
     if (stepLockRef.current) return;
@@ -273,7 +287,15 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
         onAdvance={advance}
       />
 
-      <CrisisBanner event={crisisEvent} scenario={GAMEBUILDERS_DEMO_SCENARIO} />
+      <CrisisBanner
+        event={crisisEvent}
+        scenario={GAMEBUILDERS_DEMO_SCENARIO}
+        onFocusMap={
+          crisisFocusRegionId === null
+            ? undefined
+            : () => focusRegion(crisisFocusRegionId)
+        }
+      />
 
       <section className="world-stage" aria-label="정치 세계 지도">
         <div className="world-map-surface">

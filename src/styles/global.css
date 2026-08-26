@@ -481,6 +481,19 @@ h3 {
   color: #f2c7b6;
   font-size: 0.72rem;
 }
+.crisis-focus-button {
+  flex: 0 0 auto;
+  border: 1px solid #df927d;
+  padding: 0.4rem 0.55rem;
+  color: #ffe1d3;
+  background: rgb(255 255 255 / 8%);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+.crisis-focus-button:hover {
+  border-color: #fff0df;
+  background: rgb(255 255 255 / 16%);
+}
 .crisis-stamp {
   border: 1px solid #df927d;
   padding: 0.35rem 0.45rem;
