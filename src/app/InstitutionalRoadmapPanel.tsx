@@ -125,11 +125,11 @@ export function InstitutionalRoadmapPanel({
           <span className="eyebrow">중기 방향</span>
           <h2>제도 경로</h2>
         </div>
-        <span className="derived-label">실제 정책 그래프</span>
+        <span className="derived-label">제도 관계</span>
       </div>
       <p className="panel-intro">
-        선행 제도와 충돌 관계를 실제 정책 카탈로그에서 읽습니다. 숫자 점수나
-        별도 진행 자원은 없습니다.
+        선행 제도와 충돌 관계를 현재 국가 기록에서 읽습니다. 숫자 점수나 별도
+        진행 자원은 없습니다.
       </p>
       <div className="roadmap-toolbar" aria-label="제도 그래프 조작">
         <button

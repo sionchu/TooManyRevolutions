@@ -33,7 +33,7 @@
 | 3 | COMPLETED | `deriveMapVisibilityBudget`로 world/pressure/crisis 모드와 LOD budget을 상태에서 파생. tick 19 factual rebellion에서 affected region LandHex에 crisis contour와 controller/front 변화가 뉴스 overlay와 별도로 먼저 보임. `docs/parallel/evidence/visual-v2-phase3-rebellion-desktop.png`; `docs/parallel/evidence/visual-v2-phase3-rebellion-mobile.png` 직접 OPEN 검사. |
 | 4 | COMPLETED | `screenSpaceLabels`가 투영 좌표 기준 충돌 검사 후 우선순위로 cap하며 desktop budget 4/5, mobile 3을 적용. DOM evidence: desktop/mobile `data-map-label-policy=priority-screen-space-collision-cap`, mobile `data-map-label-count=3`, document overflow 0. `docs/parallel/evidence/visual-v2-phase4-labels-desktop.png`; `docs/parallel/evidence/visual-v2-phase4-labels-mobile.png` 직접 OPEN 검사. |
 | 5 | COMPLETED | 지도-first theatre CSS 적용: desktop map stage가 전체 화면 중심이며 drawer는 우측 context surface로 분리, dark rounded card/gold-border 반복을 제거. mobile은 header 1 band + compact state 1 band, decision drawer에서 CTA와 navigation overlap false를 DOM geometry로 확인. `docs/parallel/evidence/visual-v2-phase5-ui-desktop.png`; `docs/parallel/evidence/visual-v2-phase5-ui-mobile.png`; `docs/parallel/evidence/visual-v2-phase5-decision-mobile.png` 직접 OPEN 검사. |
-| 6 | NOT_RUN | - |
+| 6 | COMPLETED | Chronicle은 EventStore source를 digest 내부에서만 유지하고 player surface의 EventId/internal ID disclosure를 제거. EventPresentationOverlay는 열린 PoliticalProposal에만 수락/거절을 제공하며 institution/agenda drawer는 같은 derived read model을 사용. `docs/parallel/evidence/visual-v2-phase6-chronicle-desktop.png`; `docs/parallel/evidence/visual-v2-phase6-chronicle-mobile.png`; `docs/parallel/evidence/visual-v2-phase6-institution-mobile.png` 직접 OPEN 검사. 금칙어 DOM text scan matches 0. |
 | 7 | NOT_RUN | - |
 | 8 | NOT_RUN | - |
 | 9 | NOT_RUN | - |

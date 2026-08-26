@@ -140,7 +140,7 @@ function groupedDetail(
   const places = [...group.regionIds]
     .map((regionId) => regionName(scenario, regionId))
     .join(" · ");
-  return `${group.events.length}건의 기록을 한 흐름으로 묶었습니다${places.length > 0 ? ` · ${places}` : ""}. 원문 기록에서 각 EventId를 확인할 수 있습니다.`;
+  return `${group.events.length}건의 기록을 한 흐름으로 묶었습니다${places.length > 0 ? ` · ${places}` : ""}.`;
 }
 
 export interface ChronicleDigestGroup extends MutableDigestGroup {

@@ -55,7 +55,6 @@ export function ChroniclePanel({
                 className={`event-row chronicle-digest-row${item.crisis ? " event-crisis" : ""}`}
                 key={item.id}
                 data-chronicle-level={item.level}
-                data-source-event-ids={item.sourceEventIds.join(",")}
               >
                 <div className="chronicle-row-meta">
                   <TmrIcon
@@ -70,10 +69,6 @@ export function ChroniclePanel({
                 <div>
                   <strong>{item.title}</strong>
                   <span>{item.detail}</span>
-                  <details className="chronicle-source-details">
-                    <summary>원문 기록 {item.sourceEventIds.length}건</summary>
-                    <small>{item.sourceEventIds.join(" · ")}</small>
-                  </details>
                 </div>
                 <small>
                   {item.level === 1

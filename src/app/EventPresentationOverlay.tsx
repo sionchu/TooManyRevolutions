@@ -20,7 +20,10 @@ function presentationCopy(
 ): { readonly title: string; readonly detail: string } {
   const event = eventsById.get(item.eventId);
   if (event === undefined) {
-    return { title: item.eventType, detail: `${item.tick}일차` };
+    return {
+      title: "새로운 사건",
+      detail: `${item.tick}일차 기록이 갱신되었습니다.`,
+    };
   }
   const mapped = eventLabel(event, scenario);
   return { title: mapped.title, detail: mapped.detail };
