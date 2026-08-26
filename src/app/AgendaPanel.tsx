@@ -3,6 +3,7 @@ import type {
   PrimaryAgenda,
   AgendaSeverityBand,
 } from "../sim/readModels/agenda";
+import type { RegionId } from "../sim/state/ids";
 import type { ScenarioDefinition } from "../sim/state/scenario";
 import { formatAmount } from "./gamePresentation";
 
@@ -29,9 +30,11 @@ function trendLabel(trend: PrimaryAgenda["trend"]): string {
 function AgendaCard({
   agenda,
   scenario,
+  onFocusRegion,
 }: {
   readonly agenda: PrimaryAgenda;
   readonly scenario: ScenarioDefinition;
+  readonly onFocusRegion?: (regionId: RegionId) => void;
 }) {
   const regionNames = new Map(
     scenario.initialRegions.map((region) => [region.id, region.name]),
@@ -40,6 +43,7 @@ function AgendaCard({
     scenario.initialFactions.map((faction) => [faction.id, faction.name]),
   );
   const severity = agenda.severityBand ?? "low";
+  const focusRegionId = agenda.affectedRegionIds[0];
 
   return (
     <article className={`agenda-card severity-${severity}`}>
@@ -56,6 +60,15 @@ function AgendaCard({
           ? ` · ${agenda.involvedFactionIds.map((id) => factionNames.get(id) ?? "세력").join(" · ")}`
           : ""}
       </p>
+      {focusRegionId === undefined ? null : (
+        <button
+          className="agenda-focus-button"
+          type="button"
+          onClick={() => onFocusRegion?.(focusRegionId)}
+        >
+          지도에서 보기 ↗
+        </button>
+      )}
       <ul className="cause-list">
         {agenda.keyCauses.slice(0, 3).map((cause) => (
           <li key={cause.key}>
@@ -73,9 +86,11 @@ function AgendaCard({
 export function AgendaPanel({
   agendas,
   scenario,
+  onFocusRegion,
 }: {
   readonly agendas: readonly PrimaryAgenda[];
   readonly scenario: ScenarioDefinition;
+  readonly onFocusRegion?: (regionId: RegionId) => void;
 }) {
   return (
     <aside className="panel agenda-panel">
@@ -92,7 +107,12 @@ export function AgendaPanel({
           <p className="empty-state">지금은 감지된 주요 의제가 없습니다.</p>
         ) : (
           agendas.map((agenda) => (
-            <AgendaCard key={agenda.id} agenda={agenda} scenario={scenario} />
+            <AgendaCard
+              key={agenda.id}
+              agenda={agenda}
+              scenario={scenario}
+              onFocusRegion={onFocusRegion}
+            />
           ))
         )}
       </div>

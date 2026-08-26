@@ -490,16 +490,192 @@ h3 {
   letter-spacing: 0.1em;
 }
 
-.game-grid {
-  display: grid;
-  grid-template-columns: minmax(270px, 0.88fr) minmax(430px, 1.5fr) minmax(
-      270px,
-      0.88fr
-    );
-  gap: 1rem;
-  max-width: 1500px;
+.world-stage {
+  position: relative;
+  height: clamp(560px, calc(100svh - 250px), 820px);
   margin: 0 auto 1rem;
-  align-items: start;
+  max-width: 1500px;
+}
+.world-map-surface {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #b6a27f;
+  background: #d0c0a5;
+  box-shadow: 0 18px 38px rgb(67 47 29 / 15%);
+}
+.map-surface-heading {
+  position: absolute;
+  z-index: 5;
+  top: 0.75rem;
+  right: 0.9rem;
+  left: 0.9rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  pointer-events: none;
+}
+.map-surface-heading h2 {
+  margin: 0.18rem 0 0;
+  color: #3a3028;
+  font-size: clamp(1.05rem, 1.7vw, 1.35rem);
+  text-shadow: 0 1px 0 rgb(255 250 238 / 65%);
+}
+.map-surface-heading .map-date {
+  border: 1px solid rgb(145 116 70 / 55%);
+  padding: 0.36rem 0.5rem;
+  color: #5e4932;
+  background: rgb(248 240 226 / 82%);
+  white-space: nowrap;
+}
+.world-map-surface .atlas-frame,
+.world-map-surface .map-wrap {
+  height: 100%;
+}
+.world-map-surface .map-wrap {
+  display: flex;
+  flex-direction: column;
+  padding: 3.35rem 0.65rem 0.45rem;
+  border: 0;
+}
+.world-map-surface .hex-map {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.world-map-surface .map-legend {
+  flex: 0 0 auto;
+  padding-bottom: 0;
+}
+.map-issue-chip {
+  position: absolute;
+  z-index: 6;
+  bottom: 4.45rem;
+  left: 1rem;
+  display: grid;
+  gap: 0.24rem;
+  width: min(25rem, calc(100% - 2rem));
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #b79b69;
+  background: rgb(251 246 235 / 94%);
+  box-shadow: 0 8px 18px rgb(67 47 29 / 15%);
+}
+.map-issue-chip strong {
+  color: #49392c;
+  font-family: Georgia, "Noto Serif KR", serif;
+  font-size: 0.9rem;
+}
+.map-issue-chip > span:not(.eyebrow) {
+  color: #806e58;
+  font-size: 0.68rem;
+}
+.map-issue-button,
+.agenda-focus-button {
+  justify-self: start;
+  border: 1px solid #a48655;
+  padding: 0.38rem 0.55rem;
+  color: #6e4c2e;
+  background: #eee1cc;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+.map-issue-button:hover,
+.agenda-focus-button:hover {
+  border-color: #a33d34;
+  color: #a33d34;
+}
+.context-tabs {
+  position: absolute;
+  z-index: 12;
+  bottom: 1rem;
+  left: 1rem;
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid #b6a27f;
+  background: rgb(251 246 235 / 95%);
+  box-shadow: 0 8px 18px rgb(67 47 29 / 15%);
+}
+.context-tab {
+  border: 1px solid transparent;
+  padding: 0.48rem 0.72rem;
+  color: #725f4a;
+  background: transparent;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+.context-tab:hover,
+.context-tab.active {
+  border-color: #a48655;
+  color: #fff8e9;
+  background: #8b5c3b;
+}
+.contextual-drawer {
+  position: absolute;
+  z-index: 11;
+  top: 0.8rem;
+  right: 0.8rem;
+  bottom: 0.8rem;
+  display: flex;
+  width: min(380px, 30vw);
+  min-width: 300px;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #b6a27f;
+  background: rgb(251 246 235 / 97%);
+  box-shadow: 0 18px 36px rgb(67 47 29 / 24%);
+}
+.drawer-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.8rem 0.9rem 0.65rem;
+  border-bottom: 1px solid #d2c2a9;
+}
+.drawer-heading h2 {
+  margin: 0.18rem 0 0;
+  color: #3a3028;
+  font-size: 1.15rem;
+}
+.drawer-close {
+  flex: 0 0 auto;
+  border: 1px solid #b4a388;
+  padding: 0.36rem 0.5rem;
+  color: #665744;
+  background: #eee3d0;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+.drawer-close:hover {
+  border-color: #a33d34;
+  color: #a33d34;
+}
+.drawer-content {
+  min-height: 0;
+  overflow: auto;
+  padding: 0.85rem 1rem 1rem;
+}
+.contextual-drawer .panel {
+  min-height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.contextual-drawer .panel-heading {
+  margin-bottom: 0.65rem;
+}
+.contextual-drawer .event-panel {
+  max-width: none;
+  margin: 0;
+}
+.contextual-drawer .region-inspector {
+  margin-top: 0;
+  padding: 0;
+  border-top: 0;
 }
 .panel {
   min-width: 0;
@@ -682,9 +858,6 @@ h3 {
   font-weight: 800;
 }
 
-.map-panel {
-  padding-bottom: 0.8rem;
-}
 .map-wrap {
   max-width: 100%;
   overflow: hidden;
@@ -1074,14 +1247,11 @@ h3 {
 }
 
 @media (max-width: 1120px) {
-  .game-grid {
-    grid-template-columns: minmax(240px, 0.85fr) minmax(360px, 1.3fr);
+  .contextual-drawer {
+    width: min(380px, 38vw);
   }
-  .agenda-panel {
-    grid-column: 1 / -1;
-  }
-  .agenda-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .world-stage {
+    height: clamp(560px, calc(100svh - 240px), 760px);
   }
 }
 
@@ -1093,14 +1263,8 @@ h3 {
     grid-column: 1 / -1;
     min-width: 0;
   }
-  .game-grid {
-    grid-template-columns: 1fr;
-  }
-  .agenda-panel {
-    grid-column: auto;
-  }
-  .agenda-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .world-stage {
+    height: clamp(560px, calc(100svh - 220px), 700px);
   }
 }
 
@@ -1131,14 +1295,38 @@ h3 {
   .manual-jumps button {
     flex: 1;
   }
-  .game-grid {
-    grid-template-columns: 1fr;
+  .world-stage {
+    height: clamp(580px, calc(100svh - 220px), 700px);
   }
-  .agenda-panel {
-    grid-column: auto;
+  .world-map-surface .map-wrap {
+    padding-right: 0.25rem;
+    padding-left: 0.25rem;
   }
-  .agenda-list {
-    grid-template-columns: 1fr;
+  .contextual-drawer {
+    top: auto;
+    right: 0.6rem;
+    bottom: 4.05rem;
+    left: 0.6rem;
+    width: auto;
+    min-width: 0;
+    max-height: min(68svh, 34rem);
+  }
+  .context-tabs {
+    right: 0.6rem;
+    bottom: 0.6rem;
+    left: 0.6rem;
+    justify-content: stretch;
+  }
+  .context-tab {
+    flex: 1 1 0;
+    padding-right: 0.35rem;
+    padding-left: 0.35rem;
+  }
+  .map-issue-chip {
+    right: 0.6rem;
+    bottom: 4.25rem;
+    left: 0.6rem;
+    width: auto;
   }
   .header-actions {
     width: 100%;

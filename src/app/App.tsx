@@ -18,6 +18,7 @@ import {
 } from "./demoGame";
 import { AgendaPanel } from "./AgendaPanel";
 import { CrisisBanner } from "./CrisisBanner";
+import { ContextualDock, type ContextPanel } from "./ContextualDock";
 import { DecisionPanel } from "./DecisionPanel";
 import { GameHeader } from "./GameHeader";
 import { MetricStrip } from "./MetricStrip";
@@ -65,6 +66,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const [selectedRegionId, setSelectedRegionId] = useState<RegionId | null>(
     GAMEBUILDERS_DEMO_SCENARIO.initialRegions[0]?.id ?? null,
   );
+  const [activePanel, setActivePanel] = useState<ContextPanel>("map");
 
   useEffect(() => {
     recordRef.current = record;
@@ -152,6 +154,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       event.type === "COUP_ATTEMPT_STARTED" ||
       event.type === "REBELLION_STARTED",
   );
+  const leadAgenda = agendas[0] ?? null;
 
   const advanceOneDay = useCallback(() => {
     if (stepLockRef.current) return;
@@ -239,8 +242,13 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     playTone("confirm");
   };
 
+  const focusRegion = (regionId: RegionId) => {
+    setSelectedRegionId(regionId);
+    setActivePanel("region");
+  };
+
   return (
-    <main className="game-shell">
+    <main className="game-shell map-first-shell">
       <GameHeader
         playerCountry={playerCountry}
         date={record.world.date}
@@ -267,18 +275,9 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
 
       <CrisisBanner event={crisisEvent} scenario={GAMEBUILDERS_DEMO_SCENARIO} />
 
-      <div className="game-grid">
-        <DecisionPanel
-          candidates={candidates}
-          agendas={agendas}
-          scenario={GAMEBUILDERS_DEMO_SCENARIO}
-          world={record.world}
-          policyState={policyState}
-          onSubmit={submitAction}
-        />
-
-        <section className="panel map-panel">
-          <div className="panel-heading">
+      <section className="world-stage" aria-label="정치 세계 지도">
+        <div className="world-map-surface">
+          <div className="map-surface-heading">
             <div>
               <span className="eyebrow">{PLAYER_COPY.main.mapEyebrow}</span>
               <h2>{PLAYER_COPY.main.mapTitle}</h2>
@@ -288,21 +287,69 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
           <PoliticalAtlas
             presentation={presentation}
             selectedRegionId={selectedRegionId}
-            onSelectRegion={setSelectedRegionId}
+            onSelectRegion={focusRegion}
           />
-          <RegionInspector
-            region={selectedRegion}
-            scenario={GAMEBUILDERS_DEMO_SCENARIO}
-          />
-        </section>
+          {leadAgenda === null ? null : (
+            <div className="map-issue-chip" role="status">
+              <span className="eyebrow">현재 압력</span>
+              <strong>{leadAgenda.title}</strong>
+              <span>
+                {leadAgenda.affectedRegionIds
+                  .map(
+                    (regionId) =>
+                      presentation.regions.find(
+                        (region) => region.regionId === regionId,
+                      )?.name,
+                  )
+                  .filter((name): name is string => name !== undefined)
+                  .join(" · ") || "전국"}
+              </span>
+              {leadAgenda.affectedRegionIds[0] === undefined ? null : (
+                <button
+                  className="map-issue-button"
+                  type="button"
+                  onClick={() => focusRegion(leadAgenda.affectedRegionIds[0]!)}
+                >
+                  지도에서 보기
+                </button>
+              )}
+            </div>
+          )}
+        </div>
 
-        <AgendaPanel agendas={agendas} scenario={GAMEBUILDERS_DEMO_SCENARIO} />
-      </div>
-
-      <ChroniclePanel
-        events={visibleEvents}
-        scenario={GAMEBUILDERS_DEMO_SCENARIO}
-      />
+        <ContextualDock
+          activePanel={activePanel}
+          onSelectPanel={setActivePanel}
+          onClose={() => setActivePanel("map")}
+        >
+          {activePanel === "agenda" ? (
+            <AgendaPanel
+              agendas={agendas}
+              scenario={GAMEBUILDERS_DEMO_SCENARIO}
+              onFocusRegion={focusRegion}
+            />
+          ) : activePanel === "decisions" ? (
+            <DecisionPanel
+              candidates={candidates}
+              agendas={agendas}
+              scenario={GAMEBUILDERS_DEMO_SCENARIO}
+              world={record.world}
+              policyState={policyState}
+              onSubmit={submitAction}
+            />
+          ) : activePanel === "region" ? (
+            <RegionInspector
+              region={selectedRegion}
+              scenario={GAMEBUILDERS_DEMO_SCENARIO}
+            />
+          ) : activePanel === "chronicle" ? (
+            <ChroniclePanel
+              events={visibleEvents}
+              scenario={GAMEBUILDERS_DEMO_SCENARIO}
+            />
+          ) : null}
+        </ContextualDock>
+      </section>
     </main>
   );
 }
