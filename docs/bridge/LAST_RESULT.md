@@ -2,35 +2,48 @@
 
 ```text
 TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
-RESULT_KIND: CHATGPT_PRODUCT_REVIEW_REWORK
-IMPLEMENTATION_HEAD: 31180d977e75e4646332678c36812abc30a3a7fd
-P0_PRODUCT_REVIEW_REWORK: COMPLETE
-P0_PRODUCT_PASS: NOT_DECLARED
-P0_TECHNICAL_PROGRESS: RETAIN
-WORLD_RENDERER_DECISION: THREE_R3F
-REFERENCE_TRACEABILITY_MATRIX: PASS
-WORLD_STAGE_ACCEPTANCE: PASS
-MOBILE_WORLD_FIRST_VISUAL_QA: PASS
-SITES_REDEPLOYED: YES
+RESULT_KIND: CHATGPT_ENGINE_REWORK_REVIEW
+CODEX_RESULT_HEAD: 5594fe17c02b281b7f51ba2e05578190aa21d3bd
+PRODUCTION_CODE_CHECKPOINT: 31180d977e75e4646332678c36812abc30a3a7fd
+R3F_ENGINE_REWORK_DECISION: PASS
+P0_PRODUCT_VISUAL_PASS: NO
+TARGETED_REWORK_AUTHORIZED: SEMANTIC_WORLD_OBJECT_AND_ART_READABILITY
 GATE1F: NOT_READY
 V02: NOT_STARTED
-SUCCESSOR_AUTHORIZED: NO
+SUCCESSOR_MAJOR_TASK_AUTHORIZED: NO
 ```
 
-## Evidence
+## Accepted
 
-The production world stage is a single R3F presentation path fed by the
-renderer-neutral `WorldSceneModel`. The real benchmark also built an isolated
-PixiJS v8 candidate from the same frozen snapshot. Public Site QA used actual
-title, briefing, map, policy, intervention, drawer, zoom, mobile, and
-`+30일` callbacks. The late run reached Day 1080 and beyond Day 1000 with
-visible rebellion/coup conflict markers, faction controller migration,
-routes, project landmarks, Chronicle source records, and factual
-consolidation blockers.
+Independent repository review confirms:
 
-The detailed record is in
-`docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md`.
+- real R3F/Three and Pixi comparison dependencies/builds exist;
+- R3F is the single production world renderer;
+- renderer-neutral `WorldSceneModel` exists;
+- simulation/action/time authority remains outside renderer;
+- the Institutional Roadmap is a positioned node/edge graph;
+- raw policy failure vocabulary is translated to player-facing Korean;
+- default top-level country status is qualitative with exact values behind a detail disclosure;
+- reference audit now maps principles to exact components and hands-on criteria.
+
+## Why final product PASS is withheld
+
+Source inspection still finds a graybox object-language gap:
+
+- project kind `food | civic | industrial` is not used to produce distinct production `ProjectLandmark` geometry;
+- settlement/POI identity is sparse;
+- faction/conflict language remains mainly abstract rings/spheres/lines;
+- route channels use limited visual differentiation;
+- fresh rendered post-rework screenshots have not yet been independently accepted by ChatGPT.
+
+Detailed review:
+
+`docs/P0_WORLD_STAGE_REWORK_CODE_REVIEW_2026-08-26.md`
+
+Authorized targeted correction:
+
+`docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_SEMANTIC_WORLD_OBJECT_ART_REWORK_ADDENDUM.md`
 
 ## Boundary
 
-This is not a Gate 1F PASS, V02 result, or F05 successor authorization.
+Keep the accepted R3F/WorldSceneModel architecture. This review does not authorize another engine migration, Gate 1F PASS, V02, persistence V9, a simulation rewrite, or a successor major task.
