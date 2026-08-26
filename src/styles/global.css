@@ -1824,6 +1824,15 @@ h3 {
 .atlas-delta-hit {
   fill: rgb(255 247 207 / 14%);
 }
+.atlas-preview-focus {
+  filter: brightness(1.18) saturate(1.18);
+  stroke: #f2d28e;
+  stroke-width: 2.5;
+}
+.atlas-preview-hit {
+  fill: rgb(255 247 207 / 18%);
+  stroke: #f2d28e;
+}
 .atlas-focus-ring {
   fill: none;
   stroke: #f8e0a2;

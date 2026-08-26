@@ -73,6 +73,7 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
         projects: [],
         visualDeltas: [],
         focusRegionId: null,
+        previewRegionIds: [],
       }),
     );
     expect(mapMarkup).toContain('data-controller-kind="faction"');
@@ -185,6 +186,9 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
           [],
         ),
         onFocusProject: () => undefined,
+        policyRegionIds: [],
+        onPreviewRegions: () => undefined,
+        onClearPreview: () => undefined,
         onSubmit: () => undefined,
         onSubmitPolicy: () => undefined,
       }),
@@ -198,6 +202,7 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
         projects: [],
         visualDeltas: [],
         focusRegionId: null,
+        previewRegionIds: [],
       }),
     );
 

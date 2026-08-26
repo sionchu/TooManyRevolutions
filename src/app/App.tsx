@@ -98,6 +98,9 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const [mapFocusRegionId, setMapFocusRegionId] = useState<RegionId | null>(
     null,
   );
+  const [previewRegionIds, setPreviewRegionIds] = useState<readonly RegionId[]>(
+    [],
+  );
 
   useEffect(() => {
     recordRef.current = record;
@@ -281,6 +284,9 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
         ?.ownerCountryId === PLAYER_ID,
   ).length;
   const capitalRegionId = playerCountry?.capitalRegionId ?? null;
+  const playerRegionIds = GAMEBUILDERS_DEMO_SCENARIO.initialRegions
+    .filter((region) => region.ownerCountryId === PLAYER_ID)
+    .map((region) => region.id);
   const capitalControlled =
     capitalRegionId !== null &&
     presentation.regions.find((region) => region.regionId === capitalRegionId)
@@ -484,6 +490,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
             projects={projects}
             visualDeltas={visualDeltas}
             focusRegionId={mapFocusRegionId}
+            previewRegionIds={previewRegionIds}
           />
           <div className="map-fact-strip" aria-label="현재 세계 사실">
             <span>
@@ -571,6 +578,9 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
               roadmap={roadmap}
               projects={projects}
               onFocusProject={focusRegion}
+              policyRegionIds={playerRegionIds}
+              onPreviewRegions={setPreviewRegionIds}
+              onClearPreview={() => setPreviewRegionIds([])}
               onSubmit={submitAction}
               onSubmitPolicy={submitPolicy}
             />

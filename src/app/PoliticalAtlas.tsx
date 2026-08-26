@@ -273,6 +273,7 @@ export function PoliticalAtlas({
   projects,
   visualDeltas,
   focusRegionId,
+  previewRegionIds,
 }: {
   readonly presentation: PresentationState;
   readonly selectedRegionId: RegionId | null;
@@ -281,6 +282,7 @@ export function PoliticalAtlas({
   readonly projects: readonly StateProjectPresentation[];
   readonly visualDeltas: readonly WorldVisualDelta[];
   readonly focusRegionId: RegionId | null;
+  readonly previewRegionIds: readonly RegionId[];
 }) {
   const [zoom, setZoom] = useState(1);
   const regions = new Map(
@@ -295,6 +297,7 @@ export function PoliticalAtlas({
   const activeDeltaRegions = new Set(
     visualDeltas.flatMap((delta) => delta.regionIds),
   );
+  const previewRegions = new Set(previewRegionIds);
   const focusedCenter =
     focusRegionId === null ? undefined : centers.get(focusRegionId);
   const politicalCenters = countryCenters(presentation, centers);
@@ -380,7 +383,7 @@ export function PoliticalAtlas({
               return (
                 <polygon
                   key={`political-${hex.landHexId}`}
-                  className={`atlas-political-fill${activeDeltaRegions.has(hex.regionId) ? " atlas-delta-focus" : ""}`}
+                  className={`atlas-political-fill${activeDeltaRegions.has(hex.regionId) ? " atlas-delta-focus" : ""}${previewRegions.has(hex.regionId) ? " atlas-preview-focus" : ""}`}
                   points={pointsString(vertices)}
                   fill={fill}
                   aria-hidden="true"
@@ -402,7 +405,7 @@ export function PoliticalAtlas({
                 .map((hex) => (
                   <polygon
                     key={`ideology-${hex.landHexId}`}
-                    className={`atlas-ideology-overlay${activeDeltaRegions.has(region.regionId) ? " atlas-delta-focus" : ""}`}
+                    className={`atlas-ideology-overlay${activeDeltaRegions.has(region.regionId) ? " atlas-delta-focus" : ""}${previewRegions.has(region.regionId) ? " atlas-preview-focus" : ""}`}
                     points={pointsString(
                       verticesFor(
                         centerFor(hex.coordinate.q, hex.coordinate.r),
@@ -437,7 +440,7 @@ export function PoliticalAtlas({
               return (
                 <polygon
                   key={`controller-${hex.landHexId}`}
-                  className={`atlas-controller-overlay controller-${hex.controller.kind}${sameAsOwner ? " controller-same" : ""}${activeDeltaRegions.has(hex.regionId) ? " atlas-delta-focus" : ""}`}
+                  className={`atlas-controller-overlay controller-${hex.controller.kind}${sameAsOwner ? " controller-same" : ""}${activeDeltaRegions.has(hex.regionId) ? " atlas-delta-focus" : ""}${previewRegions.has(hex.regionId) ? " atlas-preview-focus" : ""}`}
                   points={pointsString(verticesFor(center))}
                   fill={sameAsOwner ? "none" : fill}
                   data-controller-kind={hex.controller.kind}
@@ -509,7 +512,7 @@ export function PoliticalAtlas({
               return (
                 <circle
                   key={`pressure-${region.regionId}`}
-                  className={`atlas-pressure-pulse${activeDeltaRegions.has(region.regionId) ? " atlas-delta-focus" : ""}`}
+                  className={`atlas-pressure-pulse${activeDeltaRegions.has(region.regionId) ? " atlas-delta-focus" : ""}${previewRegions.has(region.regionId) ? " atlas-preview-focus" : ""}`}
                   cx={center.x}
                   cy={center.y}
                   r={5 + pressure * 18}
@@ -705,7 +708,7 @@ export function PoliticalAtlas({
               return (
                 <polygon
                   key={`interactive-${hex.landHexId}`}
-                  className={`atlas-hit-area${selectedRegionId === hex.regionId ? " atlas-hit-selected" : ""}${activeDeltaRegions.has(hex.regionId) ? " atlas-delta-hit" : ""}`}
+                  className={`atlas-hit-area${selectedRegionId === hex.regionId ? " atlas-hit-selected" : ""}${activeDeltaRegions.has(hex.regionId) ? " atlas-delta-hit" : ""}${previewRegions.has(hex.regionId) ? " atlas-preview-hit" : ""}`}
                   points={pointsString(verticesFor(center))}
                   tabIndex={0}
                   role="button"

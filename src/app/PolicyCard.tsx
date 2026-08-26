@@ -4,6 +4,7 @@ import type {
   PolicyDefinition,
   PolicyState,
 } from "../sim/state/policy";
+import type { RegionId } from "../sim/state/ids";
 import { RULE_LABELS, RULE_VALUE_LABELS } from "./gamePresentation";
 
 function failureLabel(reason: PolicyAvailabilityFailure): string {
@@ -28,11 +29,17 @@ export function PolicyCard({
   definition,
   availability,
   policyState,
+  affectedRegionIds,
+  onPreviewRegions,
+  onClearPreview,
   onSubmit,
 }: {
   readonly definition: PolicyDefinition;
   readonly availability: PolicyAvailabilityResult;
   readonly policyState: PolicyState;
+  readonly affectedRegionIds: readonly RegionId[];
+  readonly onPreviewRegions: (regionIds: readonly RegionId[]) => void;
+  readonly onClearPreview: () => void;
   readonly onSubmit: (policyId: PolicyDefinition["id"]) => void;
 }) {
   const changes = policyChangeLabel(definition);
@@ -42,6 +49,10 @@ export function PolicyCard({
     <article
       className={`action-card policy-card${availability.feasible ? " action-available" : " action-locked"}`}
       data-policy-id={definition.id}
+      onMouseEnter={() => onPreviewRegions(affectedRegionIds)}
+      onMouseLeave={onClearPreview}
+      onFocus={() => onPreviewRegions(affectedRegionIds)}
+      onBlur={onClearPreview}
     >
       <div className="action-card-top">
         <span className="action-category">실제 정책</span>

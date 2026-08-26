@@ -8,6 +8,7 @@ import type { PolicyState } from "../sim/state/policy";
 import type { ScenarioDefinition } from "../sim/state/scenario";
 import type { WorldState } from "../sim/state/world";
 import type { PrimaryAgenda } from "../sim/readModels/agenda";
+import type { RegionId } from "../sim/state/ids";
 import {
   effectLabel,
   formatAmount,
@@ -63,6 +64,8 @@ export function DecisionCard({
   scenario,
   world,
   agendas,
+  onPreviewRegions,
+  onClearPreview,
   onSubmit,
 }: {
   readonly definition: InterventionDefinition;
@@ -70,6 +73,8 @@ export function DecisionCard({
   readonly scenario: ScenarioDefinition;
   readonly world: WorldState;
   readonly agendas: readonly PrimaryAgenda[];
+  readonly onPreviewRegions: (regionIds: readonly RegionId[]) => void;
+  readonly onClearPreview: () => void;
   readonly onSubmit: (interventionId: InterventionDefinition["id"]) => void;
 }) {
   const policyState =
@@ -80,11 +85,25 @@ export function DecisionCard({
   const observations = observedTargets(definition, world, policyState);
   const firstAgenda = agendas[0];
   const adminRoom = feasibility.administrativeHeadroom;
+  const affectedRegionIds = [
+    ...new Set(
+      effects.flatMap((effect) =>
+        effect.kind === "regionResourceProductionCapacityDelta"
+          ? [effect.regionId]
+          : [],
+      ),
+    ),
+    ...(firstAgenda?.affectedRegionIds ?? []),
+  ];
 
   return (
     <article
       className={`action-card decision-card${feasibility.feasible ? " action-available" : " action-locked"}`}
       data-intervention-id={definition.id}
+      onMouseEnter={() => onPreviewRegions(affectedRegionIds)}
+      onMouseLeave={onClearPreview}
+      onFocus={() => onPreviewRegions(affectedRegionIds)}
+      onBlur={onClearPreview}
     >
       <div className="action-card-top">
         <span className="action-category">행정 결정</span>

@@ -11,6 +11,7 @@ import {
 } from "../sim/state/policy";
 import type { ScenarioDefinition } from "../sim/state/scenario";
 import type { WorldState } from "../sim/state/world";
+import type { RegionId } from "../sim/state/ids";
 import type { PrimaryAgenda } from "../sim/readModels/agenda";
 import { DecisionCard } from "./DecisionCard";
 import { PolicyCard } from "./PolicyCard";
@@ -44,6 +45,9 @@ export function DecisionPanel({
   roadmap,
   projects,
   onFocusProject,
+  policyRegionIds,
+  onPreviewRegions,
+  onClearPreview,
   onSubmit,
   onSubmitPolicy,
 }: {
@@ -58,6 +62,9 @@ export function DecisionPanel({
   readonly onFocusProject: (
     regionId: StateProjectPresentation["anchorRegionId"],
   ) => void;
+  readonly policyRegionIds: readonly RegionId[];
+  readonly onPreviewRegions: (regionIds: readonly RegionId[]) => void;
+  readonly onClearPreview: () => void;
   readonly onSubmit: (interventionId: InterventionDefinition["id"]) => void;
   readonly onSubmitPolicy: (policyId: PolicyDefinition["id"]) => void;
 }) {
@@ -97,6 +104,9 @@ export function DecisionPanel({
                   definition={definition}
                   availability={availability}
                   policyState={policyState}
+                  affectedRegionIds={policyRegionIds}
+                  onPreviewRegions={onPreviewRegions}
+                  onClearPreview={onClearPreview}
                   onSubmit={onSubmitPolicy}
                 />
               ))}
@@ -116,6 +126,8 @@ export function DecisionPanel({
               scenario={scenario}
               world={world}
               agendas={agendas}
+              onPreviewRegions={onPreviewRegions}
+              onClearPreview={onClearPreview}
               onSubmit={onSubmit}
             />
           ))}
