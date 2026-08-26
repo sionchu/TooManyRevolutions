@@ -459,18 +459,17 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
         onAdvance={advance}
       />
 
-      <CrisisBanner
-        event={crisisEvent}
-        activeConflicts={activeConflicts}
-        scenario={GAMEBUILDERS_DEMO_SCENARIO}
-        onFocusMap={
-          crisisFocusRegionId === null
-            ? undefined
-            : () => focusRegion(crisisFocusRegionId)
-        }
-      />
-
       <section className="world-stage" aria-label="정치 세계 지도">
+        <CrisisBanner
+          event={crisisEvent}
+          activeConflicts={activeConflicts}
+          scenario={GAMEBUILDERS_DEMO_SCENARIO}
+          onFocusMap={
+            crisisFocusRegionId === null
+              ? undefined
+              : () => focusRegion(crisisFocusRegionId)
+          }
+        />
         <div className="world-map-surface">
           <div className="map-surface-heading">
             <div>

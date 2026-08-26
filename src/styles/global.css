@@ -2258,6 +2258,15 @@ h3 {
   background: #c9b99c;
   box-shadow: none;
 }
+.world-stage > .crisis-banner {
+  position: absolute;
+  z-index: 15;
+  top: 0.65rem;
+  right: 0.8rem;
+  left: auto;
+  width: min(44rem, calc(100% - 1.6rem));
+  margin: 0;
+}
 
 @media (max-width: 760px) {
   .metric-strip {
@@ -2291,6 +2300,12 @@ h3 {
   }
   .world-stage {
     height: clamp(580px, calc(100svh - 220px), 700px);
+  }
+  .world-stage > .crisis-banner {
+    top: 0.55rem;
+    right: 0.6rem;
+    left: 0.6rem;
+    width: auto;
   }
   .map-camera-controls {
     right: 0.55rem;
