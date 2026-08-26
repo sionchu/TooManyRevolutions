@@ -32,8 +32,10 @@ import {
   type MapViewPreset,
 } from "../presentation/mapArchitecture";
 import {
+  deriveMapVisibilityBudget,
   deriveMapVisualSystem,
   MAP_MATERIAL_SYSTEM,
+  type MapVisibilityBudget,
   type MapVisualSystem,
 } from "../presentation/mapVisualSystem";
 import {
@@ -228,11 +230,12 @@ function terrainMeshGeometry(
   );
   geometry.setAttribute(
     "color",
-    new THREE.Float32BufferAttribute(terrainMesh.colors.flatMap((color) => [...color]), 3),
+    new THREE.Float32BufferAttribute(
+      terrainMesh.colors.flatMap((color) => [...color]),
+      3,
+    ),
   );
-  geometry.setIndex(
-    terrainMesh.triangles.flatMap((triangle) => [...triangle]),
-  );
+  geometry.setIndex(terrainMesh.triangles.flatMap((triangle) => [...triangle]));
   geometry.computeVertexNormals();
   return geometry;
 }
@@ -242,7 +245,10 @@ function TerrainMeshSurface({
 }: {
   readonly terrainMesh: MapRuntimeGeometry["terrainMesh"];
 }) {
-  const geometry = useMemo(() => terrainMeshGeometry(terrainMesh), [terrainMesh]);
+  const geometry = useMemo(
+    () => terrainMeshGeometry(terrainMesh),
+    [terrainMesh],
+  );
   useEffect(() => () => geometry.dispose(), [geometry]);
   return (
     <mesh geometry={geometry} receiveShadow castShadow renderOrder={1}>
@@ -772,14 +778,15 @@ function MapPathLayer({
 function IdeologySurfaceLayer({
   architecture,
   runtimeGeometry,
-  lodTier,
+  visibilityBudget,
 }: {
   readonly architecture: MapArchitecture;
   readonly runtimeGeometry: MapRuntimeGeometry;
-  readonly lodTier: MapLodTier;
+  readonly visibilityBudget: MapVisibilityBudget;
 }) {
-  if (lodTier !== "near") return null;
-  const showDirectionalTreatment = lodTier === "near";
+  if (!visibilityBudget.showIdeology && !visibilityBudget.showFactionPresence)
+    return null;
+  const showDirectionalTreatment = visibilityBudget.showIdeology;
   const regionPolygons = (regionId: string) =>
     runtimeGeometry.regionSurfaces.filter(
       (polygon) => polygon.semanticKey === `region:${regionId}`,
@@ -810,50 +817,58 @@ function IdeologySurfaceLayer({
         truthClass: "AUTHORITATIVE_PROJECTION",
       }}
     >
-      {architecture.political.ideologySurfaces.flatMap((surface) =>
-        regionPolygons(surface.regionId).map((polygon) => (
-          <group key={`${surface.id}:${polygon.id}`}>
-            <RuntimeSurfaceMesh
-              polygon={polygon}
-              color={
-                IDEOLOGY_SURFACE_COLORS[
-                  ideologySurfacePaletteIndex(surface.ideologyId)
-                ]
-              }
-              opacity={
-                DEFAULT_MAP_STYLE.ideologySurfaceOpacity *
-                (0.24 + surface.support * 0.18)
-              }
-              renderOrder={2}
-            />
-            {showDirectionalTreatment ? (
-              <SurfaceDirectionalTreatment
+      {visibilityBudget.showIdeology
+        ? architecture.political.ideologySurfaces.flatMap((surface) =>
+            regionPolygons(surface.regionId).map((polygon) => (
+              <group key={`${surface.id}:${polygon.id}`}>
+                <RuntimeSurfaceMesh
+                  polygon={polygon}
+                  color={
+                    IDEOLOGY_SURFACE_COLORS[
+                      ideologySurfacePaletteIndex(surface.ideologyId)
+                    ]
+                  }
+                  opacity={
+                    DEFAULT_MAP_STYLE.ideologySurfaceOpacity *
+                    (0.24 + surface.support * 0.18)
+                  }
+                  renderOrder={2}
+                />
+                {showDirectionalTreatment ? (
+                  <SurfaceDirectionalTreatment
+                    polygon={polygon}
+                    color={
+                      IDEOLOGY_SURFACE_COLORS[
+                        ideologySurfacePaletteIndex(surface.ideologyId)
+                      ]
+                    }
+                    opacity={
+                      0.04 +
+                      surface.radicalism * 0.08 +
+                      surface.organization * 0.05
+                    }
+                    patternIndex={ideologySurfacePaletteIndex(
+                      surface.ideologyId,
+                    )}
+                  />
+                ) : null}
+              </group>
+            )),
+          )
+        : null}
+      {visibilityBudget.showFactionPresence
+        ? architecture.political.factionTerritories.flatMap((territory) =>
+            factionPolygons(territory.factionId).map((polygon) => (
+              <RuntimeSurfaceMesh
+                key={`faction-surface:${territory.factionId}:${polygon.id}`}
                 polygon={polygon}
-                color={
-                  IDEOLOGY_SURFACE_COLORS[
-                    ideologySurfacePaletteIndex(surface.ideologyId)
-                  ]
-                }
-                opacity={
-                  0.04 + surface.radicalism * 0.08 + surface.organization * 0.05
-                }
-                patternIndex={ideologySurfacePaletteIndex(surface.ideologyId)}
+                color={CONTROLLER_COLORS.faction}
+                opacity={factionOpacity.get(territory.factionId) ?? 0.1}
+                renderOrder={6}
               />
-            ) : null}
-          </group>
-        )),
-      )}
-      {architecture.political.factionTerritories.flatMap((territory) =>
-        factionPolygons(territory.factionId).map((polygon) => (
-          <RuntimeSurfaceMesh
-            key={`faction-surface:${territory.factionId}:${polygon.id}`}
-            polygon={polygon}
-            color={CONTROLLER_COLORS.faction}
-            opacity={factionOpacity.get(territory.factionId) ?? 0.1}
-            renderOrder={6}
-          />
-        )),
-      )}
+            )),
+          )
+        : null}
     </group>
   );
 }
@@ -992,12 +1007,14 @@ function WorldTile({
   hex,
   selected,
   showContextGrid,
+  crisisActive,
   onSelectRegion,
   onSelectHex,
 }: {
   readonly hex: WorldSceneModel["hexes"][number];
   readonly selected: boolean;
   readonly showContextGrid: boolean;
+  readonly crisisActive: boolean;
   readonly onSelectRegion: (regionId: RegionId) => void;
   readonly onSelectHex: (landHexId: string) => void;
 }) {
@@ -1020,9 +1037,15 @@ function WorldTile({
       {showContextGrid ? (
         <SceneLine
           points={pointsForHex([0, top + 0.035, 0], 0.98)}
-          color={selected ? "#fff0b5" : controllerColor}
-          opacity={selected ? 0.98 : 0.7}
-          width={selected ? 2 : 1}
+          color={
+            selected
+              ? "#fff0b5"
+              : crisisActive
+                ? MAP_MATERIAL_SYSTEM.palette["crisis-iron"]
+                : controllerColor
+          }
+          opacity={selected ? 0.98 : crisisActive ? 0.92 : 0.7}
+          width={selected ? 2 : crisisActive ? 2.6 : 1}
         />
       ) : null}
     </group>
@@ -1190,6 +1213,7 @@ function WorldScene({
   architecture,
   runtimeGeometry,
   visualSystem,
+  visibilityBudget,
   integratedArtPlan,
   lodTier,
   cameraState,
@@ -1206,6 +1230,7 @@ function WorldScene({
   readonly architecture: MapArchitecture;
   readonly runtimeGeometry: MapRuntimeGeometry;
   readonly visualSystem: MapVisualSystem;
+  readonly visibilityBudget: MapVisibilityBudget;
   readonly integratedArtPlan: IntegratedRegionArtPlan;
   readonly lodTier: MapLodTier;
   readonly cameraState: CameraState;
@@ -1255,8 +1280,11 @@ function WorldScene({
     size.width,
   ]);
 
-  const showMinorObjects = lodTier === "near";
-  const showRouteDetails = lodTier === "near";
+  const showMinorObjects = visibilityBudget.showMinorObjects;
+  const showRouteDetails = visibilityBudget.showRouteDetails;
+  const crisisRegionIds = new Set(
+    model.conflicts.flatMap((conflict) => conflict.regionIds),
+  );
   return (
     <>
       <color attach="background" args={[visualSystem.material.fogColor]} />
@@ -1293,7 +1321,7 @@ function WorldScene({
         <IdeologySurfaceLayer
           architecture={architecture}
           runtimeGeometry={runtimeGeometry}
-          lodTier={lodTier}
+          visibilityBudget={visibilityBudget}
         />
         <BoundaryLayer architecture={architecture} lodTier={lodTier} />
         {model.hexes.map((hex) => (
@@ -1301,7 +1329,10 @@ function WorldScene({
             key={hex.id}
             hex={hex}
             selected={selectedHexId === hex.id}
-            showContextGrid={selectedHexId === hex.id}
+            crisisActive={crisisRegionIds.has(hex.regionId)}
+            showContextGrid={
+              selectedHexId === hex.id || crisisRegionIds.has(hex.regionId)
+            }
             onSelectRegion={onSelectRegion}
             onSelectHex={onSelectHex}
           />
@@ -1664,6 +1695,10 @@ export function PoliticalWorldStage({
   const isMobileViewport =
     typeof window !== "undefined" && window.innerWidth <= 760;
   const lodTier = deriveMapLodTier(camera.zoom);
+  const visibilityBudget = useMemo(
+    () => deriveMapVisibilityBudget(model, lodTier),
+    [lodTier, model],
+  );
   const labelsHidden =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("mapLabels") === "0";
@@ -1694,6 +1729,8 @@ export function PoliticalWorldStage({
           data-map-preset={focusPresetId}
           data-camera-zoom={camera.zoom.toFixed(2)}
           data-map-lod={lodTier}
+          data-map-visibility-mode={visibilityBudget.mode}
+          data-map-visibility-budget={`${visibilityBudget.showIdeology ? "ideology" : "no-ideology"},${visibilityBudget.showFactionPresence ? "faction" : "no-faction"},${visibilityBudget.showMinorObjects ? "minor" : "no-minor"},${visibilityBudget.showRouteDetails ? "routes" : "no-routes"}`}
           data-map-visual-scale={visualSystem.visualScale}
           data-map-label-count={renderedVisualSystem.labels.length}
           data-map-label-policy="priority-collision-lod"
@@ -1861,6 +1898,7 @@ export function PoliticalWorldStage({
               architecture={architecture}
               runtimeGeometry={runtimeGeometry}
               visualSystem={renderedVisualSystem}
+              visibilityBudget={visibilityBudget}
               integratedArtPlan={integratedArtPlan}
               lodTier={lodTier}
               cameraState={camera}

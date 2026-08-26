@@ -329,6 +329,49 @@ const LABEL_POLICY: MapVisualLabelPolicy = {
   labelHalo: "rgba(244, 234, 210, 0.92)",
 };
 
+export type MapPresentationMode = "world" | "pressure" | "crisis";
+
+export interface MapVisibilityBudget {
+  readonly mode: MapPresentationMode;
+  readonly showIdeology: boolean;
+  readonly showFactionPresence: boolean;
+  readonly showMinorObjects: boolean;
+  readonly showRouteDetails: boolean;
+  readonly desktopLabelLimit: number;
+}
+
+export function deriveMapPresentationMode(
+  model: WorldSceneModel,
+): MapPresentationMode {
+  if (model.conflicts.length > 0) return "crisis";
+  const organizedPressure = model.influences.some(
+    (influence) =>
+      influence.organization >= 0.55 &&
+      (influence.support >= 0.5 || influence.radicalism >= 0.45),
+  );
+  const factionPressure = model.factionPresence.some(
+    (presence) => presence.organization >= 0.55,
+  );
+  return organizedPressure || factionPressure ? "pressure" : "world";
+}
+
+export function deriveMapVisibilityBudget(
+  model: WorldSceneModel,
+  lodTier: MapLodTier,
+): MapVisibilityBudget {
+  const mode = deriveMapPresentationMode(model);
+  const crisis = mode === "crisis";
+  const near = lodTier === "near";
+  return {
+    mode,
+    showIdeology: near && mode === "pressure",
+    showFactionPresence: near && mode !== "world",
+    showMinorObjects: near && !crisis,
+    showRouteDetails: near && !crisis,
+    desktopLabelLimit: crisis ? 5 : 4,
+  };
+}
+
 function compareStableText(first: string, second: string): number {
   return first < second ? -1 : first > second ? 1 : 0;
 }
@@ -564,9 +607,7 @@ function layoutLabels(
       }
     }
   }
-  return occupied.sort((first, second) =>
-    compareStableText(first.id, second.id),
-  );
+  return occupied;
 }
 
 export function deriveMapVisualSystem(
