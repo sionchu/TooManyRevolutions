@@ -2,226 +2,249 @@
 
 Date: 2026-08-26
 Branch: `gamebuilders-product-surface-p0`
-Authoritative gameplay addendum: `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAMEPLAY_REALITY_ADDENDUM.md`
+Repository: nested `TooManyRevolutions`
+Task: `GAMEBUILDERS_PRODUCT_SURFACE_P0`
 
 ## Delivery status
 
-The map-first product surface and the mandatory gameplay-reality addendum are
-implemented in the nested `TooManyRevolutions` repository. The world map is a
-continuous playfield, and the demo now exposes real system changes through the
-same runtime state that produces the simulation step.
-
 ```text
 P0_IMPLEMENTATION: COMPLETE
+DOCUMENTATION_ALIGNMENT: COMPLETE
 GAMEPLAY_REALITY_ADDENDUM: IMPLEMENTED
-SYSTEM_PROPOSAL_CARRY_LOOP: IMPLEMENTED_AND_TESTED
-IDEOLOGY_DIFFUSION_IN_DEMO_RUNTIME: ENABLED
-CURRENT_CONTROLLER_VISUALLY_DISTINCT_FROM_OWNER: YES
-ACTIVE_CONFLICT_PERSISTENT_PRESENTATION: YES
-SIGNIFICANT_EVENT_FEED: YES
-PLAYER_POLICY_ACTIONS: YES
-CONSOLIDATION_OBJECTIVE_BLOCKERS_VISIBLE: YES
+GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM: IMPLEMENTED
+GAME_VISUAL_UX_RENDER_ADDENDUM: SVG_FALLBACK_WITH_EXACT_BLOCKER
+GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM: IMPLEMENTED
+PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM: IMPLEMENTED
 PLAYER_OBSERVABLE_DYNAMICS_AUDIT: PASS
+ROUTINE_AUTO_PAUSE_DOMINATES_GAME_LOOP: NO
 DAY_1000_LOOKS_IDENTICAL_TO_DAY_0: NO
-MOBILE_MAP_FIRST_VIEWPORT: PASS
 SITES_REDEPLOYED: YES
 GATE1F: NOT_READY
 V02: NOT_STARTED
-F05_FIX18: NOT_STARTED
+F05_SUCCESSOR_WORK: NOT_STARTED
 ```
 
-The existing `SerializedSimulationSnapshotV8` boundary remains unchanged. No
-Gate 1F, V02, F05_FIX18, solver, fake timer, fake front, or fake gameplay
-event was added.
+The map-first product surface and all seven authorized P0 task/addendum
+documents were executed in order. The main map remains the continuous playfield;
+Agenda, decisions, Chronicle, region detail, and crisis detail are contextual
+surfaces. The simulation, EventStore, LandHex authority, and
+`SerializedSimulationSnapshotV8` boundary remain authoritative.
 
-## Gameplay-reality implementation
+## Mandatory preflight
 
-### Runtime carry loop
+The five canonical documents were aligned before implementation:
 
-`src/app/demoGame.ts` now owns an explicit `DemoRuntimeState` adapter. It carries
-`SimulationStepResult.actionProposals` as transient pending system proposals,
-normalizes player proposals into the same `ActionRecord` intake, filters both
-sources to the next tick, and commits the canonical action/event order. Player
-proposals are accepted first; carried system proposals follow in their emitted
-canonical order. The carry state is deliberately not persisted, so V8
-save/load/replay equivalence remains an authoritative simulation test.
+```text
+docs/GDD.md
+docs/ARCHITECTURE.md
+docs/DECISIONS.md
+docs/BACKLOG.md
+docs/QA_PLAYTEST.md
+```
 
-`src/app/demoGame.test.ts` covers exact proposal source/type/payload ordering,
-next-tick-only carry behavior, real `ENACT_POLICY` acceptance, actual policy
-rule/event changes, ideology diffusion, and V8 save/load replay at the intake
-boundary.
+The alignment checkpoint was committed as
+`ecf69f67e4a2906a43cbf47fd8f3600d142e9261`. The historical amendment/addendum
+documents remain preserved as evidence.
 
-### Existing ideology diffusion hook
+## Seven-task execution
 
-The demo phase hooks now include
-`createIdeologyDiffusionPhaseHook(GAMEBUILDERS_DEMO_SCENARIO)`. Neighboring
-Regions use the existing ideology state and ContactGraph/catalog IDs with
-authored gradients rather than a UI-only color scale. The Player-Observable
-Audit records the resulting support signatures and actual diffusion events.
+| Ordered task | Result |
+| --- | --- |
+| `GAMEBUILDERS_PRODUCT_SURFACE_P0.md` | Implemented: product surface, stable registries, Korean-first screen flow, factual map signals |
+| `GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_FIRST_ADDENDUM.md` | Implemented: persistent map-first composition, real neighboring Countries, contextual drawer/sheet layout |
+| `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAMEPLAY_REALITY_ADDENDUM.md` | Implemented and audited: proposal carry, ideology diffusion, LandHex controller marks, persistent conflicts, real policy/actions, consolidation blockers |
+| `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM.md` | Implemented: real institutional roadmap, existing-lifecycle state projects, factual visual deltas, ChronicleDigest, Content Studio |
+| `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_VISUAL_UX_RENDER_ADDENDUM.md` | Decision closed: production SVG remains; bounded Pixi v8 candidate deferred with exact dependency/build/mobile blocker |
+| `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM.md` | Implemented: selective time flow, grouped significant events, map-linked institutional history, compact decision UX |
+| `GAMEBUILDERS_PRODUCT_SURFACE_P0_PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM.md` | Implemented and audited: player-observable state change, long-horizon feedback, responsive map-first presentation |
 
-### Authoritative map and conflict presentation
+Implementation checkpoints after the preflight were:
 
-The scenario now authors 20 LandHexes across the existing 10 Regions, including
-12 initial player-controlled Hexes. This is scenario authoring only; no runtime
-territory writer or alternate controller field was introduced. The map renders:
+```text
+16e339e  feat: add factual P0 progression and content surfaces
+b16e8bf  feat: connect decisions to map feedback
+aeac527  feat: complete P0 content filters and map-first hud
+cb12d94  fix: keep metric rail compact
+40f8f08  fix: keep crisis feedback over map
+```
 
-- legal owner wash separately from `WorldState.landHexStates[*].controller`;
-- faction, foreign-country, and uncontrolled controller marks from the actual
-  LandHex controller;
-- ideology overlays from actual Region support;
-- pressure pulses from actual Region unrest/scarcity;
-- player-controlled/legal Hex counts, capital control, active conflict count and
-  conflict kinds in the map fact strip.
+## Implemented product and gameplay surface
 
-The crisis banner and map focus read active `world.conflicts`, not recent-event
-history. Active conflicts remain visible after their creation until the actual
-authoritative conflict status changes. Routine ticks are filtered from the
-significant EventStore projection while policy, ideology, faction, conflict,
-territorial, and other material events remain visible and generate feedback.
+### Runtime and authoritative presentation
 
-### Real player choices and long objective
+- `DemoRuntimeState` carries system `ActionProposal` values into the next
+  authoritative tick and consumes player proposals through the same action
+  intake path.
+- The existing ideology diffusion hook is enabled in the demo runtime. The
+  scenario authors real neighboring Countries, ContactGraph routes, and
+  ideology gradients; the map reads the resulting Region state and events.
+- The scenario authors 3 Countries, 10 Regions, 20 LandHexes, and 12 initial
+  player-controlled LandHexes. Physical control is rendered from
+  `WorldState.landHexStates[*].controller`; legal ownership and state control
+  remain separate projections.
+- Active Conflict presentation reads `world.conflicts` and remains visible until
+  authoritative status changes. Crisis feedback is overlaid inside the world
+  stage so a late crisis does not push the map out of the primary viewport.
+- Routine ticks are filtered from the significant feed. `ChronicleDigest` groups
+  low-level factual rows and retains source EventIds for drill-down.
+- Policy cards submit real `ENACT_POLICY` actions. Intervention cards submit
+  existing real actions and show declared cost, duration, effects, trade-offs,
+  and current facts without a generic mana or solver layer.
+- Consolidation is derived from the existing eligibility selector and exposes
+  actual blockers; no progress score or scripted completion was added.
 
-The decision surface exposes existing policy catalog entries through real
-`ENACT_POLICY` proposals. The compact cards show declared cost, duration,
-known rule effects, current facts, trade-offs, and uncertainty badges without a
-mana/score/solver layer.
+### State-building and content authoring
 
-`ConsolidationChecklist` derives directly from
-`deriveOrderConsolidationEligibility`. It shows the actual stable-region,
-capital, core-territory, state-capacity, treasury, and active-civil-war
-criteria, including the first real blocker. It does not invent a progress score
-or completion forecast.
+- `InstitutionalRoadmap` is derived from actual policy prerequisites and
+  incompatibilities. It is not a focus tree, story schedule, research tree, or
+  political currency system.
+- `StateProjectPanel` projects three existing intervention lifecycles:
+  material relief, political accommodation, and opposition legalization.
+  Progress uses the existing authored intervention duration and start tick.
+  Completion is backed by existing EventStore/commitment evidence and leaves a
+  map marker; no second timer, resource, or fake construction writer exists.
+- `ContentRegistry` uses stable content IDs across title, briefing, HUD,
+  Country, Faction, Region, event, policy, intervention, project, and outcome
+  records. The dev-only `ContentStudio` supports search/filter, branch/variant
+  selection, baseline editing, diff display, and JSON patch export/import.
+- The final local Content Studio pass exercised the `헌정 회의소` record, edited
+  its baseline copy, displayed the diff, exported one patch, and reported
+  `1개 변경 patch를 만들었습니다.`. The production Site does not expose this
+  dev-only authoring surface.
+
+### Visual and renderer decision
+
+The production renderer remains React/SVG.
+`docs/GAMEBUILDERS_P0_RENDERER_SPIKE.md` records the bounded Pixi v8 candidate
+and the exact blocker: `pixi.js` and `@pixi/react` are absent from the
+dependency graph, and introducing a second renderer would require dependency,
+build, pointer/touch, and mobile proof. The current SVG renderer already
+consumes `PresentationState`, uses transient factual `WorldVisualDelta` feedback,
+and keeps camera state local to the presentation.
 
 ## Player-Observable Dynamics Audit
 
-`src/app/playerObservableDynamicsAudit.ts` runs the same no-action demo runtime
-to checkpoints at Day 0/30/90/180/360/720/1080. It tracks meaningful EventStore
-events, agendas, policy/institution rules, faction actions, foreign routes,
-ideology signatures, active conflicts, LandHex controllers, player-controlled
-Hex count, map signature, decisions, consolidation blockers, and outcome. The
-baseline checkpoint is classified as `PLAYER_OBSERVABLE_SYSTEM_CHANGE` because
-it establishes the initial observable state; every later checkpoint also has
-actual state/event deltas.
+`src/app/playerObservableDynamicsAudit.ts` runs the same deterministic no-action
+demo runtime at Day 0/30/90/180/360/720/1080. It records actual EventStore,
+agenda, policy, faction, foreign-route, ideology, active-conflict, LandHex
+controller, decision, consolidation, and outcome signatures.
 
-| Day | Classification | Meaningful events | Active conflicts | Controller changes | Player-controlled LandHexes |
-| ---: | --- | ---: | ---: | ---: | ---: |
-| 0 | `PLAYER_OBSERVABLE_SYSTEM_CHANGE` | 0 | 0 | 0 | 12 |
-| 30 | `PLAYER_OBSERVABLE_SYSTEM_CHANGE` | 31 | 1 | 0 | 12 |
-| 90 | `PLAYER_OBSERVABLE_SYSTEM_CHANGE` | 82 | 1 | 8 | 4 |
-| 180 | `PLAYER_OBSERVABLE_SYSTEM_CHANGE` | 125 | 1 | 4 | 0 |
-| 360 | `PLAYER_OBSERVABLE_SYSTEM_CHANGE` | 198 | 2 | 0 | 0 |
-| 720 | `PLAYER_OBSERVABLE_SYSTEM_CHANGE` | 343 | 2 | 0 | 0 |
-| 1080 | `PLAYER_OBSERVABLE_SYSTEM_CHANGE` | 487 | 2 | 0 | 0 |
+The final public Site run also reached Day 1500. `data-controller-kind="faction"`
+and `data-ideology-id` counts below are presentation selectors over current
+LandHex/Region state, not separate state stores.
 
-The long no-action horizon audit also reaches Day 7200 with an active run,
-persistent rebellion/coup conflicts, actual faction/country controller counts,
-and non-zero meaningful-event density. This is not a timer-driven story: the
-audit reads the simulation's existing event/state channels.
+| Day | Active conflicts | Player-controlled LandHexes | Faction controller marks | Ideology marks |
+| ---: | ---: | ---: | ---: | ---: |
+| 0 | 0 | 12 | 0 | 20 |
+| 30 | 1 | 12 | 0 | 20 |
+| 90 | 1 | 4 | 8 | 20 |
+| 180 | 1 | 0 | 12 | 20 |
+| 360 | 2 | 0 | 12 | 20 |
+| 720 | 2 | 0 | 12 | 20 |
+| 1080 | 2 | 0 | 12 | 20 |
+| 1500 | 2 | 0 | 12 | 20 |
 
-## Map-first product surface
+The authoritative audit test also records non-zero meaningful EventStore
+activity, ideology diffusion, faction actions, controller migration, active
+conflicts, and changing agendas across the required checkpoints. The no-action
+20-year horizon reaches Day 7200 with an active run and persistent conflict,
+controller, and event state; it does not schedule a story event or use a hidden
+second clock.
 
-The fixed identity remains:
+## Hands-on QA on the deployed Site
+
+The public Site was opened and exercised through the actual UI:
+
+- title screen → four-step opening briefing → `국정 시작` → persistent map;
+- map-first main screen with actual neighboring Country labels, LandHexes,
+  routes, controller marks, ideology layer, pressure layer, conflict facts,
+  and contextual bottom navigation;
+- real `왕의 거부권 폐지` policy action, which changed the authoritative day,
+  current institution to `공화정`, and EventStore presentation;
+- real `곡창 긴급 배급 확대` intervention, followed by an authoritative tick,
+  which produced the `왕실 배급망` completed trace and map marker;
+- `결정` drawer with Institutional Roadmap, State Projects, real Policy cards,
+  and action trade-offs;
+- `국정` drawer with `새 질서 정착` and factual blockers;
+- `기록` drawer with ChronicleDigest and source-record presentation;
+- map zoom and `전체 보기` reset, ending at `data-camera-zoom="1.00"` and
+  `data-camera-focus="world"`;
+- late Day 1500 crisis overlay showing `반란 진행 중` over a still-visible
+  world map with `2 활성 충돌 · 반란 · 쿠데타`.
+
+No-action public checkpoints on the final source/deployment were:
 
 ```text
-내 왕국에 혁명이 너무 많다
-TOO MANY REVOLUTIONS
-정권은 무너져도, 국가는 계속된다.
+Day 0    1897.04.01 · 0일차       0 active conflicts · 12/12 player control
+Day 30   1897.05.01 · 30일차      1 active conflict  · 12/12 player control
+Day 90   1897.07.01 · 90일차      1 active conflict  · 4/12 player control
+Day 180  1897.10.01 · 180일차     1 active conflict  · 0/12 player control
+Day 360  1898.04.01 · 360일차     2 active conflicts · 0/12 player control
+Day 720  1899.04.01 · 720일차     2 active conflicts · 0/12 player control
+Day 1080 1900.04.01 · 1080일차    2 active conflicts · 0/12 player control
+Day 1500 1901.06.01 · 1500일차    2 active conflicts · 0/12 player control
 ```
 
-The flow is title → short royal-dossier opening briefing → persistent political
-atlas. Agenda, decision, record, region detail, and crisis details are
-contextual drawers/sheets. The authored scenario contains three Countries, ten
-Regions, twenty LandHexes, and ContactGraph routes. Neighboring Countries are
-spatially visible and map labels are backed by authored IDs.
+Final responsive measurements used the browser viewport override and were
+reset after the pass:
 
-The product surface keeps the stable design/asset/layer registries and
-replaceable asset contract from the earlier P0 checkpoints. Commercial games
-were used only for structural principles; no commercial asset, screenshot,
-copy, or code was copied. The GitHub reference/license decisions remain in
-`docs/GAMEBUILDERS_P0_REFERENCE_AUDIT.md`.
+| Viewport | Map surface | Document width | Horizontal overflow |
+| --- | ---: | ---: | --- |
+| 1440×900 | 1367.4×695 | client/scroll 1425/1425 | none |
+| 390×844 | 343×624 | client/scroll 375/375 | none |
+
+The mobile pass opened the decision, agenda, and Chronicle contextual surfaces
+without changing the map-first composition or creating horizontal overflow.
 
 ## Verification
 
-Executed in the nested repository after the gameplay-reality changes:
-
-| Verification | Result |
+| Command or inspection | Result |
 | --- | --- |
-| `pnpm run format:write` / `pnpm run format` | PASS |
+| `pnpm run format` | PASS |
 | `pnpm run typecheck` | PASS |
 | `pnpm run lint` | PASS |
-| `pnpm run build` | PASS; Vite transformed 108 modules |
-| Focused gameplay suite | PASS; 5 files / 25 tests |
-| Player-Observable Dynamics Audit | PASS; required checkpoints and deterministic assertions |
-| 20-year horizon audit assertions | PASS; 5 trajectories / 5 tests |
-| `pnpm test` | 72 files / 586 assertions PASS; process exit 1 from 4 Vitest worker `onTaskUpdate` RPC timeouts |
-| `pnpm run inspect:v01` | PASS; V02 remains NOT STARTED |
-| `pnpm run inspect:t018` | PASS |
-| `pnpm run inspect:t021` | PASS |
-| `pnpm run inspect:t024` | PASS; V8 replay and derived selectors identical |
-| `pnpm run inspect:f05` | PASS diagnostic; F05 recommendation remains NOT_READY |
-| `pnpm run inspect:f05fix9` | PASS diagnostic; historical baseline unchanged |
-| `pnpm run inspect:f05fix14` | PASS diagnostic; forbidden writers none, F05_FIX15 not authorized |
+| `pnpm run build` | PASS; Vite transformed 117 modules and Sites worker output was generated |
+| focused P0/audit suite | PASS; 10 files / 15 tests |
+| `pnpm test` | 79 files / 593 assertions passed; process exit 1 from 4 Vitest worker `onTaskUpdate` unhandled timeouts |
+| T018 political crisis inspection | PASS |
+| T021 simplified conflict inspection | PASS |
+| T024 V8 persistence/replay inspection | PASS; snapshot/replay/derived selectors identical |
+| V01 presentation inspection | PASS; V02 remains NOT STARTED |
 | `git diff --check` | PASS |
 
-The four full-suite errors are runner/worker progress-report timeouts observed
-after all collected assertions passed; they are not source assertion failures.
-The long horizon file was split into per-trajectory tests so each assertion
-case completes within the runner's heartbeat window, while the full batch still
-retains the known Vitest worker limitation in other long inspections.
+The full-suite status is intentionally reported as
+`ASSERTIONS_PASS / RUNNER_EXIT_FAIL`: the output contains no assertion failure,
+but Vitest reports four runner/worker progress RPC timeouts after the collected
+assertions pass. The source was not changed to conceal or bypass those runner
+errors.
 
-## Deployed Site and hands-on QA
+No new F05 successor task, Gate 1F decision, V02 implementation, persistence V9
+change, F05 operational-evidence/settlement runtime, or successor task was
+started. Existing regression files collected by the repository's full test
+command remain baseline coverage only.
 
-The existing Sites project was reused and the exact pushed source commit was
-deployed:
+## Sites deployment
 
-| Item | Evidence |
+The existing public Sites project was reused. The archive was built from the
+successful local build output and saved against the exact pushed code commit.
+
+| Item | Value |
 | --- | --- |
 | Public URL | https://too-many-revolutions-gamebuilders.leeje92.chatgpt.site |
-| Sites version | 15 (`appgprj_6a8dd05a84688191b356030d05e3e198~appgver_5e3f2457e33c8191a3c3230ab8d487ee`) |
-| Source commit | `e9ac0de93c0e1e29427f7b86bf763f08bfbaccff` |
-| Deployment | succeeded (`appgdep_6a8e48befe74819181402f045409d601`) |
-| Archive content hash | `sha256:31c68bd90cbea6e7b1778e799f3eed328748e72d84461c87e17123bbb0a8e1e1` |
+| Sites project | `appgprj_6a8dd05a84688191b356030d05e3e198` |
+| Sites version | 19 (`appgprj_6a8dd05a84688191b356030d05e3e198~appgver_e321076b9d348191890d16e03695a85e`) |
+| Deployed source commit | `40f8f08dda1a382c5c0a51c5f3c77fd7cf1ed386` |
+| Local archive | `C:\Temp\tmr-gamebuilders-40f8f08.tar.gz` |
+| Local archive SHA-256 | `54AA6716E224ED8F9E62F9054ED01918A430344C720E4FE4184086A4541D3962` |
+| Sites archive content hash | `sha256:39080cd9d7a49cbfd5f4eea229b20ec464d40b2747c834f48232235a8f0dfbf7` |
+| Deployment | succeeded (`appgdep_6a8e7477bdc08191ace38f3f98dd8632`) |
 
-The deployed public URL was opened and exercised through title → briefing →
-main map. A real policy action (`왕의 거부권 폐지`) advanced the run to Day 1,
-changed the current institution read to `공화정`, changed the treasury, and
-appeared in the EventStore record. A real intervention was then submitted and
-produced the visible `행동 제출 완료` feedback and a record entry.
-
-No-action deployed trajectory evidence:
-
-| Day | Active conflicts | Player-controlled LandHexes | Faction-controlled map marks |
-| ---: | ---: | ---: | ---: |
-| 0 | 0 | 12 | 0 |
-| 30 | 1 | 12 | 0 |
-| 90 | 1 | 4 | 16 |
-| 180 | 1 | 0 | 24 |
-| 360 | 2 | 0 | 24 |
-| 720 | 2 | 0 | 24 |
-| 1080 | 2 | 0 | 24 |
-| 1500 | 2 | 0 | 24 |
-
-At Day 1500 the deployed crisis presentation visibly reported `반란 진행 중`
-and `2 활성 충돌 · 반란 · 쿠데타`. The EventStore drawer contained ten
-significant ideology-support entries rather than routine tick rows. The
-Agenda drawer showed `새 질서 정착`, `막힌 조건`, and the actual first blocker
-`안정 지역`.
-
-Responsive public QA also passed:
-
-- 1440×900 desktop: client/scroll width 1425/1425, map 1367.4×630,
-  approximately 66.5% of viewport area, desktop manual jumps visible and
-  mobile disclosure hidden.
-- 390×844 mobile: client/scroll width 375/375, map 343px wide, desktop jumps
-  hidden, mobile disclosure closed by default, +1/+7/+30 controls available
-  after disclosure, and no horizontal overflow.
-
-The deployed no-action run therefore differs materially from Day 0 through
-controller migration, active conflict presentation, ideology/event feed, and
-objective blockers without using a fake timer or fabricated event.
+The later result/HANDOFF documentation commit does not change the deployed
+source commit; version 19 is explicitly tied to `40f8f08…` above.
 
 ## Boundary
 
-This result closes only the authorized GAMEBUILDERS_PRODUCT_SURFACE_P0 and its
-gameplay-reality addendum. It does not start or approve F05_FIX18, Gate 1F PASS,
-or V02.
+This result closes only the authorized `GAMEBUILDERS_PRODUCT_SURFACE_P0` task
+and its seven P0 task/addendum documents. It does not declare Gate 1F PASS, does
+not start V02, does not start F05 follow-up work, and does not authorize the next
+task.
