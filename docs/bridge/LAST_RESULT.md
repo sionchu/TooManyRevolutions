@@ -1,74 +1,87 @@
 # TMR Last Bridge Result
 
 ```text
-TASK_ID: F05_FIX16
-STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW
-START_BRANCH: master
-START_COMMIT: dd515c5425d9d42e1f5491ea9082627076382e8c
-BASE_TASK_COMMIT: 7a75116f74fadeb1fa4cc98f91591b1607999ead
-TASK_RESULT_COMMIT: f096a84
-END_COMMIT: f096a84
-COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
-COMMIT_CREATED: YES
-PUSHED: YES
-```
-
-## Outcome
-
-```text
-PRIMARY_CLASSIFICATION: COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE
-NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_AUTHORING_SEAM
-ACTOR_MODEL: STATIC_SCENARIO_AUTHORED_COUP_COORDINATION_NODES_WITH_AUTHORED_REQUIRED_SET
-ALIGNMENT_MODEL: incumbent | coup | uncommitted
-TRANSITION_PROVENANCE: ACCEPTED_TYPED_COUP_COORDINATION_RESPONSE_BY_REQUIRED_NODE_WITH_ACTION_AND_EVENT_PROVENANCE
-OUTCOME_RULE: ALL_AUTHORED_REQUIRED_NODES_COUP => governmentTransition; ANY_EXPLICIT_REQUIRED_NODE_INCUMBENT => statusQuo; OTHERWISE ACTIVE
-CURRENT_FACTION_REUSE: NO
-CURRENT_GOVERNMENT_REUSE: NO
-NEW_STATIC_AUTHORING_REQUIRED: YES
-NEW_RUNTIME_STATE_REQUIRED: YES
-PERSISTENCE_IMPLICATION: FUTURE_VERSION_REQUIRED
-PRODUCTION_CONFLICT_GAMEPLAY: NONE
-PERSISTENCE_CURRENT: SerializedSimulationSnapshotV6 / format version 6 unchanged
+TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
+RESULT_KIND: INTERMEDIATE_GAMEPLAY_REALITY_CHECKPOINT
+STATUS: CHECKPOINT_COMPLETE / CURRENT_P0_SCOPE_STILL_ACTIVE
+WORK_BRANCH: gamebuilders-product-surface-p0
+CHECKPOINT_BRANCH_HEAD: 55ec2334cd32953207d3bd144fdf793b5b808b9f
+DEPLOYED_SOURCE_COMMIT: e9ac0de93c0e1e29427f7b86bf763f08bfbaccff
 GATE1F: NOT_READY
 V02: NOT_STARTED
-F05_FIX17: NOT_AUTHORIZED
+SUCCESSOR_AUTHORIZED: NO
 ```
 
-F05_FIX16 selected a bounded, scenario-authored set of required
-`CoupCoordinationNode` identities. Nodes represent only observable alignment
-for the active coup attempt; they do not represent units, ranks, command
-hierarchies, communications, private beliefs, manpower, or loyalty meters.
-The current Faction remains the coup initiator and the current Government
-remains the target/result identity, but neither is used as the coordination
-actor set. No runtime state or production writer was added.
+## Checkpoint achieved
 
-The detailed actor, alignment, provenance, outcome, future-evidence, source,
-and late-state audit is in:
+The P0 branch result reports that the first gameplay-reality repair checkpoint implemented and tested:
 
-- `docs/F05_FIX16_COUP_COORDINATION_DOMAIN_CLOSURE.md`
+```text
+SYSTEM_PROPOSAL_CARRY_LOOP: IMPLEMENTED_AND_TESTED
+IDEOLOGY_DIFFUSION_IN_DEMO_RUNTIME: ENABLED
+CURRENT_CONTROLLER_VISUALLY_DISTINCT_FROM_OWNER: YES
+ACTIVE_CONFLICT_PERSISTENT_PRESENTATION: YES
+SIGNIFICANT_EVENT_FEED: YES
+PLAYER_POLICY_ACTIONS: YES
+CONSOLIDATION_OBJECTIVE_BLOCKERS_VISIBLE: YES
+PLAYER_OBSERVABLE_DYNAMICS_AUDIT: PASS
+DAY_1000_LOOKS_IDENTICAL_TO_DAY_0: NO
+MOBILE_MAP_FIRST_VIEWPORT: PASS at that checkpoint
+SITES_REDEPLOYED: YES
+```
 
-## Late-state relevance
+The deployed run showed real controller migration, persistent rebellion/coup presentation, ideology changes, real policy/intervention actions and actual consolidation blockers. These are accepted checkpoint facts and should not be reimplemented from scratch without regression evidence.
 
-The representative F05_FIX9 replay still shows the existing measured gap:
-country-controlled LandHexes `0`, active rebellion plus coup, rebellion
-`NO_ACTIVE_FRONT_EDGE`, coup `COUP_HAS_NO_TERRITORIAL_WRITER`, valid current
-Government, active run, `1110/1200` silence, and `LATE_STEADY_STATE_MIXED_CAUSE`.
-The design does not claim current late-state improvement. A future explicit
-node response could resolve only the coup through the existing typed outcome
-sinks; no response keeps it active and leaves rebellion for a separate
-persistence/settlement domain.
+Detailed branch result:
 
-## Verification
+`docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md` on `gamebuilders-product-surface-p0`.
 
-- `pnpm install --frozen-lockfile` — exit `0`.
-- `pnpm run format`, `pnpm run typecheck`, `pnpm run lint`, and `pnpm run build` — all exit `0`.
-- `pnpm run inspect:t018` — exit `0`; eligibility/action separation, future-evidence honesty, duplicate detection, stable ordering, and no territorial mutation passed.
-- `pnpm run inspect:t024` — exit `0`; V6 snapshot, save/load replay, derived-state, terminal, corruption, and ordering checks passed.
-- `pnpm run inspect:f05` — exit `0`; `MIXED_GAP`, recommendation `NOT_READY`.
-- `pnpm run inspect:f05fix9` — exit `0`; `1110/1200`, baseline unchanged, non-accept divergences `0`, reopen churn `0`, legitimate reopens `2`.
-- `pnpm run inspect:f05fix14` — exit `0`; no-response 1200d unresolved, existing response tick 60 `actorIntentCeased`, resources `0.5 -> 0.8`, duplicate/churn `0`, timer/cooldown/countdown `false`, forbidden writers `none`, historical F05/FIX9/FIX13 unchanged.
-- `pnpm test` — `59` files and `477` tests passed; process exit `1` only because of 3 existing Vitest worker `Timeout calling "onTaskUpdate"` unhandled runner errors.
-- `git diff --check` and staged diff check — exit `0`; only the two F05_FIX16 documents were staged before the result metadata update.
+## Why this is not final P0 acceptance
 
-F05_FIX16 did not alter FUND_MOVEMENT, T018/T021/T022/T023, persistence, UI,
-V02, or Gate 1F. It does not authorize F05_FIX17, Gate 1F PASS, or V02.
+After this checkpoint, stronger product/game-loop addenda were authorized based on hands-on mobile review. The current player experience can still feel like:
+
+```text
+time
+-> crisis/rebellion
+-> pause
+-> text-heavy choice
+-> resume
+```
+
+and the persistent screen can still read as a responsive dashboard rather than a living strategy game.
+
+Therefore the earlier result's `P0_IMPLEMENTATION: COMPLETE` wording is historical to that checkpoint and does **not** close the current expanded P0 scope.
+
+## Current remaining requirements
+
+Current authoritative scope is `docs/bridge/CURRENT_TASK.md` plus its seven task/addendum documents and the linked GDD/decision/QA/backlog alignment records.
+
+Highest-priority remaining work:
+
+```text
+canonical documentation alignment
+-> auto-pause/game-loop audit
+-> map-first world-stage readability
+-> ChronicleDigest
+-> bounded PixiJS renderer spike / explicit SVG fallback decision
+-> Institutional Roadmap
+-> State Projects / persistent landmark traces
+-> WorldVisualDelta
+-> game-native HUD / mobile composition
+-> Content Studio with branch/variant editing + JSON patch
+-> hands-on QA / Sites redeploy
+```
+
+## Current acceptance boundary
+
+P0 remains active until ChatGPT independently reviews actual GitHub implementation/diff/tests/deployed behavior against the latest scope.
+
+Codex must not self-authorize:
+
+- Gate 1F PASS;
+- V02;
+- a successor P0/P1/F05 production task;
+- persistence V9;
+- a whole-engine migration.
+
+The next Codex action is to continue the same `GAMEBUILDERS_PRODUCT_SURFACE_P0` task from the latest authorized Bridge documents, not to start a new major task.
