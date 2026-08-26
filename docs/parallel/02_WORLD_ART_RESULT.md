@@ -11,8 +11,16 @@
 - `src/presentation/mapVisual/worldArt.ts`
 - `src/presentation/mapVisual/index.ts`
 - `src/presentation/mapVisual/worldArt.test.ts`
+- `src/presentation/mapVisual/proceduralKitGeometry.ts`
+- `src/presentation/mapVisual/proceduralKitGeometry.test.ts`
 - `src/presentation/mapContent/regionComposition.ts`
 - `src/presentation/mapContent/index.ts`
+- `src/presentation/mapContent/regionCompositionAdapter.ts`
+- `src/presentation/mapContent/regionCompositionAdapter.test.ts`
+- `src/app/mapVisual/WorldArtGallery.tsx`
+- `src/app/mapVisual/worldArtGalleryModel.ts`
+- `src/app/mapVisual/worldArtGallery.test.ts`
+- `src/app/mapVisual/index.ts`
 - `docs/parallel/02_WORLD_ART_RESULT.md`
 
 The runtime-owned files listed by the task boundary were not changed. No shared bridge file, simulation file, deployment configuration, or public binary asset was changed.
@@ -27,7 +35,7 @@ The runtime-owned files listed by the task boundary were not changed. No shared 
 - `frontier`: fort, checkpoint/gate, small settlement, mountain ridge, and conditional barricade/banner.
 - `agrarian-distribution`: field plot, granary/storehouse, distribution yard, small settlement, road corridor.
 
-Each placement carries its semantic family, scale role/rank, offset, LOD visibility, and an explicit `always` / recorded-project / recorded-faction / recorded-conflict requirement. Region binding carries only `regionId`, anchor, and caller-supplied evidence IDs; it does not own simulation state.
+Each placement carries its semantic family, scale role/rank, offset, LOD visibility, and one of the truth-aware requirements `DECORATIVE_SUBSTRATE`, `AUTHORED_STATIC_POI`, `AUTHORED_SETTLEMENT`, `RECORDED_INSTITUTION`, `RECORDED_PROJECT`, `RECORDED_FACTION`, `RECORDED_CONFLICT`, or `RECORDED_ROUTE`. Region binding carries a typed evidence contract derived from WorldSceneModel facts; it does not own WorldState or simulation mutation.
 
 ## ASSET_FAMILIES
 
@@ -38,6 +46,40 @@ Each placement carries its semantic family, scale role/rank, offset, LOD visibil
 `MAP_SCALE_HIERARCHY` makes the explicit hierarchy `signature-capital > major-project > poi > settlement > decorative-prop`, with ranks 5 through 1. `MAP_MATERIAL_FAMILIES` defines low-saturation base/shadow/accent colors, roughness, metalness, contact-shadow opacity, terrain blending, and notes for earth, stone, civic plaster, industrial iron, frontier timber, vegetation, and signal ochre.
 
 State-project art is represented for `food`, `civic`, and `industrial` projects. Each has `not-started`, `implementing`, and `completed` variants. The latter two use different `scaffold` and `operational` cues, and every variant requires a recorded lifecycle state. No timer, countdown, mana, or cooldown state is introduced.
+
+## PREP1
+
+`RegionCompositionRequest.evidence` is a typed contract containing settlement, POI, institution, project, faction presence, conflict, and route fact projections. `regionCompositionEvidenceFromWorldSceneModel` copies only the required facts from `WorldSceneModel`; it does not import or mutate `WorldState`.
+
+`resolveRegionCompositionPlacements(request)` is the runtime-facing pure adapter. It returns only placements whose requirement has matching evidence for the requested Region, with deterministic placement order and sorted `matchedEvidenceIds`. Project art requires a non-`not-started` project with source event IDs; route art requires an active recorded route; decorative terrain has no authority prerequisite. Missing project, institution, faction, or conflict evidence therefore removes granary/distribution, assembly, banner, or barricade placements respectively.
+
+## PROCEDURAL_ASSET_KIT
+
+`src/presentation/mapVisual/proceduralKitGeometry.ts` supplies actual renderer-neutral low-poly primitive geometry. Every Kit uses 3–9 `box`, `cylinder`, and `cone` primitives with local transforms, positive dimensions, shared material-family IDs, a common `ground-center` origin, unit scale 1, and the existing `MAP_SCALE_HIERARCHY` relative scale. The generated Kit set is:
+
+| Kit | Primitive count | Main silhouette |
+|---|---:|---|
+| `PalaceKit` / `palace` | 6 | central hall, twin towers, roof, terrace, stairs |
+| `AssemblyKit` / `assembly-parliament` | 6 | hall, portico, columns, civic roof, steps |
+| `DenseTownKit` / `dense-town` | 7 | varied houses, roofs, tower, market platform |
+| `SmallSettlementKit` / `small-settlement` | 5 | two low houses and open yard |
+| `PortDockKit` / `port-dock` | 8 | pier, dock posts, warehouse, mast, crane arm |
+| `MineKit` / `mine` | 6 | mine mouth, headframe, ore pile, track |
+| `FactoryIronWorksKit` / `factory-iron-works` | 8 | works hall, three chimneys, furnace, yard crane |
+| `FortKit` / `fort` | 9 | four wall bodies, four corner towers, gate |
+| `CheckpointGateKit` / `checkpoint-gate` | 6 | gate posts, lintel, booth, barrier, marker |
+| `GranaryKit` / `granary-storehouse` | 7 | storehouse, roof, two silos, grain yard, posts |
+| `DistributionYardKit` / `distribution-yard` | 7 | two warehouses, canopy, loading platform, lanes |
+| `BarricadeKit` / `barricade` | 5 | crossed beams, posts, blocked-path base |
+| `FactionBannerKit` / `faction-banner` | 4 | pole, cloth, finial, base |
+| `MountainClusterKit` / `mountain-cluster` | 5 | three peaks, ridge foot, foothill |
+| `ForestClusterKit` / `forest-cluster` | 6 | overlapping canopies, trunks, underbrush |
+| `FieldPlotKit` / `field-plot` | 5 | ground, repeated furrows, berm |
+| `RoadCorridorKit` / `road-corridor` | 5 | road bed, shoulders, marker posts |
+
+Mountain, forest, field, and road kits declare `instance-friendly` placement contracts. Material color, roughness, metalness, grounding, provenance, and the GLB replacement seam are inherited from the shared manifest rather than authored per Kit. No external GLB was downloaded.
+
+`src/app/mapVisual/WorldArtGallery.tsx` is a standalone R3F component that maps each primitive to a real mesh and applies the Kit relative scale. `src/app/mapVisual/worldArtGalleryModel.ts` builds five comparison panels (`capital`, `industrial`, `port`, `frontier`, `agrarian-distribution`) with `previewOnly: true` and `labelsVisible: false`. It is not mounted by the production runtime and cannot authorize semantic world objects.
 
 ## PROVENANCE
 
@@ -53,29 +95,33 @@ No external asset was copied into this branch. Every object has a replacement se
 ## TEST_RESULTS
 
 - `pnpm install --frozen-lockfile --offline`: completed; lockfile supply-chain policy passed.
-- `pnpm exec vitest run src/presentation/mapVisual/worldArt.test.ts`: passed, 4 tests.
+- `pnpm exec vitest run src/presentation/mapVisual/worldArt.test.ts src/presentation/mapVisual/proceduralKitGeometry.test.ts src/presentation/mapContent/regionCompositionAdapter.test.ts src/app/mapVisual/worldArtGallery.test.ts`: passed, 4 files / 14 tests.
 - `pnpm run format`: passed.
 - `pnpm run typecheck`: passed.
 - `pnpm run lint`: passed.
 - `pnpm run build`: passed; Vite emitted the existing large-chunk warning and exited successfully.
 - `git diff --check`: passed before final staging; cached check is repeated before commit.
-- `pnpm test`: runner exit 1. The run reported 84 test files and 614 assertions completed successfully, then reported 4 unhandled Vitest worker `Timeout calling "onTaskUpdate"` errors. No source change was made to broaden this task in response.
+- `pnpm test`: not rerun for this follow-up. The prior baseline run at `641d112f8f6c125e5dce33fbe8736b49b4f3c601` reported 84 test files and 614 assertions completed successfully, then 4 unhandled Vitest worker `Timeout calling "onTaskUpdate"` errors and exit code 1.
 
 ## PREVIEW_EVIDENCE
 
-`NOT_RUN`: a renderer preview/screenshot was not generated. The task boundary excludes the runtime renderer integration files, and this branch supplies the standalone composition/asset contract only. The focused test checks the semantic categories, hierarchy, grounding, provenance, replacement seam, and state-project distinctions; it is not a visual product-gate result.
+- Standalone preview source: `src/app/mapVisual/WorldArtGallery.tsx`.
+- Preview model: `src/app/mapVisual/worldArtGalleryModel.ts`.
+- Labels-disabled gallery coverage: `src/app/mapVisual/worldArtGallery.test.ts`, included in the 4-file / 14-test focused run.
+- A screenshot was not generated because the gallery is intentionally not mounted into the protected production runtime in this branch. The source is a renderable R3F preview component, but no visual product-gate or runtime integration result is claimed.
 
 ## INTEGRATION_API
 
-Import from `src/presentation/mapContent` for `getRegionComposition`, `REGION_COMPOSITION_TEMPLATES`, and `regionCompositionRoles`. Import from `src/presentation/mapVisual` for `MAP_OBJECT_ASSET_MANIFEST`, `getWorldObjectVisualDefinition`, `MAP_MATERIAL_FAMILIES`, `MAP_SCALE_HIERARCHY`, `STATE_PROJECT_ART_GRAMMAR`, and the related types.
+Import from `src/presentation/mapContent` for `getRegionComposition`, `REGION_COMPOSITION_TEMPLATES`, `regionCompositionRoles`, `regionCompositionEvidenceFromWorldSceneModel`, and `resolveRegionCompositionPlacements`. Import from `src/presentation/mapVisual` for `MAP_OBJECT_ASSET_MANIFEST`, `getWorldObjectVisualDefinition`, `MAP_MATERIAL_FAMILIES`, `MAP_SCALE_HIERARCHY`, `STATE_PROJECT_ART_GRAMMAR`, `PROCEDURAL_WORLD_ART_KITS`, `getProceduralWorldArtKit`, and the related types.
 
-The runtime integrator should bind each actual region to a role and anchor, filter conditional placements using recorded project/faction/conflict facts, apply `visibleAt` LOD, and use the grounding/material contract for terrain placement. A GLB loader can resolve `replacementSeam.slotId` while preserving the shared origin and unit scale, with the procedural definition as fallback.
+The runtime integrator should derive typed evidence from the actual WorldSceneModel, bind each actual Region to a role and anchor, call `resolveRegionCompositionPlacements`, apply `visibleAt` LOD, and use the Kit grounding/material contract for terrain placement. A GLB loader can resolve `replacementSeam.slotId` while preserving the shared origin and unit scale, with the procedural Kit as fallback.
 
 ## KNOWN_LIMITATIONS
 
-- This branch defines the art grammar and integration seam; it does not wire the runtime renderer or produce a visual screenshot.
-- No GLB/glTF binary asset files are included; the seam is ready for later cleared candidates.
-- Region templates and project-art variants are presentation metadata. The runtime must provide real region identity, evidence, and recorded lifecycle/faction/conflict state.
+- This branch does not wire the protected production runtime; the downstream integrator must mount the resolver and Kit renderer.
+- No GLB/glTF binary asset files are included; the procedural Kit is the current candidate fallback and the seam is ready for later cleared candidates.
+- The gallery is an authoring preview and deliberately displays composition silhouettes without authority evidence. Production code must use the resolver output instead.
+- No screenshot or browser visual QA was generated in this branch.
 
 ## FILES_RUNTIME_INTEGRATOR_MUST_CHANGE
 

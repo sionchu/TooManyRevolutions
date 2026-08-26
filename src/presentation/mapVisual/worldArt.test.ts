@@ -11,8 +11,19 @@ import {
 } from "./worldArt";
 import {
   getRegionComposition,
+  type RegionCompositionEvidence,
   regionCompositionRoles,
 } from "../mapContent/regionComposition";
+
+const EMPTY_EVIDENCE: RegionCompositionEvidence = {
+  settlements: [],
+  pois: [],
+  institutions: [],
+  projects: [],
+  factionPresence: [],
+  conflicts: [],
+  routes: [],
+};
 
 const EXPECTED_OBJECT_FAMILIES: readonly MapObjectFamily[] = [
   "palace",
@@ -109,17 +120,19 @@ describe("WORLD_ART_SYSTEM", () => {
       regionId: "fixture.region",
       role: "frontier",
       anchor: [2.5, -1.25],
-      evidenceIds: ["poi.fort", "front.f01"],
+      evidence: EMPTY_EVIDENCE,
     });
     expect(bound.regionId).toBe("fixture.region");
     expect(bound.anchor).toEqual([2.5, -1.25]);
-    expect(bound.evidenceIds).toEqual(["poi.fort", "front.f01"]);
+    expect(bound.evidence).toEqual(EMPTY_EVIDENCE);
     expect(bound.binding).toBe("renderer-neutral-presentation-template");
     expect(
-      bound.objects.some((object) => object.requirement === "always"),
+      bound.objects.some(
+        (object) => object.requirement === "DECORATIVE_SUBSTRATE",
+      ),
     ).toBe(true);
     expect(
-      bound.objects.some((object) => object.requirement === "recorded-faction"),
+      bound.objects.some((object) => object.requirement === "RECORDED_FACTION"),
     ).toBe(true);
   });
 

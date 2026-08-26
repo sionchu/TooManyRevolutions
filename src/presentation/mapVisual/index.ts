@@ -6,6 +6,27 @@ export {
   MAP_SCALE_HIERARCHY,
   STATE_PROJECT_ART_GRAMMAR,
 } from "./worldArt";
+export {
+  AssemblyKit,
+  BarricadeKit,
+  CheckpointGateKit,
+  DenseTownKit,
+  DistributionYardKit,
+  FactoryIronWorksKit,
+  FactionBannerKit,
+  FieldPlotKit,
+  ForestClusterKit,
+  FortKit,
+  GranaryKit,
+  getProceduralWorldArtKit,
+  MineKit,
+  MountainClusterKit,
+  PalaceKit,
+  PortDockKit,
+  PROCEDURAL_WORLD_ART_KITS,
+  RoadCorridorKit,
+  SmallSettlementKit,
+} from "./proceduralKitGeometry";
 export type {
   MapAssetProvenance,
   MapAssetReplacementSeam,
@@ -21,3 +42,8 @@ export type {
   StateProjectArtStatus,
   StateProjectArtVariant,
 } from "./worldArt";
+export type {
+  ProceduralPrimitiveKind,
+  ProceduralWorldArtKit,
+  ProceduralWorldArtPrimitive,
+} from "./proceduralKitGeometry";
