@@ -168,6 +168,12 @@ function countryName(
   return countries.get(countryId)?.name ?? "국가";
 }
 
+function regionLabelLines(name: string): readonly string[] {
+  const words = name.split(" ");
+  if (words.length <= 2) return [name];
+  return [words.slice(0, -1).join(" "), words.at(-1)!];
+}
+
 function channelLabel(
   channel: PresentationState["contactRoutes"][number]["channel"],
 ): string {
@@ -464,8 +470,17 @@ export function PoliticalAtlas({
                   x={center.x}
                   y={center.y + 27}
                   textAnchor="middle"
+                  aria-label={region.name}
                 >
-                  {region.name}
+                  {regionLabelLines(region.name).map((line, index) => (
+                    <tspan
+                      key={`${region.regionId}-label-line-${line}`}
+                      x={center.x}
+                      dy={index === 0 ? 0 : 12}
+                    >
+                      {line}
+                    </tspan>
+                  ))}
                 </text>
               );
             })}

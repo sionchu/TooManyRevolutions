@@ -968,8 +968,9 @@ h3 {
 }
 .region-label {
   fill: #5d4b38;
-  font-size: 0.68rem;
+  font-size: 0.52rem;
   font-weight: 700;
+  letter-spacing: -0.03em;
   pointer-events: none;
   paint-order: stroke;
   stroke: #e5d7ba;
