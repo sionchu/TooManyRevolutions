@@ -75,6 +75,7 @@ function effectSummaryLabel(effect: InterventionEffect): string {
 
 export function DecisionCard({
   definition,
+  whyNow,
   feasibility,
   scenario,
   world,
@@ -84,6 +85,7 @@ export function DecisionCard({
   onSubmit,
 }: {
   readonly definition: InterventionDefinition;
+  readonly whyNow: string;
   readonly feasibility: InterventionFeasibilityResult;
   readonly scenario: ScenarioDefinition;
   readonly world: WorldState;
@@ -127,13 +129,15 @@ export function DecisionCard({
         </span>
       </div>
       <h3>{definition.name}</h3>
+      <p className="decision-why-now">{whyNow}</p>
       <div className="decision-summary">
-        <span className="decision-badge badge-confirmed">국고·행정 여력</span>
+        <span className="decision-badge badge-confirmed">결과를 관측</span>
         <span className="decision-badge badge-current">
           {effects[0] === undefined
             ? "확정 변화 없음"
             : effectSummaryLabel(effects[0])}
         </span>
+        <span className="decision-badge badge-tradeoff">국고·행정 여력</span>
       </div>
       <details className="decision-details">
         <summary>

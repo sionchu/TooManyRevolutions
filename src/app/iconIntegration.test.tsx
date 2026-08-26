@@ -47,9 +47,9 @@ describe("player-facing TMR icon integration", () => {
     expect(markup).toContain('data-icon-id="tmr.icon.ui.decision"');
     expect(markup).toContain('data-icon-id="tmr.icon.ui.chronicle"');
     expect(markup).toContain(">지도<");
-    expect(markup).toContain(">국정<");
+    expect(markup).toContain(">제도<");
     expect(markup).toContain(">결정<");
-    expect(markup).toContain(">기록<");
+    expect(markup).toContain(">연대기<");
   });
 
   it("uses the actual crisis event silhouette in the banner and chronicle row", () => {
@@ -137,6 +137,7 @@ describe("player-facing TMR icon integration", () => {
           scenario={scenario}
           world={world}
           agendas={deriveNationalAgendas({ scenario, world })}
+          whyNow="현재 상황에서 선택할 수 있는 행동입니다."
           onPreviewRegions={() => undefined}
           onClearPreview={() => undefined}
           onSubmit={() => undefined}
@@ -146,6 +147,7 @@ describe("player-facing TMR icon integration", () => {
           availability={{ feasible: true, reasons: [] }}
           policyState={world.policies[countryId]!}
           affectedRegionIds={[]}
+          whyNow="현재 상황에서 선택할 수 있는 정책입니다."
           onPreviewRegions={() => undefined}
           onClearPreview={() => undefined}
           onSubmit={() => undefined}
@@ -178,7 +180,6 @@ describe("player-facing TMR icon integration", () => {
           scenario={scenario}
           world={world}
           policyState={world.policies[countryId]}
-          roadmap={{ nodes: [], edges: [] }}
           projects={[]}
           onFocusProject={() => undefined}
           policyRegionIds={[]}
@@ -293,6 +294,7 @@ describe("player-facing TMR icon integration", () => {
         scenario={scenario}
         world={world}
         agendas={[agenda]}
+        whyNow="현재 상황에서 선택할 수 있는 행동입니다."
         onPreviewRegions={() => undefined}
         onClearPreview={() => undefined}
         onSubmit={() => undefined}

@@ -23,7 +23,6 @@ import { asConflictId } from "../sim/state/ids";
 import { IDEOLOGY_FIXTURE_IDS } from "../sim/state/ideologyFixture";
 import { createInitialWorldState } from "../sim/state/world";
 import { deriveOrderConsolidationEligibility } from "../sim/systems/orderConsolidation";
-import { deriveInstitutionalRoadmap } from "./institutionalRoadmap";
 import { deriveStateProjectPresentations } from "./stateProjects";
 
 describe("GAMEBUILDERS gameplay reality read models", () => {
@@ -166,10 +165,6 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
         scenario: GAMEBUILDERS_DEMO_SCENARIO,
         world,
         policyState,
-        roadmap: deriveInstitutionalRoadmap(
-          policyState!,
-          GAMEBUILDERS_DEMO_SCENARIO.policyCatalog,
-        ),
         projects: deriveStateProjectPresentations(
           GAMEBUILDERS_DEMO_SCENARIO,
           world,

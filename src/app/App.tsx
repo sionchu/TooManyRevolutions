@@ -5,7 +5,6 @@ import { derivePresentationState } from "../presentation/presentationState";
 import { deriveEventPresentation } from "../presentation/eventPresentation";
 import { deriveNationalAgendas } from "../sim/readModels/agenda";
 import { deriveContextualDecisionSurface } from "../sim/readModels/contextualDecisions";
-import type { ConflictKind } from "../sim/state/conflict";
 import type { InterventionDefinition } from "../sim/state/intervention";
 import type { PolicyDefinition } from "../sim/state/policy";
 import type {
@@ -16,7 +15,6 @@ import type {
 import type { PoliticalProposalResponse } from "../sim/state/action";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
 import { GAMEBUILDERS_PRODUCTION_CONTEXTUAL_CATALOG } from "../sim/state/gameBuildersDecisionCatalog";
-import { deriveOrderConsolidationEligibility } from "../sim/systems/orderConsolidation";
 import { ContentStudio } from "./ContentStudio";
 import { MapStudio } from "./MapStudio";
 import {
@@ -27,7 +25,6 @@ import {
   submitRuntimePoliticalProposalResponse,
 } from "./demoGame";
 import type { DemoRuntimeState } from "./demoGame";
-import { AgendaPanel } from "./AgendaPanel";
 import { ContextualDock, type ContextPanel } from "./ContextualDock";
 import { DecisionPanel } from "./DecisionPanel";
 import { EventPresentationOverlay } from "./EventPresentationOverlay";
@@ -37,6 +34,7 @@ import { OpeningBriefing } from "./OpeningBriefing";
 import { PoliticalAtlas } from "./PoliticalAtlas";
 import { RegionInspector } from "./RegionInspector";
 import { ChroniclePanel } from "./ChroniclePanel";
+import { InstitutionalRoadmapPanel } from "./InstitutionalRoadmapPanel";
 import { SPEED_INTERVAL_MS, type DemoSpeed } from "./demoSpeed";
 import { deriveChronicleDigest } from "./chronicleDigest";
 import type { GameEvent } from "../sim/events/event";
@@ -75,19 +73,6 @@ if (PLAYER_COUNTRY_ID === null) {
 }
 
 const PLAYER_ID: CountryId = PLAYER_COUNTRY_ID;
-
-function conflictKindLabel(kind: ConflictKind): string {
-  switch (kind) {
-    case "rebellion":
-      return "반란";
-    case "coup":
-      return "쿠데타";
-    case "civilWar":
-      return "내전";
-    case "war":
-      return "전쟁";
-  }
-}
 
 function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const [record, setRecord] = useState<DemoRuntimeState>(() =>
@@ -248,14 +233,6 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     [playerCountry?.currentGovernmentId, record],
   );
   const policyState = record.world.policies[PLAYER_ID];
-  const consolidation = useMemo(
-    () =>
-      deriveOrderConsolidationEligibility(
-        GAMEBUILDERS_DEMO_SCENARIO,
-        record.world,
-      ),
-    [record],
-  );
   const roadmap = useMemo(
     () =>
       policyState === undefined
@@ -291,43 +268,9 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     presentation.regions[0] ??
     null;
   const visibleEvents = selectSignificantEvents(record.eventStore.events, 10);
-  const activeConflicts = presentation.activeConflicts;
-  const playerControlledLandHexCount = presentation.landHexes.filter(
-    (hex) =>
-      hex.controller.kind === "country" &&
-      hex.controller.countryId === PLAYER_ID,
-  ).length;
-  const legalPlayerLandHexCount = presentation.landHexes.filter(
-    (hex) =>
-      presentation.regions.find((region) => region.regionId === hex.regionId)
-        ?.ownerCountryId === PLAYER_ID,
-  ).length;
-  const capitalRegionId = playerCountry?.capitalRegionId ?? null;
   const playerRegionIds = GAMEBUILDERS_DEMO_SCENARIO.initialRegions
     .filter((region) => region.ownerCountryId === PLAYER_ID)
     .map((region) => region.id);
-  const capitalControlled =
-    capitalRegionId !== null &&
-    presentation.regions.find((region) => region.regionId === capitalRegionId)
-      ?.control.fullyControlledByCountryId === PLAYER_ID;
-  const factionActionCount = record.world.run.actionLog.filter((action) =>
-    [
-      "LOBBY",
-      "BARGAIN",
-      "ORGANIZE",
-      "FUND_MOVEMENT",
-      "ACCEPT",
-      "WAIT",
-    ].includes(action.actionType),
-  ).length;
-  const foreignActionCount = record.world.run.actionLog.filter((action) =>
-    [
-      "CLOSE_BORDER",
-      "REOPEN_BORDER",
-      "RESTRICT_INCOMING_BORDER",
-      "RESTORE_INCOMING_BORDER",
-    ].includes(action.actionType),
-  ).length;
   const leadAgenda = agendas[0] ?? null;
 
   const applyTimeReaction = useCallback(
@@ -636,37 +579,6 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
             }
             onRespond={respondPoliticalProposal}
           />
-          <div className="map-fact-strip" aria-label="현재 세계 사실">
-            <span>
-              <b>
-                {playerControlledLandHexCount === legalPlayerLandHexCount
-                  ? "정렬"
-                  : "이탈"}
-              </b>{" "}
-              물리 통제와 법적 소유
-            </span>
-            <span>
-              활성 충돌 ·{" "}
-              <b>
-                {activeConflicts.length === 0
-                  ? "없음"
-                  : activeConflicts
-                      .map((conflict) => conflictKindLabel(conflict.kind))
-                      .join(" · ")}
-              </b>
-            </span>
-            <span>
-              수도 <b>{capitalControlled ? "통제 중" : "통제 이탈"}</b>
-            </span>
-            <span>
-              세력 움직임{" "}
-              <b>{factionActionCount > 0 ? "관측됨" : "현재 없음"}</b>
-            </span>
-            <span>
-              외국 접촉{" "}
-              <b>{foreignActionCount > 0 ? "변화 관측됨" : "현재 없음"}</b>
-            </span>
-          </div>
           {leadAgenda === null ? null : (
             <div className="map-issue-chip" role="status">
               <span className="eyebrow">현재 압력</span>
@@ -693,19 +605,6 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
               )}
             </div>
           )}
-          <details className="map-fact-details">
-            <summary>지도 사실 수치</summary>
-            <div>
-              <span>
-                물리 통제 {playerControlledLandHexCount} · 법적 소유{" "}
-                {legalPlayerLandHexCount}
-              </span>
-              <span>
-                활성 충돌 {activeConflicts.length} · 세력 행동{" "}
-                {factionActionCount} · 외국 행동 {foreignActionCount}
-              </span>
-            </div>
-          </details>
         </div>
 
         <ContextualDock
@@ -713,21 +612,13 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
           onSelectPanel={setActivePanel}
           onClose={() => setActivePanel("map")}
         >
-          {activePanel === "agenda" ? (
-            <AgendaPanel
-              agendas={agendas}
-              scenario={GAMEBUILDERS_DEMO_SCENARIO}
-              consolidation={consolidation}
-              onFocusRegion={focusRegion}
-            />
-          ) : activePanel === "decisions" ? (
+          {activePanel === "decisions" ? (
             <DecisionPanel
               primaryShortlist={decisionSurface.primaryShortlist}
               agendas={agendas}
               scenario={GAMEBUILDERS_DEMO_SCENARIO}
               world={record.world}
               policyState={policyState}
-              roadmap={roadmap}
               projects={projects}
               onFocusProject={focusRegion}
               policyRegionIds={playerRegionIds}
@@ -741,6 +632,8 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
               region={selectedRegion}
               scenario={GAMEBUILDERS_DEMO_SCENARIO}
             />
+          ) : activePanel === "institutions" ? (
+            <InstitutionalRoadmapPanel roadmap={roadmap} />
           ) : activePanel === "chronicle" ? (
             <ChroniclePanel
               events={visibleEvents}

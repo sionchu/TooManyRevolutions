@@ -44,41 +44,32 @@ export function TimeControls({
           </button>
         ))}
       </div>
-      <label className="auto-slow-toggle" data-auto-slow-scope="crises">
-        <input
-          type="checkbox"
-          checked={autoSlowCrises}
-          onChange={(event) => onSetAutoSlow(event.target.checked)}
-        />
-        위기 발생 시 자동 감속
-      </label>
       <span className="time-status" role="status" aria-live="polite">
         {flowNotice}
       </span>
-      <div className="manual-jumps manual-jumps-desktop">
-        <span>보조 진행</span>
-        <button type="button" onClick={() => onAdvance(1)}>
-          +1일
-        </button>
-        <button type="button" onClick={() => onAdvance(7)}>
-          +7일
-        </button>
-        <button type="button" onClick={() => onAdvance(30)}>
-          +30일
-        </button>
-      </div>
-      <details className="manual-jumps-mobile">
-        <summary>보조 진행</summary>
-        <div>
-          <button type="button" onClick={() => onAdvance(1)}>
-            +1일
-          </button>
-          <button type="button" onClick={() => onAdvance(7)}>
-            +7일
-          </button>
-          <button type="button" onClick={() => onAdvance(30)}>
-            +30일
-          </button>
+      <details className="time-options">
+        <summary>보조 설정</summary>
+        <div className="time-options-content">
+          <label className="auto-slow-toggle" data-auto-slow-scope="crises">
+            <input
+              type="checkbox"
+              checked={autoSlowCrises}
+              onChange={(event) => onSetAutoSlow(event.target.checked)}
+            />
+            위기 발생 시 자동 감속
+          </label>
+          <div className="manual-jumps manual-jumps-mobile">
+            <span>수동 진행</span>
+            <button type="button" onClick={() => onAdvance(1)}>
+              +1일
+            </button>
+            <button type="button" onClick={() => onAdvance(7)}>
+              +7일
+            </button>
+            <button type="button" onClick={() => onAdvance(30)}>
+              +30일
+            </button>
+          </div>
         </div>
       </details>
     </div>

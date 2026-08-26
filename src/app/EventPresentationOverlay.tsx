@@ -77,7 +77,7 @@ export function EventPresentationOverlay({
     >
       {news === null ? null : (
         <article
-          className={`event-presentation event-news${news.terminal ? " event-terminal" : ""}`}
+          className={`event-presentation event-news event-nonblocking${news.terminal ? " event-terminal" : ""}`}
           data-event-presentation-kind={news.kind}
           data-event-presentation-event-id={news.eventId}
           data-event-presentation-type={news.eventType}
@@ -139,7 +139,7 @@ export function EventPresentationOverlay({
 
       {toast === null ? null : (
         <article
-          className="event-presentation event-toast"
+          className="event-presentation event-toast event-nonblocking"
           data-event-presentation-kind={toast.kind}
           data-event-presentation-event-id={toast.eventId}
           data-event-presentation-type={toast.eventType}

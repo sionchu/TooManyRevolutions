@@ -15,17 +15,22 @@ function qualitativeStatus(
 }
 
 function Metric({
+  className,
   label,
   value,
   tone,
 }: {
+  readonly className?: string;
   readonly label: string;
   readonly value: string;
   readonly tone?: string;
 }) {
   return (
-    <div className={`metric metric-qualitative ${tone ?? ""}`}>
-      <span>{label}</span>
+    <div
+      className={`metric metric-qualitative ${tone ?? ""} ${className ?? ""}`}
+    >
+      <span className="metric-label">{label}</span>
+      <span className="metric-signal" aria-hidden="true" />
       <strong>{value}</strong>
     </div>
   );
@@ -58,61 +63,41 @@ export function MetricStrip({
   const instability = playerCountry?.instability ?? 0;
   const continuity = playerCountry?.stateContinuity ?? 0;
   return (
-    <section className="metric-strip" aria-label="국가 상태 HUD">
-      <Metric
-        label={PLAYER_COPY.metrics.treasury}
-        value={qualitativeStatus(treasury, [
-          0,
-          "재정 압박",
-          70,
-          "재정 여유",
-          "여유 제한",
-        ])}
-        tone="metric-gold"
-      />
-      <Metric
-        label={PLAYER_COPY.metrics.legitimacy}
-        value={qualitativeStatus(legitimacy, [
-          35,
-          "정통성 취약",
-          70,
-          "정통성 안정",
-          "정통성 경합",
-        ])}
-      />
-      <Metric
-        label={PLAYER_COPY.metrics.stateCapacity}
-        value={qualitativeStatus(capacity, [
-          35,
-          "행정 병목",
-          70,
-          "행정 여력",
-          "행정 가동",
-        ])}
-      />
-      <Metric
-        label={PLAYER_COPY.metrics.instability}
-        value={qualitativeStatus(instability, [
-          35,
-          "불안 낮음",
-          70,
-          "불안 고조",
-          "불안 상승",
-        ])}
-        tone="metric-danger"
-      />
-      <Metric
-        label={PLAYER_COPY.metrics.stateContinuity}
-        value={qualitativeStatus(continuity, [
-          35,
-          "존속 위험",
-          70,
-          "존속 유지",
-          "존속 경합",
-        ])}
-      />
+    <section className="metric-strip" aria-label="국가 상태와 시간 HUD">
+      <div className="state-signal-group" aria-label="현재 국가 상태">
+        <Metric
+          label="재정"
+          value={qualitativeStatus(treasury, [0, "압박", 70, "여유", "제한"])}
+          tone="metric-gold"
+        />
+        <Metric
+          label={PLAYER_COPY.metrics.legitimacy}
+          value={qualitativeStatus(legitimacy, [
+            35,
+            "취약",
+            70,
+            "안정",
+            "경합",
+          ])}
+        />
+        <Metric
+          label={PLAYER_COPY.metrics.stateCapacity}
+          value={qualitativeStatus(capacity, [35, "병목", 70, "여력", "가동"])}
+        />
+        <Metric
+          label={PLAYER_COPY.metrics.instability}
+          value={qualitativeStatus(instability, [
+            35,
+            "낮음",
+            70,
+            "고조",
+            "상승",
+          ])}
+          tone="metric-danger"
+        />
+      </div>
       <details className="metric-details" data-exact-number-details>
-        <summary>수치</summary>
+        <summary>상세 수치</summary>
         <div>
           <span>국고 {formatAmount(treasury)}</span>
           <span>정통성 {formatAmount(legitimacy)}</span>

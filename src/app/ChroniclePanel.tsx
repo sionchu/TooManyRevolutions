@@ -35,24 +35,32 @@ export function ChroniclePanel({
   const items = digest ?? deriveChronicleDigest(events ?? [], scenario);
   const sourceEvents = events ?? [];
   return (
-    <section className="panel event-panel">
-      <div className="panel-heading">
+    <section className="panel event-panel chronicle-surface">
+      <div className="chronicle-panel-heading">
         <div>
           <span className="eyebrow">{PLAYER_COPY.main.chronicleEyebrow}</span>
           <h2>{PLAYER_COPY.main.chronicleTitle}</h2>
+          <p>정부의 이동과 제도의 변화가 실제 EventStore 순서로 남습니다.</p>
         </div>
-        <span className="panel-count">{items.length}묶음</span>
+        <div className="chronicle-panel-count">
+          <strong>{items.length}</strong>
+          <span>주요 흐름</span>
+        </div>
       </div>
-      <div className="event-list">
+      <div className="chronicle-filter-note">
+        <span>최신 기록부터</span>
+        <span>주요 전환 · 충돌 · 제도 변화</span>
+      </div>
+      <ol className="chronicle-timeline">
         {items.length === 0 ? (
-          <p className="empty-state">아직 기록된 사건이 없습니다.</p>
+          <li className="empty-state">아직 기록된 사건이 없습니다.</li>
         ) : (
           items.map((item) => {
             const iconId = chronicleIconId(item, sourceEvents);
             const isSpecificCrisisIcon = iconId !== TMR_ICON_IDS.ui.chronicle;
             return (
-              <article
-                className={`event-row chronicle-digest-row${item.crisis ? " event-crisis" : ""}`}
+              <li
+                className={`chronicle-timeline-item${item.crisis ? " event-crisis" : ""}`}
                 key={item.id}
                 data-chronicle-level={item.level}
                 data-source-event-ids={item.sourceEventIds.join(",")}
@@ -65,28 +73,30 @@ export function ChroniclePanel({
                     decorative
                     tone={isSpecificCrisisIcon ? "crisis" : "neutral"}
                   />
-                  <time>{item.tick}일</time>
+                  <time>{item.tick}일차</time>
                 </div>
-                <div>
-                  <strong>{item.title}</strong>
-                  <span>{item.detail}</span>
+                <div className="chronicle-timeline-copy">
+                  <div className="chronicle-timeline-title">
+                    <strong>{item.title}</strong>
+                    <span>
+                      {item.level === 1
+                        ? "주요 전환"
+                        : item.level === 2
+                          ? "전략 기록"
+                          : "상태 흐름"}
+                    </span>
+                  </div>
+                  <p>{item.detail}</p>
                   <details className="chronicle-source-details">
                     <summary>원문 기록 {item.sourceEventIds.length}건</summary>
                     <small>{item.sourceEventIds.join(" · ")}</small>
                   </details>
                 </div>
-                <small>
-                  {item.level === 1
-                    ? "주요"
-                    : item.level === 2
-                      ? "전략"
-                      : "추세"}
-                </small>
-              </article>
+              </li>
             );
           })
         )}
-      </div>
+      </ol>
     </section>
   );
 }

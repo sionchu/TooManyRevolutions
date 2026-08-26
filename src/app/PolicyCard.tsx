@@ -49,6 +49,7 @@ export function policyIconId(definition: PolicyDefinition): TmrIconId {
 
 export function PolicyCard({
   definition,
+  whyNow,
   availability,
   policyState,
   affectedRegionIds,
@@ -57,6 +58,7 @@ export function PolicyCard({
   onSubmit,
 }: {
   readonly definition: PolicyDefinition;
+  readonly whyNow: string;
   readonly availability: PolicyAvailabilityResult;
   readonly policyState: PolicyState;
   readonly affectedRegionIds: readonly RegionId[];
@@ -82,10 +84,14 @@ export function PolicyCard({
         <span className="action-status">{status}</span>
       </div>
       <h3>{definition.name}</h3>
+      <p className="decision-why-now">{whyNow}</p>
       <div className="decision-summary">
         <span className="decision-badge badge-confirmed">제도 변경</span>
         <span className="decision-badge badge-current">
           {changes[0] ?? "규칙 기록"}
+        </span>
+        <span className="decision-badge badge-tradeoff">
+          정치적 반응은 관측
         </span>
       </div>
       <details className="decision-details">

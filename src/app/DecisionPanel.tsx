@@ -11,8 +11,6 @@ import type { PrimaryAgenda } from "../sim/readModels/agenda";
 import type { ContextualDecisionCandidate } from "../sim/readModels/contextualDecisions";
 import { DecisionCard } from "./DecisionCard";
 import { PolicyCard } from "./PolicyCard";
-import { InstitutionalRoadmapPanel } from "./InstitutionalRoadmapPanel";
-import type { InstitutionalRoadmap } from "./institutionalRoadmap";
 import { StateProjectPanel } from "./StateProjectPanel";
 import type { StateProjectPresentation } from "./stateProjects";
 import {
@@ -22,13 +20,40 @@ import {
 } from "./gamePresentation";
 import { TmrIcon } from "./icons/TmrIcon";
 
+function whyNowFor(candidate: ContextualDecisionCandidate): string {
+  const reason = candidate.relevanceReasons[0]?.code;
+  switch (reason) {
+    case "MATERIAL_SCARCITY":
+      return "물자 부족이 커져 지금 생산과 공급을 건드려야 합니다.";
+    case "LABOR_ORGANIZATION_PRESSURE":
+      return "노동 세력의 압력이 올라 지금 공개적인 타협 창구가 필요합니다.";
+    case "POLITICAL_OPPOSITION_PRESSURE":
+      return "정치적 반대가 조직되고 있어 권력 경쟁의 규칙을 정해야 합니다.";
+    case "ACTIVE_REBELLION_RECOVERY":
+      return "현재 충돌의 여파가 남아 먼저 회복의 방향을 선택해야 합니다.";
+    case "INSTITUTIONAL_CONTRADICTION":
+      return "현재 제도 사이의 모순이 드러나 다음 규칙을 정리해야 합니다.";
+    case "PROPERTY_LAND_ORDER":
+      return "재산·토지 질서가 흔들려 지금 소유 규칙을 선택해야 합니다.";
+    case "COERCIVE_RESPONSE_WINDOW":
+      return "통제 창구가 열려 있지만, 억압의 대가도 함께 감수해야 합니다.";
+    case "FISCAL_PRESSURE":
+      return "국고 압박이 커져 이 선택의 비용과 대안을 함께 봐야 합니다.";
+    case "BACKGROUND_STRUCTURAL_OPTION":
+      return "당장의 불보다 다음 정치 질서를 준비하는 선택입니다.";
+    default:
+      return candidate.tier === "crisis"
+        ? "지금 벌어진 위기에 직접 반응합니다."
+        : "현재 국가 조건에서 열려 있는 선택입니다.";
+  }
+}
+
 export function DecisionPanel({
   primaryShortlist,
   agendas,
   scenario,
   world,
   policyState,
-  roadmap,
   projects,
   onFocusProject,
   policyRegionIds,
@@ -42,7 +67,6 @@ export function DecisionPanel({
   readonly scenario: ScenarioDefinition;
   readonly world: WorldState;
   readonly policyState: PolicyState | undefined;
-  readonly roadmap: InstitutionalRoadmap;
   readonly projects: readonly StateProjectPresentation[];
   readonly onFocusProject: (
     regionId: StateProjectPresentation["anchorRegionId"],
@@ -89,12 +113,11 @@ export function DecisionPanel({
               decorative
               tone="neutral"
             />
-            <span>중기 계획·사업 기록</span>
+            <span>지도에 남는 사업 기록</span>
           </span>
           <span className="decision-support-summary-meta">선택 사항</span>
         </summary>
         <div className="decision-support-content">
-          <InstitutionalRoadmapPanel roadmap={roadmap} />
           <StateProjectPanel
             projects={projects}
             onFocusRegion={onFocusProject}
@@ -126,6 +149,7 @@ export function DecisionPanel({
                 <PolicyCard
                   key={`policy:${candidate.id}`}
                   definition={candidate.definition}
+                  whyNow={whyNowFor(candidate)}
                   availability={candidate.feasibility}
                   policyState={policyState}
                   affectedRegionIds={
@@ -142,6 +166,7 @@ export function DecisionPanel({
               <DecisionCard
                 key={`intervention:${candidate.id}`}
                 definition={candidate.definition}
+                whyNow={whyNowFor(candidate)}
                 feasibility={candidate.feasibility}
                 scenario={scenario}
                 world={world}

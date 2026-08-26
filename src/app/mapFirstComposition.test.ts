@@ -22,6 +22,22 @@ const roadmapSource = readFileSync(
   resolve(process.cwd(), "src/app/InstitutionalRoadmapPanel.tsx"),
   "utf8",
 );
+const dockSource = readFileSync(
+  resolve(process.cwd(), "src/app/ContextualDock.tsx"),
+  "utf8",
+);
+const metricSource = readFileSync(
+  resolve(process.cwd(), "src/app/MetricStrip.tsx"),
+  "utf8",
+);
+const timeSource = readFileSync(
+  resolve(process.cwd(), "src/app/TimeControls.tsx"),
+  "utf8",
+);
+const chronicleSource = readFileSync(
+  resolve(process.cwd(), "src/app/ChroniclePanel.tsx"),
+  "utf8",
+);
 
 describe("map-first product surface composition", () => {
   it("keeps the political atlas as the persistent main playfield", () => {
@@ -32,11 +48,13 @@ describe("map-first product surface composition", () => {
     expect(appSource).not.toContain('className="panel map-panel"');
   });
 
-  it("connects agenda and region context back to a spatial map focus", () => {
+  it("keeps one compact map issue cue with spatial focus", () => {
     expect(appSource).toContain('className="map-issue-chip"');
     expect(appSource).toContain("onSelectRegion={focusRegion}");
+    expect(appSource).toContain("지도에서 보기");
+    expect(appSource).not.toContain('className="map-fact-strip"');
+    expect(appSource).not.toContain('className="map-fact-details"');
     expect(agendaSource).toContain("onFocusRegion");
-    expect(agendaSource).toContain("지도에서 보기");
   });
 
   it("provides desktop edge drawers and mobile bottom-sheet navigation", () => {
@@ -58,6 +76,21 @@ describe("map-first product surface composition", () => {
     expect(roadmapSource).toContain("roadmap-edge-layer");
     expect(roadmapSource).toContain("graphPositions");
     expect(roadmapSource).toContain("제도 연결 읽기");
+    expect(roadmapSource).toContain(
+      'data-roadmap-layout="domain-lanes-depth-columns"',
+    );
+    expect(roadmapSource).toContain('data-roadmap-node-overlap="0"');
+  });
+
+  it("keeps the default HUD qualitative and promotes utility controls", () => {
+    expect(dockSource).toContain('"institutions"');
+    expect(dockSource).toContain('"chronicle"');
+    expect(dockSource).toContain("surface-mode");
+    expect(dockSource).not.toContain('"agenda"');
+    expect(metricSource).toContain("state-signal-group");
+    expect(timeSource).toContain("time-options");
+    expect(timeSource).toContain("auto-slow-toggle");
+    expect(chronicleSource).toContain("chronicle-timeline");
   });
 
   it("uses the contextual selector as the only immediate product decision authority", () => {

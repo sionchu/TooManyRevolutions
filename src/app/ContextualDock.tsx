@@ -7,31 +7,34 @@ import {
 import { TmrIcon } from "./icons/TmrIcon";
 
 export type ContextPanel =
-  "map" | "agenda" | "decisions" | "region" | "chronicle";
+  "map" | "decisions" | "institutions" | "region" | "chronicle";
 
 const CONTEXT_TABS = [
-  { id: "map", label: "지도" },
-  { id: "agenda", label: "국정" },
-  { id: "decisions", label: "결정" },
-  { id: "chronicle", label: "기록" },
+  { id: "map", label: "지도", note: "세계" },
+  { id: "decisions", label: "결정", note: "지금" },
+  { id: "institutions", label: "제도", note: "구조" },
+  { id: "chronicle", label: "연대기", note: "흐름" },
 ] as const satisfies ReadonlyArray<{
   readonly id: Exclude<ContextPanel, "region">;
   readonly label: string;
+  readonly note: string;
 }>;
 
 const CONTEXT_TAB_ICONS = {
   map: TMR_ICON_IDS.ui.map,
-  agenda: TMR_ICON_IDS.ui.governance,
   decisions: TMR_ICON_IDS.ui.decision,
+  institutions: TMR_ICON_IDS.ui.governance,
   chronicle: TMR_ICON_IDS.ui.chronicle,
 } as const satisfies Record<Exclude<ContextPanel, "region">, TmrIconId>;
 
 const PANEL_TITLES: Readonly<Record<Exclude<ContextPanel, "map">, string>> = {
-  agenda: "현재 국정",
-  decisions: "결정 테이블",
+  decisions: "지금 결정할 일",
+  institutions: "제도망",
   region: "지역 상세",
-  chronicle: "국가 기록",
+  chronicle: "국가 연대기",
 };
+
+const FULL_SURFACES = new Set<ContextPanel>(["institutions", "chronicle"]);
 
 function selectedTab(
   activePanel: ContextPanel,
@@ -52,11 +55,22 @@ export function ContextualDock({
   readonly onClose: () => void;
   readonly children?: ReactNode;
 }) {
-  const drawerOpen = activePanel !== "map";
+  const drawerOpen = activePanel === "decisions" || activePanel === "region";
+  const fullSurfaceOpen = FULL_SURFACES.has(activePanel);
+  const fullSurfaceTitle =
+    activePanel === "institutions"
+      ? PANEL_TITLES.institutions
+      : activePanel === "chronicle"
+        ? PANEL_TITLES.chronicle
+        : undefined;
 
   return (
     <>
-      <nav className="context-tabs" aria-label="지도 주변 정보">
+      <nav
+        className={`context-tabs${fullSurfaceOpen ? " context-tabs-in-surface" : ""}`}
+        aria-label="게임 주요 화면"
+        data-active-surface={activePanel}
+      >
         {CONTEXT_TABS.map((tab) => {
           const isSelected = selectedTab(activePanel, tab.id);
           return (
@@ -76,11 +90,33 @@ export function ContextualDock({
                 decorative
                 tone={isSelected ? "inverse" : "neutral"}
               />
-              <span>{tab.label}</span>
+              <span className="context-tab-copy">
+                <strong>{tab.label}</strong>
+                <small>{tab.note}</small>
+              </span>
             </button>
           );
         })}
       </nav>
+
+      {fullSurfaceOpen ? (
+        <section
+          className={`surface-mode surface-mode-${activePanel}`}
+          data-context-surface={activePanel}
+          aria-label={fullSurfaceTitle}
+        >
+          <button
+            className="surface-mode-close"
+            type="button"
+            aria-label="지도로 돌아가기"
+            onClick={onClose}
+          >
+            <span aria-hidden="true">×</span>
+            <span>지도로 돌아가기</span>
+          </button>
+          <div className="surface-mode-content">{children}</div>
+        </section>
+      ) : null}
 
       {drawerOpen ? (
         <aside
