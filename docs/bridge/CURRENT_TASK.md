@@ -13,6 +13,7 @@ GAME_VISUAL_UX_RENDER_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P
 GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM.md
 PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM.md
 GDD_AMENDMENT: docs/GDD_GAME_LOOP_WORLD_FEEL_ADDENDUM_2026-08-26.md
+ARCHITECTURE_AMENDMENT: docs/ARCHITECTURE_P0_RENDERER_CONTENT_BOUNDARY_ADDENDUM_2026-08-26.md
 DECISION_RECORD: docs/DECISION_GAMEBUILDERS_P0_GAME_LOOP_RENDERER_CONTENT_STUDIO_2026-08-26.md
 QA_ADDENDUM: docs/QA_GAMEBUILDERS_P0_GAME_LOOP_WORLD_FEEL_2026-08-26.md
 BACKLOG_ADDENDUM: docs/BACKLOG_GAMEBUILDERS_P0_GAME_LOOP_WORLD_FEEL_2026-08-26.md
@@ -43,16 +44,15 @@ The next work must repair those blockers before more decorative static art is ac
 
 ## Mandatory preflight — documentation alignment
 
-Before new gameplay/UI implementation, read the four alignment documents referenced above and fold their durable requirements into the canonical relevant sections of:
+Before new gameplay/UI implementation, read the five alignment documents referenced above and fold their durable requirements into the canonical relevant sections of:
 
 ```text
 docs/GDD.md
+docs/ARCHITECTURE.md
 docs/DECISIONS.md
 docs/BACKLOG.md
 docs/QA_PLAYTEST.md
 ```
-
-Update `docs/ARCHITECTURE.md` only where renderer/content/presentation authority boundaries need durable clarification.
 
 Do not delete historical decisions or weaken existing simulation-authority contracts. The amendment/addendum files remain historical evidence after canonical integration.
 
