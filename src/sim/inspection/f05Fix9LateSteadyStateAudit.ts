@@ -1838,7 +1838,9 @@ function triState(values: readonly boolean[]): "YES" | "NO" | "MIXED" {
 export function runF05Fix9LateSteadyStateAudit(
   seed = F05_FIX9_DEFAULT_SEED,
 ): F05Fix9AuditResult {
-  const scenario = createF05Fix7PoliticalInteractionScenario();
+  const scenario = createF05Fix7PoliticalInteractionScenario({
+    politicalAccommodationOrganizationDelta: null,
+  });
   const integration = runF05Fix7InteractionIntegration(seed);
   const historical = integration.historicalF05Baseline;
   const branchAudits: F05Fix9BranchAudit[] = [];

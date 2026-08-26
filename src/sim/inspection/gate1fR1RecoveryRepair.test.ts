@@ -70,6 +70,15 @@ describe("Gate1F R1 recovery repair", () => {
         factionId: "t018.fixture.rebellion-faction",
         delta: -0.5,
       },
+      {
+        kind: "institutionalRuleSet",
+        rule: "laborOrganization",
+        value: "legal",
+      },
+    ]);
+    expect(accommodation?.prerequisites).toEqual([
+      { kind: "ruleEquals", rule: "legislatureRequired", value: true },
+      { kind: "ruleEquals", rule: "laborOrganization", value: "restricted" },
     ]);
   }, 240_000);
 
@@ -102,11 +111,11 @@ describe("Gate1F R1 recovery repair", () => {
     const repeated = inspectGate1FR1RepeatedAccommodationExploit(result);
     expect(repeated.repeated).toMatchObject({
       attempts: 20,
-      starts: 20,
-      completions: 20,
-      rejections: 0,
-      nominalTreasuryCost: 1400,
-      nominalAdministrativeCommitmentDays: 4900,
+      starts: 1,
+      completions: 1,
+      rejections: 19,
+      nominalTreasuryCost: 70,
+      nominalAdministrativeCommitmentDays: 245,
     });
     expect(repeated.single).toMatchObject({
       attempts: 1,
@@ -116,7 +125,14 @@ describe("Gate1F R1 recovery repair", () => {
       nominalTreasuryCost: 70,
       nominalAdministrativeCommitmentDays: 245,
     });
-    expect(repeated.repeatedRecoveryRelativeTicks).toEqual([9, 16, 23]);
+    expect(repeated.repeatedRecoveryRelativeTicks[0]).toBe(9);
+    expect(repeated.repeatedRecoveryRelativeTicks).toEqual(
+      repeated.singleRecoveryRelativeTicks,
+    );
+    expect(repeated.repeatedPostCompletionAvailabilityReasons).toEqual([
+      "PREREQUISITE_NOT_MET",
+    ]);
+    expect(repeated.repeatedBlockedByInstitutionalPrerequisite).toBe(true);
     expect(repeated.maximumLandHexChangesAtOneResolutionTick).toBe(1);
 
     for (const contextId of [

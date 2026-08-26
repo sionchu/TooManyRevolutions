@@ -308,6 +308,8 @@ export interface F05InspectionReport {
 export interface F05PacingFunOptions {
   /** Official F05 uses ON; OFF is retained for the actor-loop counterfactual. */
   readonly factionActorLoop?: FactionActorLoopMode;
+  /** Developer-only scenario seam for explicit historical F05 baselines. */
+  readonly scenario?: ScenarioDefinition;
 }
 
 interface BranchVector {
@@ -1255,7 +1257,7 @@ export function runF05PacingFunDecision(
   options: F05PacingFunOptions = {},
 ): F05PacingFunResult {
   const factionActorLoop = options.factionActorLoop ?? "on";
-  const scenario = createF04DValidationScenario();
+  const scenario = options.scenario ?? createF04DValidationScenario();
   const contexts = F05_CONTEXTS.map((context) => {
     const startingRecord = createF03StartingRecord(
       scenario,

@@ -103,7 +103,10 @@ export interface Gate1FR1RepeatedAccommodationExploitCheck {
     readonly nominalTreasuryCost: number;
     readonly nominalAdministrativeCommitmentDays: number;
   };
+  readonly singleRecoveryRelativeTicks: readonly number[];
   readonly repeatedRecoveryRelativeTicks: readonly number[];
+  readonly repeatedPostCompletionAvailabilityReasons: readonly string[];
+  readonly repeatedBlockedByInstitutionalPrerequisite: boolean;
   readonly maximumLandHexChangesAtOneResolutionTick: number;
 }
 
@@ -431,25 +434,89 @@ export function inspectGate1FR1RepeatedAccommodationExploit(
   }
 
   const changesByTick = new Map<number, number>();
-  const repeatedRecoveryRelativeTicks = repeated.meaningfulEventTrace
-    .flatMap((entry) => {
-      const [tickText, eventType] = entry.split(":", 2);
-      return eventType === "LAND_HEX_CONTROL_CHANGED" ? [Number(tickText)] : [];
-    })
-    .filter((tick) => Number.isFinite(tick));
+  const recoveryRelativeTicks = (branch: Gate1FBranchMeasurement) =>
+    branch.meaningfulEventTrace
+      .flatMap((entry) => {
+        const [tickText, eventType] = entry.split(":", 2);
+        return eventType === "LAND_HEX_CONTROL_CHANGED"
+          ? [Number(tickText)]
+          : [];
+      })
+      .filter((tick) => Number.isFinite(tick));
+  const singleRecoveryRelativeTicks = recoveryRelativeTicks(single);
+  const repeatedRecoveryRelativeTicks = recoveryRelativeTicks(repeated);
   for (const tick of repeatedRecoveryRelativeTicks) {
     changesByTick.set(tick, (changesByTick.get(tick) ?? 0) + 1);
   }
+  const firstCompletionRelativeTick = repeated.meaningfulEventTrace
+    .filter((entry) => entry.split(":", 2)[1] === "INTERVENTION_COMPLETED")
+    .map((entry) => Number(entry.split(":", 1)[0]))
+    .find((tick) => tick > 0);
+  if (firstCompletionRelativeTick === undefined) {
+    throw new Error("R1 repeated accommodation did not complete once.");
+  }
+  const postCompletionReasons = [
+    ...new Set(
+      repeated.availabilitySamples
+        .filter((sample) => sample.relativeTick > firstCompletionRelativeTick)
+        .flatMap((sample) => sample.reasons["POLITICAL_ACCOMMODATION"] ?? []),
+    ),
+  ];
+  const repeatedBlockedByInstitutionalPrerequisite =
+    repeated.availabilitySamples.some(
+      (sample) =>
+        sample.relativeTick > firstCompletionRelativeTick &&
+        !sample.feasibleResponses.includes("POLITICAL_ACCOMMODATION") &&
+        (sample.reasons["POLITICAL_ACCOMMODATION"] ?? []).includes(
+          "PREREQUISITE_NOT_MET",
+        ),
+    );
 
   return {
     single: accommodationCostSummary(single),
     repeated: accommodationCostSummary(repeated),
+    singleRecoveryRelativeTicks,
     repeatedRecoveryRelativeTicks,
+    repeatedPostCompletionAvailabilityReasons: postCompletionReasons,
+    repeatedBlockedByInstitutionalPrerequisite,
     maximumLandHexChangesAtOneResolutionTick: Math.max(
       ...changesByTick.values(),
       0,
     ),
   };
+}
+
+export function formatGate1FR1Repeatability(
+  diagnosis: Gate1FDiagnosisV2Result,
+  check: Gate1FR1RepeatedAccommodationExploitCheck = inspectGate1FR1RepeatedAccommodationExploit(
+    diagnosis,
+  ),
+): string {
+  const repeated = diagnosis.branches.find(
+    (branch) =>
+      branch.contextId === R1_RECOVERY_CONTEXT_ID &&
+      branch.strategyId === "REPEATED_POLITICAL_ACCOMMODATION",
+  );
+  if (repeated === undefined) {
+    throw new Error("R1 repeated accommodation branch is missing.");
+  }
+  const checkpointRows = [180, 360, 720, 1_080, 1_800].map((target) => {
+    const checkpoint = repeated.checkpoints.find(
+      (candidate) => candidate.targetRelativeTick === target,
+    );
+    if (checkpoint === undefined) {
+      throw new Error(`R1 repeated branch is missing checkpoint ${target}.`);
+    }
+    const metrics = checkpoint.metrics;
+    return `${target}:H=${metrics.controlledLandHexes} C=${metrics.activeConflicts} T=${metrics.treasury.toFixed(0)} I=${metrics.instability.toFixed(3)} U=${metrics.maxRegionUnrest.toFixed(3)} S=${metrics.maxRegionScarcity.toFixed(3)} G=${metrics.factionGrievance.toFixed(3)} O=${metrics.factionOrganization.toFixed(3)} labor=${checkpoint.institution.laborOrganization}`;
+  });
+  return [
+    `repeat single=${check.single.attempts}/${check.single.starts}/${check.single.completions}/${check.single.rejections} repeated=${check.repeated.attempts}/${check.repeated.starts}/${check.repeated.completions}/${check.repeated.rejections}`,
+    `repeat cost single=${check.single.nominalTreasuryCost}/${check.single.nominalAdministrativeCommitmentDays} repeated=${check.repeated.nominalTreasuryCost}/${check.repeated.nominalAdministrativeCommitmentDays}`,
+    `repeat post-completion reasons=${check.repeatedPostCompletionAvailabilityReasons.join(",") || "none"} institutionalPrerequisite=${check.repeatedBlockedByInstitutionalPrerequisite ? "YES" : "NO"}`,
+    `recovery ticks single=${check.singleRecoveryRelativeTicks.join(",") || "none"} repeated=${check.repeatedRecoveryRelativeTicks.join(",") || "none"} maxLandHexChangesAtOneResolutionTick=${check.maximumLandHexChangesAtOneResolutionTick}`,
+    `repeat checkpoints ${checkpointRows.join(" | ")}`,
+  ].join("\n");
 }
 
 export function formatGate1FR1Sweep(result: Gate1FR1SweepResult): string {

@@ -437,7 +437,9 @@ function selectPrimaryClassification(
 function buildMonthlyRows(
   audit: F05Fix9AuditResult,
 ): readonly F05Fix10MonthlyBoundary[] {
-  const scenario = createF05Fix7PoliticalInteractionScenario();
+  const scenario = createF05Fix7PoliticalInteractionScenario({
+    politicalAccommodationOrganizationDelta: null,
+  });
   const rows: F05Fix10MonthlyBoundary[] = [];
   for (const branch of audit.lateSilenceBranches) {
     const late = branch.lateInterval;

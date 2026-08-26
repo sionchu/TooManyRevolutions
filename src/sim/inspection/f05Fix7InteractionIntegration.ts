@@ -26,7 +26,10 @@ import {
   type F05PacingFunResult,
   type F05StrategyId,
 } from "./f05PacingFunDecision";
-import { F04D_VALIDATION_INTERVENTION_IDS } from "../state/gate1fValidationFixture";
+import {
+  createF04DPreR1ValidationScenario,
+  F04D_VALIDATION_INTERVENTION_IDS,
+} from "../state/gate1fValidationFixture";
 import {
   politicalProposalReconsiderationBasisEqual,
   type PoliticalProposal,
@@ -1170,13 +1173,17 @@ function representativeComparisons(
 export function runF05Fix7InteractionIntegration(
   seed = F05_FIX7_DEFAULT_SEED,
 ): F05Fix7InteractionIntegrationResult {
-  const historical = runF05PacingFunDecision(seed);
+  const historical = runF05PacingFunDecision(seed, {
+    scenario: createF04DPreR1ValidationScenario(),
+  });
   const historicalBranches = historical.contexts.flatMap((assessment) =>
     assessment.branches.map((branch) =>
       historicalControlBranch(assessment.context, branch),
     ),
   );
-  const scenario = createF05Fix7PoliticalInteractionScenario();
+  const scenario = createF05Fix7PoliticalInteractionScenario({
+    politicalAccommodationOrganizationDelta: null,
+  });
   const proposalBranches: F05Fix7BranchSummary[] = [];
 
   for (const context of F05_CONTEXTS) {

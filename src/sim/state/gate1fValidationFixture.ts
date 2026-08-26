@@ -46,8 +46,9 @@ export const F04D_R1_SELECTED_POLITICAL_ACCOMMODATION_ORGANIZATION_DELTA = -0.5;
 
 export interface F04DValidationScenarioOptions {
   /**
-   * Optional R1 counterfactual only. The default is the selected repair; a
-   * null or zero value is used by the diagnostic to reproduce the baseline.
+   * Optional R1 counterfactual only. The default is the selected repair;
+   * `null` explicitly reproduces the pre-R1 F05 baseline, while a numeric
+   * value keeps the repaired one-time institutional concession.
    */
   readonly politicalAccommodationOrganizationDelta?: number | null;
 }
@@ -232,6 +233,7 @@ export function createF04DValidationScenario(
     options.politicalAccommodationOrganizationDelta === undefined
       ? F04D_R1_SELECTED_POLITICAL_ACCOMMODATION_ORGANIZATION_DELTA
       : options.politicalAccommodationOrganizationDelta;
+  const preR1Baseline = politicalAccommodationOrganizationDelta === null;
   const politicalAccommodationEffects: InterventionDefinition["completionEffects"] =
     [
       {
@@ -249,6 +251,15 @@ export function createF04DValidationScenario(
               delta: politicalAccommodationOrganizationDelta,
             },
           ]),
+      ...(preR1Baseline
+        ? []
+        : [
+            {
+              kind: "institutionalRuleSet" as const,
+              rule: "laborOrganization" as const,
+              value: "legal" as const,
+            },
+          ]),
     ];
   const politicalAccommodation: InterventionDefinition = {
     id: F04D_VALIDATION_INTERVENTION_IDS.politicalAccommodation,
@@ -259,6 +270,15 @@ export function createF04DValidationScenario(
     durationDays: 7,
     prerequisites: [
       { kind: "ruleEquals", rule: "legislatureRequired", value: true },
+      ...(preR1Baseline
+        ? []
+        : [
+            {
+              kind: "ruleEquals" as const,
+              rule: "laborOrganization" as const,
+              value: "restricted" as const,
+            },
+          ]),
     ],
     requireCompletionEffectChange: true,
     completionEffects: politicalAccommodationEffects,
@@ -390,4 +410,11 @@ export function createF04DValidationScenario(
       requiredConsecutiveTicks: 900,
     },
   };
+}
+
+/** Explicit historical seam for F05 audits that must reproduce pre-R1 data. */
+export function createF04DPreR1ValidationScenario(): ScenarioDefinition {
+  return createF04DValidationScenario({
+    politicalAccommodationOrganizationDelta: null,
+  });
 }
