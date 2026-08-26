@@ -35,13 +35,40 @@
 | 5 | COMPLETED | 지도-first theatre CSS 적용: desktop map stage가 전체 화면 중심이며 drawer는 우측 context surface로 분리, dark rounded card/gold-border 반복을 제거. mobile은 header 1 band + compact state 1 band, decision drawer에서 CTA와 navigation overlap false를 DOM geometry로 확인. `docs/parallel/evidence/visual-v2-phase5-ui-desktop.png`; `docs/parallel/evidence/visual-v2-phase5-ui-mobile.png`; `docs/parallel/evidence/visual-v2-phase5-decision-mobile.png` 직접 OPEN 검사. |
 | 6 | COMPLETED | Chronicle은 EventStore source를 digest 내부에서만 유지하고 player surface의 EventId/internal ID disclosure를 제거. EventPresentationOverlay는 열린 PoliticalProposal에만 수락/거절을 제공하며 institution/agenda drawer는 같은 derived read model을 사용. `docs/parallel/evidence/visual-v2-phase6-chronicle-desktop.png`; `docs/parallel/evidence/visual-v2-phase6-chronicle-mobile.png`; `docs/parallel/evidence/visual-v2-phase6-institution-mobile.png` 직접 OPEN 검사. 금칙어 DOM text scan matches 0. |
 | 7 | COMPLETED | mobile Day 0 및 Decision 화면을 390x844에서 직접 OPEN 검사. `docs/parallel/evidence/visual-v2-phase7-mobile-day0.png`, `docs/parallel/evidence/visual-v2-phase7-mobile-decision.png`; persistent HUD bands 2개(56px/64px), label count 3, body overflow 0, Decision CTA와 metric/navigation overlap false. |
-| 8 | NOT_RUN | - |
-| 9 | NOT_RUN | - |
-| 10 | NOT_RUN | - |
+| 8 | COMPLETED | title/opening remains on the V2 dark editorial palette; final label texture/readability pass, screen-edge rejection, mobile theatre framing, and desktop playback hit-target correction completed. `pnpm exec prettier --check` PASS, `pnpm lint` PASS, `pnpm typecheck` PASS, `pnpm build` PASS (176 modules; Vite emitted only the existing large-chunk warning), `git diff --check` PASS. |
+| 9 | COMPLETED | all eight required final screenshots were captured from the final local source and directly OPEN inspected: desktop Day 0 / rebellion / decisions / institutions / chronicle and mobile map / decisions / rebellion. The browser hard-bar review found 0 visible HARD FAILs. |
+| 10 | IN_PROGRESS | local source is pushed to `presentation-visual-v2`; existing Site is public and final saved-version deployment is being closed against the exact pushed source/archive pair. |
+
+## Final screenshot critique
+
+Each row below was captured at the required viewport and directly OPEN inspected. PASS means the screenshot cleared the visual bar; DOM counts and overflow measurements were used only as supporting evidence.
+
+| Screenshot | Strongest focal point | Text / overlap / grounding review | Generic-web pattern / result |
+| --- | --- | --- | --- |
+| `visual-v2-desktop-day0.png` | continuous relief terrain and the capital silhouette | dark-outlined map labels are readable; top controls no longer overlap the live status line; capital, industrial, and frontier compositions sit on visible terraces/contact shadows | map-first world surface, no repeated dashboard card language — PASS |
+| `visual-v2-desktop-rebellion.png` | red crisis contours, crisis beacon, and industrial place | `반란` is visible at the state-derived region; crisis treatment is concentrated on the map; event treatment does not cover the place or controls | factual crisis reads before secondary UI — PASS |
+| `visual-v2-desktop-decisions.png` | map remains dominant beside the decision sheet | Korean decision copy is readable; mixed contextual shortlist begins with `철산 공업주 식량 생산능력 보강` then `노동자회 제한적 정치 타협`; CTA and event notices remain separated | flat editorial list, not a generic card stack — PASS |
+| `visual-v2-desktop-institutions.png` | current institution pressure and progression lane | headings, statuses, and reasons remain legible; drawer stays within the right context lane and does not cover the map focal point | progression surface avoids dependency-inspector treatment — PASS |
+| `visual-v2-desktop-chronicle.png` | highlighted day-19 major event | major rebellion headline is distinct from compact historical rows; no raw event IDs or log-like player copy; drawer and map remain separate | editorial timeline, not an admin log — PASS |
+| `visual-v2-mobile-map.png` | capital and industrial places within the narrow theatre | three-label cap holds; Korean labels do not clip or stack vertically; two persistent HUD bands remain; hero assets are grounded | mobile is a separate map composition, not squeezed desktop — PASS |
+| `visual-v2-mobile-decisions.png` | decision sheet CTA over the still-visible crisis map | primary CTA is inside the bottom sheet; playback and navigation are absent from the sheet zone; measured CTA/drawer/nav overlap is false and horizontal overflow is 0 | single decision surface without stacked card chrome — PASS |
+| `visual-v2-mobile-rebellion.png` | industrial crisis place, red front contours, and rebellion notice | factual crisis is visible on the map before reading the notice; label count is 3; event, map, pressure chip, and bottom navigation remain separated | concentrated crisis signal, no translucent overlay soup — PASS |
+
+Final local visual hard-bar count: **0**.
+
+## Browser and authority gates
+
+- local browser smoke: `3x` selected, playback started, deterministic `REBELLION_STARTED` reached at tick 19, crisis remained visible on the actual map, and automatic crisis response changed playback to `1x` while the run continued.
+- final browser audit: speed-button hit targets all resolve to their buttons; desktop label count is 5; mobile label count is 3; horizontal overflow is 0; player-facing forbidden-term scan is empty.
+- contextual mixed shortlist remains derived from the production selector and retains the authoritative order recorded above.
+- event presentation remains derived from EventStore and only open PoliticalProposal records expose response actions; no WorldState direct mutation was introduced.
+- `pnpm vitest run --no-file-parallelism src/app/mapFirstComposition.test.ts src/presentation/mapArchitecture.test.ts src/presentation/mapRuntime/geometry.test.ts src/presentation/mapVisualSystem.test.ts src/presentation/presentationState.test.ts`: 5 files / 30 tests PASS.
+- full `pnpm test`: 706 assertions passed; the runner exited 1 after four Vitest worker `onTaskUpdate` timeout errors. This runner result is recorded separately from the focused visual/UI gate.
 
 ## Final release
 
-- final hard fail count: NOT_RUN
-- build/smoke gate: NOT_RUN
+- final hard fail count: 0
+- build/smoke gate: local build PASS; local browser smoke PASS; production HTTP/browser smoke pending final source publish
 - production URL: `https://too-many-revolutions.leeje92.chatgpt.site`
-- production deployment: NOT_RUN
+- production access: public (existing Site retained; no new Site created)
+- production deployment: IN_PROGRESS
