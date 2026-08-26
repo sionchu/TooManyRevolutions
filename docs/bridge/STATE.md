@@ -28,7 +28,7 @@ WORLD_SCENE_MODEL: PASS
 ROADMAP_GRAPH_KERNEL: PASS
 QUALITATIVE_DEFAULT_HUD_DIRECTION: PASS
 REFERENCE_TRACEABILITY_METHOD: PASS
-PRODUCTION_CODE_CHECKPOINT: 31180d977e75e4646332678c36812abc30a3a7fd
+PRODUCTION_CODE_CHECKPOINT: 9befdf7aaee6eafe75a4601369a2624691a4a189
 REVIEWED_BRANCH_HEAD: 5594fe17c02b281b7f51ba2e05578190aa21d3bd
 ```
 
@@ -40,7 +40,7 @@ Preserve this work. Do not restart renderer selection or simulation architecture
 CURRENT_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
 CURRENT_TASK_STATUS: TARGETED_REWORK_REQUIRED / AUTHORIZED
 WORK_BRANCH: gamebuilders-product-surface-p0
-CURRENT_REWORK: SEMANTIC_WORLD_OBJECT_AND_ART_READABILITY
+CURRENT_REWORK: SEMANTIC_WORLD_OBJECT_AND_ART_READABILITY + CONTINUOUS_TERRAIN_AND_CONTENT_AUTHORING
 P0_PRODUCT_VISUAL_PASS: NO
 NEXT_AUTHORIZED_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
 ```
@@ -50,23 +50,37 @@ Review:
 
 Current addendum:
 - `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_SEMANTIC_WORLD_OBJECT_ART_REWORK_ADDENDUM.md`
+- `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_CONTINUOUS_TERRAIN_AND_CONTENT_AUTHORING_ADDENDUM.md`
 
-## Why product PASS is still withheld
+## Why final product PASS is still withheld
 
-Source inspection after the R3F rework found remaining product-level gaps:
-
-1. `ProjectLandmark` accepts `food | civic | industrial` but renders one generic project silhouette;
-2. capital/terrain/route proof exists, but authored settlement/POI object identity is still sparse;
-3. faction/conflict activity is spatially grounded but remains largely abstract ring/sphere/line language;
-4. route motion is present but channel-specific visual grammar is weak;
-5. fresh post-rework screenshots have not yet been independently accepted by ChatGPT.
-
-This is not an engine failure. It is a semantic world-object, visual language and game-readability pass on the accepted R3F architecture.
+The authorized semantic-world, continuous-terrain, and content-authoring
+rework is implemented, tested, and deployed. Exact public screenshots and
+hands-on measurements are preserved in the current result, but the bridge
+still requires ChatGPT's final product review. This state is not an engine or
+simulation-authority failure and does not authorize Gate 1F, V02, or a
+successor task.
 
 ## Current required markers
 
 ```text
 SEMANTIC_WORLD_OBJECT_REWORK: COMPLETE_OR_BLOCKED
+TITLE_BRIEFING_CONTENTREGISTRY_SOURCE: YES
+TITLE_BRIEFING_ADMIN_EDITABLE: YES
+TITLE_BRIEFING_LIVE_PREVIEW: YES
+AUTHORING_TIME_DRAFT_PIPELINE: YES
+RUNTIME_LLM_REQUIRED: NO
+DIRECT_PLAYER_COPY_ONLY_TITLE_BRIEFING: NO
+LOGICAL_HEX_RETAINED: YES
+ALWAYS_VISIBLE_HEX_GRID: NO
+CONTINUOUS_TERRAIN_READS_BEFORE_HEX: YES
+HEX_PILLAR_BOARD_LOOK_DOMINANT: NO
+HEX_SELECTION_CONTEXTUAL: YES
+COUNTRY_CONTROLLER_BOUNDARIES_STILL_READABLE: YES
+MOBILE_WORLD_STAGE_WIDTH_94PCT: PASS
+MOBILE_WORLD_STAGE_HEIGHT_62SVH: PASS
+MAP_WRAPPED_IN_LARGE_CONTENT_CARD: NO
+DEFAULT_HUD_DOMINATES_WORLD: NO
 R3F_PRODUCTION_RENDERER_RETAINED: YES
 WORLD_SCENE_MODEL_RETAINED: YES
 FOOD_CIVIC_INDUSTRIAL_SILHOUETTES_DISTINCT: YES

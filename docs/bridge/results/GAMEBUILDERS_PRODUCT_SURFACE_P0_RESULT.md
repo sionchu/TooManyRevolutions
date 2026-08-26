@@ -36,6 +36,156 @@ F05_SUCCESSOR_WORK: NOT_STARTED
 authorized world-stage rework evidence and preserves the bridge gate state;
 the next gate still requires its own review.
 
+## Current targeted rework: semantic world objects, continuous terrain, and content authoring
+
+This is the current result for the two authorized addenda. The exact
+production source used for the public deployment is:
+
+```text
+PRODUCTION_SOURCE_COMMIT: 9befdf7aaee6eafe75a4601369a2624691a4a189
+BRANCH: gamebuilders-product-surface-p0
+GITHUB_BRANCH_PUSH: PASS
+SITES_REDEPLOYED: YES
+```
+
+The accepted R3F renderer and renderer-neutral `WorldSceneModel` were kept.
+LandHex remains the logical/topological authority. The new terrain surface is
+a continuous vertex-coloured world substrate projected from the existing hex
+topology; visible hex outlines are emitted only for a selected hex, a faction
+controller, or a current front. The transparent hex mesh used for pointer
+hit-testing is not a visible pillar or board surface. No simulation, topology,
+EventStore, persistence, or runtime LLM authority was added.
+
+Title and opening briefing prose now resolve through stable
+`ContentRegistry` records. The baseline pack is an authoring-time generated
+draft and is static/reviewed at runtime. Content Studio can filter title and
+briefing records, edit full text, show baseline/draft diffs, live-preview the
+resolved title/briefing, export/import JSON patches, and reset local drafts.
+It deliberately has no direct GitHub write path. The deployed game no longer
+reads `PLAYER_COPY` directly as its only runtime source.
+
+### Current result markers
+
+```text
+TITLE_BRIEFING_CONTENTREGISTRY_SOURCE: YES
+TITLE_BRIEFING_ADMIN_EDITABLE: YES
+TITLE_BRIEFING_LIVE_PREVIEW: YES
+AUTHORING_TIME_DRAFT_PIPELINE: YES
+RUNTIME_LLM_REQUIRED: NO
+DIRECT_PLAYER_COPY_ONLY_TITLE_BRIEFING: NO
+LOGICAL_HEX_RETAINED: YES
+ALWAYS_VISIBLE_HEX_GRID: NO
+CONTINUOUS_TERRAIN_READS_BEFORE_HEX: YES
+HEX_PILLAR_BOARD_LOOK_DOMINANT: NO
+HEX_SELECTION_CONTEXTUAL: YES
+COUNTRY_CONTROLLER_BOUNDARIES_STILL_READABLE: YES
+MOBILE_WORLD_STAGE_WIDTH_94PCT: PASS
+MOBILE_WORLD_STAGE_HEIGHT_62SVH: PASS
+MAP_WRAPPED_IN_LARGE_CONTENT_CARD: NO
+DEFAULT_HUD_DOMINATES_WORLD: NO
+SEMANTIC_WORLD_OBJECT_REWORK: COMPLETE
+R3F_PRODUCTION_RENDERER_RETAINED: YES
+WORLD_SCENE_MODEL_RETAINED: YES
+FOOD_CIVIC_INDUSTRIAL_SILHOUETTES_DISTINCT: YES
+AUTHORED_POI_FAMILIES_RECOGNISABLE: YES
+REBELLION_LOCATABLE_WITHOUT_TEXT_IN_3S: YES
+CONTROLLER_CHANGE_VISIBLE_WITHOUT_CHRONICLE: YES
+ROUTE_CHANNELS_VISUALLY_DISTINCT: YES
+DAY0_LATE_WORLD_VISUALLY_DIFFERENT: YES
+ROADMAP_BRANCHES_READABLE_AT_GLANCE: YES
+RAW_DEBUG_TMI_LEAKAGE: NO
+MOBILE_WORLD_FIRST: PASS
+P0_PRODUCT_PASS: NOT_SELF_DECLARED
+GATE1F: NOT_READY
+V02: NOT_STARTED
+```
+
+### Exact deployed-source visual and interaction evidence
+
+All evidence below was captured from
+`https://too-many-revolutions-gamebuilders.leeje92.chatgpt.site` after
+deployment of `9befdf7aaee6eafe75a4601369a2624691a4a189`. PNGs are retained in
+`docs/bridge/results/evidence/`.
+
+| Evidence | Actual observation |
+| --- | --- |
+| Title / opening briefing | `tmr.screen.title` and `tmr.screen.opening-briefing`; visible copy resolved from stable `tmr.copy.title.*` and `tmr.copy.briefing.*` IDs |
+| Content Studio title | Edited `tmr.copy.title.tagline` to `정권이 흔들릴수록 국가는 선택을 기억한다.`; live preview matched; exported one-change JSON patch; reset afterward |
+| Content Studio briefing | Edited `tmr.copy.briefing.beat-1.body`; live preview matched; exported two-change JSON patch; reset afterward |
+| Day 0 | `selection=none`, `conflicts=0`, all 20 sampled controller kinds `country`; stage `1367.40625 × 695` at 1440×900; continuous terrain and authored objects visible |
+| Selected hex | Actual canvas selection resolved `gamebuilders.arken.industrial-north-west`; detail sheet showed `철산 공업주 · 아르켄 왕국` and the contextual selection affordance |
+| Day 90 | Actual `+30일` progression reached tick 90; `rebellion` conflict and 8 faction controller markers were present; red territory/front marks appeared contextually |
+| Project implementing | Actual `곡창 긴급 배급 확대` action advanced to tick 91; project surface showed `왕실 배급망 · 구현 중` and the map landmark was visible |
+| Project completed | Actual `+1일` progression reached tick 92; the same project showed `완료 흔적`, `완료 92일차 · 지도 흔적 유지` |
+| Late state | Actual visible `+30일` progression reached ticks 182, 362, 722, and 1082; ticks 362/722/1082 showed `rebellion` + `coup`, 12 faction controller markers, and the completed project trace |
+| Institutional Roadmap | Actual `결정` drawer showed 6 roadmap nodes and 3 graph edges; screenshot includes the graph and factual project traces |
+| Mobile | At 390×844, measured world stage `x=-7.5`, `width=390` (`100%`), `height=573.90625` (`67.998%` of viewport); no horizontal overflow was observed |
+
+Evidence filenames:
+
+```text
+GAMEBUILDERS_P0_TITLE.png
+GAMEBUILDERS_P0_BRIEFING.png
+GAMEBUILDERS_P0_DAY0_CONTINUOUS_TERRAIN.png
+GAMEBUILDERS_P0_SELECTED_HEX_CONTEXT.png
+GAMEBUILDERS_P0_DAY90_REBELLION_CONTROLLER.png
+GAMEBUILDERS_P0_PROJECT_IMPLEMENTING.png
+GAMEBUILDERS_P0_PROJECT_COMPLETED.png
+GAMEBUILDERS_P0_LATE_DAY1082.png
+GAMEBUILDERS_P0_ROADMAP.png
+GAMEBUILDERS_P0_CONTENT_STUDIO_TITLE_PREVIEW.png
+GAMEBUILDERS_P0_CONTENT_STUDIO_BRIEFING_PREVIEW.png
+GAMEBUILDERS_P0_MOBILE_DAY0_390x844.png
+```
+
+### Verification for the current source
+
+Passed checks:
+
+```text
+pnpm run format
+pnpm run typecheck
+pnpm run lint
+pnpm run build
+pnpm exec vitest run src/presentation/design/contentRegistry.test.ts src/presentation/worldSceneModel.test.ts src/presentation/worldSceneContent.test.ts src/app/gameplayReality.test.ts src/app/rendererDecision.test.ts src/app/mapFirstComposition.test.ts src/app/institutionalRoadmap.test.ts src/app/stateProjects.test.ts src/app/gamePresentation.test.ts --no-file-parallelism --reporter=verbose
+pnpm run inspect:t018
+pnpm run inspect:t021
+pnpm run inspect:t022
+pnpm run inspect:t023
+pnpm run inspect:t024
+pnpm run inspect:v01
+pnpm run inspect:f05fix13
+pnpm run inspect:f05fix14
+git diff --check
+```
+
+The focused suite passed with 9 files and 20 tests. The full suite collected
+81/81 test files and 600/600 passing assertions, but the process exited 1
+because Vitest reported four repeatable worker progress-RPC errors:
+`Error: [vitest-worker]: Timeout calling "onTaskUpdate"`. A
+`--pool=forks --maxWorkers=1 --minWorkers=1` rerun reproduced the same runner
+condition. There were no assertion failures; this remains
+`ASSERTIONS_PASS / RUNNER_EXIT_FAIL`, not a code assertion pass. The source
+was not changed to hide or bypass the runner error.
+
+### Sites provenance
+
+```text
+PUBLIC_URL: https://too-many-revolutions-gamebuilders.leeje92.chatgpt.site
+SITES_PROJECT: appgprj_6a8dd05a84688191b356030d05e3e198
+SITES_VERSION: 21
+SITES_VERSION_ID: appgprj_6a8dd05a84688191b356030d05e3e198~appgver_e49718310d2881919222518ff0951414
+DEPLOYED_SOURCE_COMMIT: 9befdf7aaee6eafe75a4601369a2624691a4a189
+LOCAL_ARCHIVE: C:\\Temp\\tmr-gamebuilders-9befdf7.tar.gz
+LOCAL_ARCHIVE_SHA256: 9D49F733DF912A3A4EC0977509CB0D87BC55357ADFBD34F50EC0294F25B81106
+SITES_ARCHIVE_CONTENT_HASH: sha256:a845e8ea292eed1300007b8915dc38f6d399925f6b607723d47ca4d845091366
+DEPLOYMENT_ID: appgdep_6a8e9def5c688191803a3bb7d71020c2
+DEPLOYMENT_STATUS: succeeded
+```
+
+The result closes only this authorized targeted rework. It does not declare
+P0 product PASS, Gate 1F PASS, or V02, and it does not start a successor task.
+
 ## Scope and synchronization
 
 The canonical task remained `REWORK_REQUIRED / AUTHORIZED` in
