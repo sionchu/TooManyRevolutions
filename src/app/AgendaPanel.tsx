@@ -1,4 +1,5 @@
 import { PLAYER_COPY } from "../presentation/design/copyRegistry.ko";
+import { TMR_ICON_IDS } from "../presentation/design/iconRegistry";
 import type {
   PrimaryAgenda,
   AgendaSeverityBand,
@@ -7,6 +8,7 @@ import type { RegionId } from "../sim/state/ids";
 import type { ScenarioDefinition } from "../sim/state/scenario";
 import { formatAmount } from "./gamePresentation";
 import { ConsolidationChecklist } from "./ConsolidationChecklist";
+import { TmrIcon } from "./icons/TmrIcon";
 import type { OrderConsolidationEligibilitySnapshot } from "../sim/systems/orderConsolidation";
 
 const SEVERITY_LABELS: Readonly<Record<AgendaSeverityBand, string>> = {
@@ -68,7 +70,14 @@ function AgendaCard({
           type="button"
           onClick={() => onFocusRegion?.(focusRegionId)}
         >
-          지도에서 보기 ↗
+          <TmrIcon
+            className="agenda-focus-icon"
+            iconId={TMR_ICON_IDS.ui.map}
+            size={16}
+            decorative
+            tone="accent"
+          />
+          <span>지도에서 보기</span>
         </button>
       )}
       <ul className="cause-list">

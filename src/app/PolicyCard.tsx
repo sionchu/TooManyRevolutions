@@ -4,8 +4,13 @@ import type {
   PolicyDefinition,
   PolicyState,
 } from "../sim/state/policy";
+import {
+  TMR_ICON_IDS,
+  type TmrIconId,
+} from "../presentation/design/iconRegistry";
 import type { RegionId } from "../sim/state/ids";
 import { RULE_LABELS, RULE_VALUE_LABELS } from "./gamePresentation";
+import { TmrIcon } from "./icons/TmrIcon";
 
 function failureLabel(reason: PolicyAvailabilityFailure): string {
   switch (reason) {
@@ -23,6 +28,23 @@ function policyChangeLabel(definition: PolicyDefinition): readonly string[] {
     ([rule, value]) =>
       `${RULE_LABELS[rule] ?? "제도"} → ${RULE_VALUE_LABELS[String(value)] ?? String(value)}`,
   );
+}
+
+export function policyIconId(definition: PolicyDefinition): TmrIconId {
+  const mutationRules = Object.keys(definition.ruleMutations);
+  if (mutationRules.includes("rulerVeto")) {
+    return TMR_ICON_IDS.politics.veto;
+  }
+  if (mutationRules.includes("suffrage")) {
+    return TMR_ICON_IDS.politics.suffrage;
+  }
+  if (
+    mutationRules.includes("productiveProperty") ||
+    mutationRules.includes("landOwnership")
+  ) {
+    return TMR_ICON_IDS.politics.property;
+  }
+  return TMR_ICON_IDS.politics.parliament;
 }
 
 export function PolicyCard({
@@ -43,6 +65,7 @@ export function PolicyCard({
   readonly onSubmit: (policyId: PolicyDefinition["id"]) => void;
 }) {
   const changes = policyChangeLabel(definition);
+  const iconId = policyIconId(definition);
   const status = availability.feasible ? "확정 가능" : "현재 보류";
 
   return (
@@ -91,7 +114,14 @@ export function PolicyCard({
           type="button"
           onClick={() => onSubmit(definition.id)}
         >
-          이 정책을 시행 <span aria-hidden="true">↗</span>
+          <TmrIcon
+            className="action-button-icon"
+            iconId={iconId}
+            size={20}
+            decorative
+            tone="accent"
+          />
+          <span>이 정책을 시행</span>
         </button>
       ) : (
         <p className="locked-reason" role="status">

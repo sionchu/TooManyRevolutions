@@ -1,4 +1,5 @@
 import { PLAYER_COPY } from "../presentation/design/copyRegistry.ko";
+import { TMR_ICON_IDS } from "../presentation/design/iconRegistry";
 import { deriveRegimeClassification } from "../sim/state/government";
 import type {
   InterventionDefinition,
@@ -24,6 +25,7 @@ import {
   RULE_LABELS,
   RULE_VALUE_LABELS,
 } from "./gamePresentation";
+import { TmrIcon } from "./icons/TmrIcon";
 
 export interface DecisionCandidate {
   readonly definition: InterventionDefinition;
@@ -78,9 +80,17 @@ export function DecisionPanel({
   return (
     <aside className="panel actions-panel">
       <div className="panel-heading">
-        <div>
-          <span className="eyebrow">{PLAYER_COPY.main.actionsEyebrow}</span>
-          <h2>{PLAYER_COPY.main.actionsTitle}</h2>
+        <div className="panel-heading-title">
+          <TmrIcon
+            iconId={TMR_ICON_IDS.ui.decision}
+            size={20}
+            decorative
+            tone="neutral"
+          />
+          <div>
+            <span className="eyebrow">{PLAYER_COPY.main.actionsEyebrow}</span>
+            <h2>{PLAYER_COPY.main.actionsTitle}</h2>
+          </div>
         </div>
         <span className="panel-count">{availableCount}개 가능</span>
       </div>
@@ -92,6 +102,13 @@ export function DecisionPanel({
       <StateProjectPanel projects={projects} onFocusRegion={onFocusProject} />
       <div className="decision-group">
         <div className="decision-group-heading">
+          <TmrIcon
+            className="decision-heading-icon"
+            iconId={TMR_ICON_IDS.politics.parliament}
+            size={20}
+            decorative
+            tone="neutral"
+          />
           <span className="eyebrow">법과 제도</span>
           <strong>실제 정책</strong>
         </div>
@@ -114,6 +131,13 @@ export function DecisionPanel({
       </div>
       <div className="decision-group">
         <div className="decision-group-heading">
+          <TmrIcon
+            className="decision-heading-icon"
+            iconId={TMR_ICON_IDS.ui.decision}
+            size={20}
+            decorative
+            tone="neutral"
+          />
           <span className="eyebrow">국가 집행</span>
           <strong>행정 개입</strong>
         </div>
@@ -135,7 +159,15 @@ export function DecisionPanel({
       </div>
       <div className="institution-box">
         <div className="panel-heading compact-heading">
-          <h2>현재 제도</h2>
+          <div className="panel-heading-title">
+            <TmrIcon
+              iconId={TMR_ICON_IDS.ui.governance}
+              size={20}
+              decorative
+              tone="neutral"
+            />
+            <h2>현재 제도</h2>
+          </div>
           {regime ? (
             <span className="derived-label">
               현재 읽기 · {REGIME_LABELS[regime.classification]}
