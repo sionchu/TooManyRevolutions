@@ -2591,3 +2591,40 @@ official F05 `PACING_EVENT_TYPES`. F05_FIX7 reports state-grounded
 reassessment separately from proposal decision load, then diagnoses repeated
 template-key reopening and response-mode dominance without adding cooldown,
 expiry, rejection memory, or a new suppression rule.
+
+# 19. GameBuilders P0 Product-Surface Boundary
+
+The GameBuilders P0 client is a thin presentation/orchestration layer over the
+existing authoritative simulation. The ownership contract is:
+
+```text
+WorldState / EventStore / ActionRecord / simulation time
+  -> pure presentation selectors and factual delta projections
+  -> React DOM drawers, Roadmap, Chronicle and Content Studio
+  -> one production world renderer (bounded PixiJS spike or SVG fallback)
+```
+
+The renderer consumes `PresentationState`, current authoritative conflict and
+controller state, and committed EventStore evidence. It never writes
+`WorldState`, `PolicyState`, faction/conflict fields, LandHex controllers,
+ActionRecord history or EventStore. A renderer animation clock may interpolate
+known presentation states but cannot advance simulation time; there is only one
+authoritative game clock.
+
+`WorldVisualDelta` is derived from before/after authoritative projections and
+recorded events. It can drive factual controller transitions, Region ideology
+patterns, route feedback, conflict focus, institutional feedback and approved
+project lifecycle visuals. `ChronicleDigest` groups and prioritizes those same
+facts while retaining source EventId provenance; it is not a second history.
+
+The Institutional Roadmap reads the existing policy graph and feasibility. It
+does not own unlock state or a progression currency. A State Project maps to an
+existing policy/intervention/action identity and derives active progress and
+completion from its real commitment/duration/history. Content Studio edits only
+stable player-facing content records and exports a JSON patch; it cannot change
+authoritative rules or save data.
+
+P0 may author additional demo ScenarioDefinition content for readable geography,
+but may not add fake armies/fronts/crowds, scheduled crises, a second conflict
+writer, persistence V9, F05 operational evidence/settlement runtime, Gate 1F or
+V02.

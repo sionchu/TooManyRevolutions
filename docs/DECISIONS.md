@@ -1986,3 +1986,68 @@ and official pacing event set remain unchanged. Gate 1F remains `NOT_READY`.
 Medium-high. Reverting the amendment requires restoring V3 rejection behavior,
 snapshot decoding, runtime provenance checks, and the lifecycle counterfactuals,
 but does not alter the underlying intervention or territorial contracts.
+
+## ADR-046 — GameBuilders P0 world-first presentation and content boundary
+
+**Date:** 2026-08-26
+**Status:** Accepted for `GAMEBUILDERS_PRODUCT_SURFACE_P0`
+
+### Problem
+
+The deployed P0 surface has real state changes but can still read as a
+dashboard of time controls, crisis text and raw history. The player needs a
+continuous map/world surface, a readable institutional direction, memorable
+accumulated consequences and editable player-facing copy without weakening the
+simulation authority boundary.
+
+### Decision
+
+- Make the political map the persistent primary playfield. Use compact HUD and
+  contextual drawers/sheets for Agenda, Chronicle, decisions and details; mobile
+  uses a map-first bottom-sheet composition.
+- Add `Institutional Roadmap` as a read model of actual policy prerequisites,
+  incompatibilities, institutional state and feasibility. It owns no unlock
+  currency, focus tree or hidden timer.
+- Map 2–4 State Project presentations only to existing Policy/Intervention
+  lifecycles. Derive progress and completion from their real commitment,
+  duration and event/history; leave a persistent trace only after real
+  completion.
+- Keep EventStore append-only and expose `ChronicleDigest` and
+  `WorldVisualDelta` as deterministic presentation projections with source
+  EventId provenance.
+- Run a bounded PixiJS v8 + React spike. If it is not deadline-safe, keep one
+  SVG production renderer and document the fallback; neither option owns a
+  second clock or mutates WorldState.
+- Provide a development-only stable-ID Content Studio with branch/variant
+  search, edit, validation, local draft and JSON patch import/export. Static
+  deployment does not claim direct GitHub writes.
+
+### Alternatives
+
+- keep the permanent card/dashboard composition;
+- add generic research or political mana to make progression visible;
+- fake project completion or scheduled visual events;
+- migrate the simulation into a second game engine;
+- expose raw EventStore churn as the primary Chronicle;
+- let a static Site commit Content Studio edits directly.
+
+### Reason
+
+The selected path improves player-observable history while preserving the
+accepted TypeScript simulation, ActionRecord, LandHex, EventStore and V8
+persistence contracts. It also keeps visual and content work replaceable and
+reviewable at the stable-ID boundary.
+
+### Consequences
+
+P0 acceptance requires hands-on Day 0/intermediate/late map evidence, mobile
+game-world composition, policy/project/Chronicle/Content Studio checks, and a
+documented renderer decision in addition to automated tests. Gate 1F remains
+`NOT_READY`, V02 remains `NOT_STARTED`, and F05 successor runtime work is out
+of scope.
+
+### Reversal cost
+
+Medium. The presentation selectors, registries and Content Studio can be
+replaced independently, while reversing the map composition after deployment
+would require another visual QA and Sites review.

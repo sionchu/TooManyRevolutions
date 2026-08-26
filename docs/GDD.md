@@ -1903,3 +1903,53 @@ Target internal scores:
 6. Competition / Release Polish
 
 Every gate must have an explicit acceptance checklist in the backlog/QA docs.
+
+---
+
+# 22. GameBuilders P0 Game Loop and World Feel Integration
+
+The current GameBuilders product surface uses the following durable loop:
+
+```text
+choose an institutional/state-building direction
+-> let time flow while the map remains legible
+-> observe ideology, factions, territory, conflicts, routes and projects
+-> intervene at consequential opportunities or threats
+-> leave visible institutional and spatial history
+-> make the next decision from the changed world
+```
+
+The persistent map is the primary playfield. On desktop it occupies the
+dominant viewport area; Agenda, Chronicle, decisions, region detail and foreign
+context open as compact overlays, drawers or sheets. Mobile keeps the map as
+the first meaningful viewport and does not stack the desktop dashboard.
+
+The following facts remain separate in presentation: legal owner, physical
+`LandHex.controller`, Region ideology influence, authoritative faction or
+organization presence, factual contact routes, active conflicts/fronts, and
+completed State Project traces. `Region.stateControl` remains administrative
+penetration and never becomes territorial ownership.
+
+`Institutional Roadmap` is a read-only view of real `PolicyDefinition`
+prerequisites, incompatibilities, current rules and feasibility. It has no
+research points, reform points, political mana, focus-tree authority or hidden
+unlock timer. A State Project is likewise a presentation of an existing
+Policy/Intervention commitment and completion lifecycle; progress and a
+landmark are shown only when the authoritative action supports them.
+
+`WorldVisualDelta` and `ChronicleDigest` are presentation projections. They may
+focus, interpolate, group and prioritize recorded state/event changes, but may
+not invent events, outcomes, units, fronts, projects or causal explanations.
+`EventStore` remains append-only and source EventIds remain inspectable.
+
+Content Studio is a development-only stable-ID editor for player-facing copy,
+including branch/variant metadata. It exports JSON patches for normal
+repository review and deployment; it does not write WorldState or pretend to
+commit directly to GitHub. A bounded PixiJS v8 renderer may own only the
+persistent visual map if the documented spike passes; otherwise the single SVG
+renderer remains the production path. Neither renderer owns simulation time or
+mutates authoritative state.
+
+These P0 presentation rules do not authorize persistence V9, generic political
+currency, scheduled crises, fake project completion, F05 successor runtime,
+Gate 1F approval or V02.

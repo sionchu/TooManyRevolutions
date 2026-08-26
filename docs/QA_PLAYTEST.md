@@ -1242,3 +1242,52 @@ Any feature that cannot contribute to this loop is lower priority for competitio
 - the five-year inspection reports post-intervention late state-grounded
   silence and does not treat frequent proposal prompts as pacing repair;
 - `pnpm run inspect:f05fix7` is the focused deterministic inspection.
+
+# 11. GameBuilders P0 World-First Review
+
+The P0 product review combines automated simulation evidence with hands-on
+player-observable checks. The following are required for the active
+GameBuilders surface:
+
+- routine ideology/faction/resource changes do not repeatedly auto-pause the
+  run; only consequential decisions or continuity/conflict transitions may
+  interrupt by default;
+- the map is the primary playfield, with legal owner, physical LandHex
+  controller, Region ideology, authoritative faction presence, factual routes,
+  active conflict and project traces visually distinct;
+- Day 0, an intermediate checkpoint and a late checkpoint are visibly
+  different before Chronicle/details are opened;
+- `Institutional Roadmap` nodes and edges come from real policy
+  prerequisites/incompatibilities/current feasibility, with no research or
+  political currency;
+- every State Project trace names its existing action/policy/intervention
+  source, uses its real commitment/duration/completion, and never creates a
+  second timer or fake event;
+- `WorldVisualDelta` is a pure projection of state/event changes and
+  `ChronicleDigest` groups factual low-level churn while retaining source
+  EventIds; EventStore remains unchanged and append-only;
+- the Content Studio can find, filter and edit a stable-ID branch/variant copy
+  entry, show diff/validation and Korean length feedback, persist/reset a local
+  draft, and import/export a JSON patch without touching runtime state;
+- desktop and mobile keep a map-first game composition with contextual sheets,
+  no horizontal overflow and no stacked admin-page default;
+- the final Site deployment uses the exact reviewed source commit.
+
+Record the following markers in the P0 result:
+
+```text
+ROUTINE_AUTO_PAUSE_DOMINATES_GAME_LOOP: NO / BLOCKED
+MAP_MAJOR_CHANGE_READABLE_WITHOUT_REPORT: YES / NO
+DAY_0_INTERMEDIATE_LATE_VISUAL_DIVERGENCE: PASS / FAIL
+INSTITUTIONAL_ROADMAP: PASS / BLOCKED
+STATE_PROJECT_PRESENTATION: PASS / PARTIAL_WITH_BLOCKER / FAIL
+WORLD_VISUAL_DELTA_PIPELINE: PASS / FAIL
+CHRONICLE_DIGEST: PASS / FAIL
+RENDERER_DECISION: PIXI / SVG_FALLBACK / BLOCKED
+CONTENT_STUDIO: PASS / FAIL
+CONTENT_BRANCH_VARIANT_EDITING: PASS / FAIL
+MOBILE_GAME_NATIVE_COMPOSITION: PASS / FAIL
+SITES_REDEPLOYED_FROM_REVIEWED_COMMIT: YES / NO
+GATE1F: NOT_READY
+V02: NOT_STARTED
+```

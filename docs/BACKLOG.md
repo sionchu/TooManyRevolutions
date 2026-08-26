@@ -1649,3 +1649,37 @@ Acceptance candidates:
 - do not enable automatic task spawning in the first spike
 
 Status: future development-tooling spike only. DX01 is not started by this patch.
+
+# Current GameBuilders P0 Game-Loop Queue
+
+The active P0 queue is ordered and must be completed without self-authorizing
+Gate 1F, V02 or F05 successor work:
+
+1. **Documentation alignment** — integrate the active game-loop, renderer,
+   progression, Chronicle and Content Studio contracts into this canonical
+   backlog and the companion GDD, architecture, decisions and QA documents.
+2. **Gameplay Reality** — preserve the common ActionProposal boundary while
+   carrying valid system proposals, enabling the existing ideology diffusion
+   hook, separating legal owner from physical controller, keeping active
+   conflicts visible, exposing real policies, and auditing observable dynamics.
+3. **Loop audit** — keep routine ideology, faction and resource changes flowing
+   without dominant modal auto-pause; reserve interruption for consequential
+   decisions and state transitions.
+4. **ChronicleDigest** — group low-level factual events, prioritize major
+   territorial/institutional/conflict/project history, and preserve EventId
+   drill-down without changing EventStore.
+5. **Renderer and world stage** — run the bounded PixiJS spike, choose one
+   production renderer, fill the map bounds, provide camera/factual feedback,
+   and keep the map/world surface primary on desktop and mobile.
+6. **Institutional Roadmap and State Projects** — visualize real policy graph
+   state and project only defensible existing intervention/policy lifecycles;
+   never add research currency, a second timer or fake completion.
+7. **Content Studio and integrated QA** — expose stable-ID branch/variant copy
+   editing, patch import/export and validation separately from gameplay, then
+   run responsive hands-on QA, deploy the exact reviewed source, and update the
+   P0 result.
+
+Acceptance requires map-first player-observable evidence as well as tests:
+routine auto-pause must not dominate, Day 0/intermediate/late worlds must be
+visibly distinct, policy/project traces and Chronicle provenance must be
+understandable, and the Site must be rebuilt from the final reviewed commit.
