@@ -13,10 +13,12 @@ import {
   deserializeSimulationSnapshot,
   serializeSimulationSnapshotJson,
 } from "../sim/core/persistence";
-import { F04D_VALIDATION_INTERVENTION_IDS } from "../sim/state/gate1fValidationFixture";
+import {
+  GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS,
+  GAMEBUILDERS_PRODUCTION_POLICY_IDS,
+} from "../sim/state/gameBuildersDecisionCatalog";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
 import { INTERVENTION_FIXTURE_IDS } from "../sim/state/interventionFixture";
-import { POLICY_FIXTURE_IDS } from "../sim/state/policyFixture";
 
 describe("GameBuilders demo runtime boundary", () => {
   it("starts from a deterministic named run", () => {
@@ -29,7 +31,7 @@ describe("GameBuilders demo runtime boundary", () => {
     const initial = createDemoRunRecord();
     const started = submitIntervention(
       initial,
-      F04D_VALIDATION_INTERVENTION_IDS.materialRelief,
+      GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.emergencyFoodDistribution,
     );
 
     expect(started.world.tick).toBe(1);
@@ -64,7 +66,12 @@ describe("GameBuilders demo runtime boundary", () => {
       GAMEBUILDERS_DEMO_SCENARIO.interventionCatalog,
     );
 
-    expect(interventionIds).toHaveLength(4);
+    expect(interventionIds).toHaveLength(8);
+    expect(
+      interventionIds.every((id) =>
+        id.startsWith("gamebuilders.intervention."),
+      ),
+    ).toBe(true);
     expect(interventionIds).not.toContain(INTERVENTION_FIXTURE_IDS.long);
     expect(interventionIds).not.toContain(
       INTERVENTION_FIXTURE_IDS.prerequisite,
@@ -80,12 +87,12 @@ describe("GameBuilders demo runtime boundary", () => {
     const initial = createDemoRunRecord();
     const afterFirstAction = submitIntervention(
       initial,
-      F04D_VALIDATION_INTERVENTION_IDS.oppositionLegalization,
+      GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.oppositionLegalization,
     );
     const matured = advanceDemoRecord(afterFirstAction, 15);
     const afterRejectedAction = submitIntervention(
       matured,
-      F04D_VALIDATION_INTERVENTION_IDS.oppositionLegalization,
+      GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.oppositionLegalization,
     );
 
     expect(
@@ -113,7 +120,7 @@ describe("GameBuilders demo runtime boundary", () => {
     const pending = [...afterPoliticalCheckpoint.pendingSystemProposals];
     const playerFirst = submitRuntimePolicy(
       afterPoliticalCheckpoint,
-      POLICY_FIXTURE_IDS.abolishRoyalVeto,
+      GAMEBUILDERS_PRODUCTION_POLICY_IDS.legislativeOversight,
     );
     const acceptedAtNextTick = playerFirst.world.run.actionLog.filter(
       (action) => action.tick === afterPoliticalCheckpoint.world.tick + 1,
@@ -136,7 +143,7 @@ describe("GameBuilders demo runtime boundary", () => {
   it("runs real policy actions and the existing ideology diffusion hook", () => {
     const policyRun = submitRuntimePolicy(
       createDemoRuntimeState(),
-      POLICY_FIXTURE_IDS.abolishRoyalVeto,
+      GAMEBUILDERS_PRODUCTION_POLICY_IDS.legislativeOversight,
     );
     expect(
       policyRun.eventStore.events.some(

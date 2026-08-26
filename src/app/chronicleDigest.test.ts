@@ -5,6 +5,7 @@ import {
   GAMEBUILDERS_DEMO_REGION_IDS,
   GAMEBUILDERS_DEMO_SCENARIO,
 } from "../sim/state/gameBuildersDemoScenario";
+import { GAMEBUILDERS_PRODUCTION_POLICY_IDS } from "../sim/state/gameBuildersDecisionCatalog";
 import { IDEOLOGY_FIXTURE_IDS } from "../sim/state/ideologyFixture";
 import { deriveChronicleDigest } from "./chronicleDigest";
 
@@ -43,7 +44,9 @@ describe("ChronicleDigest", () => {
         sequence: 6,
         type: "POLICY_ENACTED",
         causeIds: [],
-        payload: { policyId: "fixture.abolish-royal-veto" },
+        payload: {
+          policyId: GAMEBUILDERS_PRODUCTION_POLICY_IDS.legislativeOversight,
+        },
         visibility: "important",
       }),
     ];

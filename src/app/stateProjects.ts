@@ -1,6 +1,6 @@
 import type { GameEvent } from "../sim/events/event";
 import type { InterventionDefinition } from "../sim/state/intervention";
-import { F04D_VALIDATION_INTERVENTION_IDS } from "../sim/state/gate1fValidationFixture";
+import { GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS } from "../sim/state/gameBuildersDecisionCatalog";
 import type { CountryId, InterventionId, RegionId } from "../sim/state/ids";
 import type { ScenarioDefinition } from "../sim/state/scenario";
 import type { WorldState } from "../sim/state/world";
@@ -30,7 +30,8 @@ export const STATE_PROJECT_CATALOG: readonly StateProjectDefinition[] = [
     id: "tmr.project.arken.granary-network",
     name: "왕실 배급망",
     description: "실제 식량 공급 개입이 남기는 공업·배급 거점입니다.",
-    sourceInterventionId: F04D_VALIDATION_INTERVENTION_IDS.materialRelief,
+    sourceInterventionId:
+      GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.emergencyFoodDistribution,
     landmarkKind: "food",
   },
   {
@@ -38,7 +39,7 @@ export const STATE_PROJECT_CATALOG: readonly StateProjectDefinition[] = [
     name: "산업 협의회",
     description: "실제 정치 타협 개입이 남기는 산업 지역의 제도 흔적입니다.",
     sourceInterventionId:
-      F04D_VALIDATION_INTERVENTION_IDS.politicalAccommodation,
+      GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.politicalAccommodation,
     landmarkKind: "industrial",
   },
   {
@@ -46,7 +47,7 @@ export const STATE_PROJECT_CATALOG: readonly StateProjectDefinition[] = [
     name: "헌정 회의소",
     description: "실제 야권 합법화 개입이 남기는 수도의 제도 흔적입니다.",
     sourceInterventionId:
-      F04D_VALIDATION_INTERVENTION_IDS.oppositionLegalization,
+      GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.oppositionLegalization,
     landmarkKind: "civic",
   },
 ] as const;
