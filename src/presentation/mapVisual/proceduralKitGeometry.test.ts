@@ -61,6 +61,9 @@ describe("PROCEDURAL_WORLD_ART_KITS", () => {
       expect(kit.primitives.map((primitive) => primitive.id)).toEqual(
         expect.arrayContaining(kit.primitives.map((primitive) => primitive.id)),
       );
+      expect(
+        new Set(kit.primitives.map((primitive) => primitive.id)).size,
+      ).toBe(kit.primitives.length);
       for (const primitive of kit.primitives) {
         expect(primitive.size.every((value) => value > 0)).toBe(true);
         expect(
