@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { derivePresentationState } from "../presentation/presentationState";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
-import { POLICY_FIXTURE_IDS } from "../sim/state/policyFixture";
+import { GAMEBUILDERS_PRODUCTION_POLICY_IDS } from "../sim/state/gameBuildersDecisionCatalog";
 import {
   advanceDemoRuntime,
   createDemoRuntimeState,
@@ -15,7 +15,7 @@ describe("WorldVisualDelta", () => {
     const initial = createDemoRuntimeState();
     const policyRun = submitRuntimePolicy(
       initial,
-      POLICY_FIXTURE_IDS.abolishRoyalVeto,
+      GAMEBUILDERS_PRODUCTION_POLICY_IDS.legislativeOversight,
     );
     const policyDeltas = deriveWorldVisualDeltas({
       previous: derivePresentationState(

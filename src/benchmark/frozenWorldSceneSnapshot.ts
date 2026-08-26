@@ -4,7 +4,7 @@ import {
   createDemoRuntimeState,
   submitRuntimeIntervention,
 } from "../app/demoGame";
-import { F04D_VALIDATION_INTERVENTION_IDS } from "../sim/state/gate1fValidationFixture";
+import { GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS } from "../sim/state/gameBuildersDecisionCatalog";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
 import { derivePresentationState } from "../presentation/presentationState";
 import {
@@ -22,7 +22,7 @@ export interface FrozenWorldSceneBenchmarkSnapshot {
 const initialRuntime = createDemoRuntimeState();
 const actionRuntime = submitRuntimeIntervention(
   initialRuntime,
-  F04D_VALIDATION_INTERVENTION_IDS.materialRelief,
+  GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.emergencyFoodDistribution,
 );
 const lateRuntime = advanceDemoRuntime(actionRuntime, 89);
 const beforePresentation = derivePresentationState(

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { F04D_VALIDATION_INTERVENTION_IDS } from "../sim/state/gate1fValidationFixture";
+import { GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS } from "../sim/state/gameBuildersDecisionCatalog";
 import {
   advanceDemoRuntime,
   createDemoRuntimeState,
@@ -14,7 +14,7 @@ describe("state project presentation", () => {
     const initial = createDemoRuntimeState();
     const started = submitRuntimeIntervention(
       initial,
-      F04D_VALIDATION_INTERVENTION_IDS.materialRelief,
+      GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.emergencyFoodDistribution,
     );
     const implementing = deriveStateProjectPresentations(
       GAMEBUILDERS_DEMO_SCENARIO,
@@ -24,7 +24,7 @@ describe("state project presentation", () => {
     const material = implementing.find(
       (project) =>
         project.sourceInterventionId ===
-        F04D_VALIDATION_INTERVENTION_IDS.materialRelief,
+        GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.emergencyFoodDistribution,
     );
     expect(material?.status).toBe("implementing");
     expect(material?.startedTick).toBe(1);
@@ -39,7 +39,7 @@ describe("state project presentation", () => {
     const completedMaterial = completedProjects.find(
       (project) =>
         project.sourceInterventionId ===
-        F04D_VALIDATION_INTERVENTION_IDS.materialRelief,
+        GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.emergencyFoodDistribution,
     );
     expect(completedMaterial?.status).toBe("completed");
     expect(completedMaterial?.progress).toBe(1);

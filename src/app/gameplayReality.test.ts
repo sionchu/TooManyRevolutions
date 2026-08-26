@@ -16,6 +16,7 @@ import {
   GAMEBUILDERS_DEMO_REGION_IDS,
   GAMEBUILDERS_DEMO_SCENARIO,
 } from "../sim/state/gameBuildersDemoScenario";
+import { GAMEBUILDERS_PRODUCTION_POLICY_IDS } from "../sim/state/gameBuildersDecisionCatalog";
 import { asConflictId } from "../sim/state/ids";
 import { IDEOLOGY_FIXTURE_IDS } from "../sim/state/ideologyFixture";
 import { createInitialWorldState } from "../sim/state/world";
@@ -96,7 +97,9 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
         sequence: 1,
         type: "POLICY_ENACTED",
         causeIds: [],
-        payload: { policyId: "fixture.abolish-royal-veto" },
+        payload: {
+          policyId: GAMEBUILDERS_PRODUCTION_POLICY_IDS.legislativeOversight,
+        },
         visibility: "world",
       }),
       createGameEvent({

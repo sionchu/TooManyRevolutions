@@ -5,8 +5,8 @@ import type { GameEvent } from "../sim/events/event";
 import { evaluateInterventionFeasibility } from "../sim/state/intervention";
 import type { Faction } from "../sim/state/faction";
 import type { CountryId, InterventionId } from "../sim/state/ids";
+import { GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS } from "../sim/state/gameBuildersDecisionCatalog";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
-import { F04D_VALIDATION_INTERVENTION_IDS } from "../sim/state/gate1fValidationFixture";
 import {
   advanceDemoRecord,
   createDemoRunRecord,
@@ -56,22 +56,24 @@ const TRAJECTORIES: ReadonlyArray<{
   { id: "A-no-action", description: "no player action" },
   {
     id: "B-material-relief",
-    actionId: F04D_VALIDATION_INTERVENTION_IDS.materialRelief,
+    actionId:
+      GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.emergencyFoodDistribution,
     description: "material/economic relief-oriented response",
   },
   {
     id: "C-political-accommodation",
-    actionId: F04D_VALIDATION_INTERVENTION_IDS.politicalAccommodation,
+    actionId: GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.politicalAccommodation,
     description: "political accommodation response",
   },
   {
     id: "D-legalization",
-    actionId: F04D_VALIDATION_INTERVENTION_IDS.oppositionLegalization,
+    actionId: GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.oppositionLegalization,
     description: "legalization-oriented response",
   },
   {
     id: "E-coercive-restriction",
-    actionId: F04D_VALIDATION_INTERVENTION_IDS.coerciveRestriction,
+    actionId:
+      GAMEBUILDERS_PRODUCTION_INTERVENTION_IDS.coercivePoliticalRestriction,
     description: "coercive/restrictive response",
   },
 ];

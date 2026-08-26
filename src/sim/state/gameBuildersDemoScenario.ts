@@ -1,8 +1,8 @@
+import { createF04DValidationScenario } from "./gate1fValidationFixture";
 import {
-  F04D_VALIDATION_INTERVENTION_IDS,
-  createF04DValidationScenario,
-} from "./gate1fValidationFixture";
-import { INTERVENTION_FIXTURE_IDS } from "./interventionFixture";
+  createGameBuildersProductionInterventionCatalog,
+  GAMEBUILDERS_PRODUCTION_POLICY_CATALOG,
+} from "./gameBuildersDecisionCatalog";
 import {
   asContactEdgeId,
   asCountryId,
@@ -291,6 +291,9 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
   const capital = base.initialRegions[0];
   const industrial = base.initialRegions[1];
   const baseGovernment = base.initialGovernments[0];
+  const laborFaction = base.initialFactions.find((faction) =>
+    faction.interests.includes("labor"),
+  );
   const basePolicy = playerCountry
     ? base.initialCountryPolicies[playerCountry.id]
     : undefined;
@@ -300,6 +303,7 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
     capital === undefined ||
     industrial === undefined ||
     baseGovernment === undefined ||
+    laborFaction === undefined ||
     basePolicy === undefined
   ) {
     throw new Error("GameBuilders demo base scenario is incomplete.");
@@ -479,16 +483,6 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
     [karsenId]: clonePolicy(basePolicy),
   };
 
-  const interventionNames: Readonly<Record<string, string>> = {
-    [F04D_VALIDATION_INTERVENTION_IDS.materialRelief]: "곡창 긴급 배급 확대",
-    [F04D_VALIDATION_INTERVENTION_IDS.politicalAccommodation]:
-      "노동자회와 제한적 정치 타협",
-    [F04D_VALIDATION_INTERVENTION_IDS.oppositionLegalization]:
-      "독립 야권 합법화",
-    [F04D_VALIDATION_INTERVENTION_IDS.coerciveRestriction]:
-      "야권 집회·언론 활동 제한",
-  };
-
   return {
     ...base,
     id: asScenarioId("gamebuilders.demo"),
@@ -518,6 +512,7 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
       name: index === 0 ? "국가 수비 평의회" : "철산 노동자회",
     })),
     initialCountryPolicies: neighborPolicies,
+    policyCatalog: GAMEBUILDERS_PRODUCTION_POLICY_CATALOG,
     mapContactTopology: {
       regionIds: [...baseRegionIds, ...neighborRegionIds],
       contactEdges: [
@@ -559,21 +554,11 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
         ...DEMO_LAND_HEXES,
       ],
     },
-    interventionCatalog: Object.fromEntries(
-      Object.entries(base.interventionCatalog)
-        .filter(
-          ([id]) =>
-            id !== INTERVENTION_FIXTURE_IDS.long &&
-            id !== INTERVENTION_FIXTURE_IDS.prerequisite,
-        )
-        .map(([id, definition]) => [
-          id,
-          {
-            ...definition,
-            name: interventionNames[id] ?? definition.name,
-          },
-        ]),
-    ) as ScenarioDefinition["interventionCatalog"],
+    interventionCatalog: createGameBuildersProductionInterventionCatalog({
+      capitalRegionId: capital.id,
+      industrialRegionId: industrial.id,
+      laborFactionId: laborFaction.id,
+    }),
   };
 }
 
