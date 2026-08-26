@@ -1,119 +1,190 @@
 # TMR Current Bridge Task
 
 TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
-STATUS: TARGETED_REWORK_REQUIRED / AUTHORIZED
+STATUS: TARGETED_MAP_REWORK_REQUIRED / AUTHORIZED
 WORK_BRANCH: gamebuilders-product-surface-p0
-REVIEWED_IMPLEMENTATION_HEAD: 5594fe17c02b281b7f51ba2e05578190aa21d3bd
-ENGINE_REWORK_REVIEW: docs/P0_WORLD_STAGE_REWORK_CODE_REVIEW_2026-08-26.md
-CURRENT_REWORK_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_SEMANTIC_WORLD_OBJECT_ART_REWORK_ADDENDUM.md
-CONTINUOUS_TERRAIN_CONTENT_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_CONTINUOUS_TERRAIN_AND_CONTENT_AUTHORING_ADDENDUM.md
-PREVIOUS_ENGINE_REWORK_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_WORLD_STAGE_ENGINE_REFERENCE_REWORK_ADDENDUM.md
+REVIEWED_BRANCH_HEAD: f6c3c2bbb03a516d081b859c01838a447d3caacc
+REVIEWED_DEPLOYED_SOURCE: 9befdf7aaee6eafe75a4601369a2624691a4a189
+PRODUCT_REVIEW: docs/P0_CONTINUOUS_WORLD_PRODUCT_REVIEW_2026-08-26.md
+MAP_ARCHITECTURE_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_WORLD_ARCHITECTURE_AND_AUTHORING_ADDENDUM.md
+SEMANTIC_WORLD_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_SEMANTIC_WORLD_OBJECT_ART_REWORK_ADDENDUM.md
+CONTENT_TERRAIN_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_CONTINUOUS_TERRAIN_AND_CONTENT_AUTHORING_ADDENDUM.md
 RESULT_PATH: docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md
 
 ## ChatGPT gate decision
 
-The R3F/WorldSceneModel rework is accepted as an engineering/architecture checkpoint. P0 product visual acceptance is still withheld.
+The latest implementation closes the content-authoring architecture but does not pass the map/world product gate.
 
 ```text
-REAL_RENDERER_BENCHMARK: PASS
-THREE_R3F_PRODUCTION_RENDERER: PASS
-WORLD_SCENE_MODEL: PASS
-INSTITUTIONAL_ROADMAP_GRAPH_KERNEL: PASS
-QUALITATIVE_HUD_DIRECTION: PASS
-REFERENCE_TRACEABILITY_METHOD: PASS
-P0_PRODUCT_VISUAL_PASS: NO
-NEXT_REWORK: SEMANTIC_WORLD_OBJECT + CONTINUOUS_TERRAIN + CONTENT_AUTHORING
+TITLE_BRIEFING_CONTENT_AUTHORING_PIPELINE: PASS / RETAIN
+TITLE_BRIEFING_BASELINE_COPY: DRAFT / USER_EDIT_REQUIRED
+R3F_PRODUCTION_RENDERER: PASS / RETAIN
+WORLD_SCENE_MODEL: PASS / RETAIN
+AUTHORED_POI_AND_SEMANTIC_OBJECT_KERNEL: PASS / RETAIN
+P0_MAP_PRODUCT_PASS: NO
+PRIMARY_BLOCKER: MAP_HIERARCHY + GEOGRAPHY + CAMERA + LOD + HUD
 GATE1F: NOT_READY
 V02: NOT_STARTED
 ```
 
-Do not reopen engine selection or replace R3F unless a demonstrated regression blocker exists.
+Do not reopen Content Studio architecture, renderer selection, simulation authority, or persistence.
 
-## Latest hands-on findings
+## Why the current map still fails product review
 
-In addition to the semantic-object graybox gaps, the latest mobile review adds two explicit corrections:
+Hands-on desktop/mobile review found:
 
-1. **Title/briefing copy:** current prose is not clear enough to justify hand-polishing as fixed source text. Treat title/opening copy as generated/imported authoring-time draft content with stable IDs, then let the user refine it through Content Studio and patch it back to the repo. `TitleScreen` / `OpeningBriefing` must not depend only on direct `PLAYER_COPY` reads.
-2. **Hex/map presentation:** LandHex remains the authoritative logical/topological unit, but normal production art must not look like raised individual hex tokens. The Civilization/strategy-game reference is `hex underneath, continuous terrain/world above`. Hex outlines should be contextual, not always dominant.
-3. **Map viewport:** the map is too narrow on mobile. The map tab must use almost the full safe-area width and a large fraction of the viewport height; the world must not sit inside a large bordered card with HUD and explanation taking prime space.
+1. the world-stage container is large, but the actual world content is a small cluster surrounded by empty olive space;
+2. current `TerrainWorldSurface` is still generated one logical-hex triangle fan at a time and does not read as authored geography;
+3. rebellion/controller changes re-expose many complete hex perimeters, restoring a board-game/token look;
+4. ideology/influence rings remain too prominent as board markers rather than geography-embedded political influence;
+5. authored POIs and project objects exist, but they are too small at the default camera to define the world;
+6. mobile still full-fits too much theater and keeps too much HUD above the map;
+7. map content is source-authored but not yet manageable through a dedicated map authoring workflow.
 
-## Mandatory execution
+Reference interpretation is now:
 
-Read in this order:
+```text
+RTK XIV -> logical HEX under Area/City Region/City-Port-Gate hierarchy
+HOI4    -> terrain base + political/front/logistics overlays + zoom/map-mode hierarchy
+Plague/Rebel Inc -> persistent geography-first playfield + spatial hotspots/routes
+TMR     -> LandHex remains authority but must become a hidden interaction substrate
+```
+
+## Mandatory execution order
+
+Read:
 
 1. root `AGENTS.md`
 2. `docs/GDD.md`
 3. `docs/ARCHITECTURE.md`
 4. `docs/QA_PLAYTEST.md`
-5. `docs/P0_WORLD_STAGE_REWORK_CODE_REVIEW_2026-08-26.md`
-6. `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_SEMANTIC_WORLD_OBJECT_ART_REWORK_ADDENDUM.md`
-7. `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_CONTINUOUS_TERRAIN_AND_CONTENT_AUTHORING_ADDENDUM.md`
-8. previous P0 task/addenda only as preserved constraints where not superseded
+5. `docs/P0_CONTINUOUS_WORLD_PRODUCT_REVIEW_2026-08-26.md`
+6. `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_WORLD_ARCHITECTURE_AND_AUTHORING_ADDENDUM.md`
+7. current semantic-world/content addenda as preserved constraints
 
-Then implement both current targeted addenda as one coherent product pass.
+Then perform only the targeted map pass.
 
 ## Preserve completed work
 
-Keep unless regression evidence proves otherwise:
-
-- accepted TypeScript simulation/action/time authority;
+- TypeScript simulation/action/time authority;
+- LandHex logical/topological authority;
 - V8 persistence/replay;
-- gameplay-reality fixes;
-- ChronicleDigest and Content Studio kernels;
-- R3F + Three production renderer;
+- R3F production renderer;
 - renderer-neutral `WorldSceneModel`;
-- Pixi comparison benchmark as historical evidence only;
-- current Institutional Roadmap node/edge graph kernel;
-- qualitative default metric direction;
-- state-project lifecycle derivation;
-- WorldVisualDelta derivation.
+- Content Registry / Content Studio / JSON patch workflow;
+- title/briefing stable-ID runtime resolution;
+- authored POI/institution metadata;
+- state-project semantic object families;
+- ChronicleDigest;
+- real route/contact state;
+- controller/Conflict/front truth;
+- Institutional Roadmap graph kernel.
 
-## Required content-authoring outcomes
+## Current implementation targets
+
+### 1. Continuous geography
+
+Stop using one visible independent hex fan as the primary terrain concept. Build shared/snap-keyed adjacent terrain vertices into one or a small number of continuous triangulated meshes. Logical LandHex hit areas remain separate and invisible.
+
+### 2. Political boundary extraction
 
 ```text
-TITLE_BRIEFING_CONTENTREGISTRY_SOURCE: YES
-TITLE_BRIEFING_ADMIN_EDITABLE: YES
-TITLE_BRIEFING_LIVE_PREVIEW: YES_OR_DOCUMENTED_LIMIT
-AUTHORING_TIME_DRAFT_PIPELINE: YES
-RUNTIME_LLM_REQUIRED: NO
-DIRECT_PLAYER_COPY_ONLY_TITLE_BRIEFING: NO
+same owner/controller across adjacent cells -> no internal edge
+different owner/controller -> boundary segment
+faction-controlled cells -> merged territory surface / outer perimeter
+front -> controller-difference boundary segments only
+selected/target cell -> full hex outline allowed
 ```
 
-The baseline prose may be generated by ChatGPT/Codex during authoring or imported as a draft pack. Production gameplay remains static/reviewed content; no runtime AI dependency is required.
+Do not show every rebel/controller hex as a complete outlined token.
 
-## Required map / terrain outcomes
+### 3. Ideology on geography
+
+Replace dominant torus/ring markers with Region surface tint/pattern/decal/gradient/noise treatment. Rings are allowed only as temporary selection/focus cues.
+
+### 4. Camera / occupancy
+
+Desktop whole-theater fit is allowed only when actual world content fills the stage. Mobile portrait defaults to player-country core + immediate border context, with `전체 보기` as an explicit global-fit action.
+
+### 5. Map LOD
 
 ```text
-LOGICAL_HEX_RETAINED: YES
-ALWAYS_VISIBLE_HEX_GRID: NO
-CONTINUOUS_TERRAIN_READS_BEFORE_HEX: YES
-HEX_PILLAR_BOARD_LOOK_DOMINANT: NO
-HEX_SELECTION_CONTEXTUAL: YES
-COUNTRY_CONTROLLER_BOUNDARIES_STILL_READABLE: YES
-MOBILE_WORLD_STAGE_WIDTH_94PCT: PASS
-MOBILE_WORLD_STAGE_HEIGHT_62SVH: PASS_OR_BROWSER_CONSTRAINT_DOCUMENTED
-MAP_WRAPPED_IN_LARGE_CONTENT_CARD: NO
+far    -> geography, polity labels, capitals, major crisis
+medium -> Region identity, POIs, routes, projects, controller/front
+near   -> selected LandHex, minor POIs, fine activity/detail
 ```
 
-The normal screenshot should look like a world that happens to use hex topology, not a stack of hex pieces.
+Do not render all labels/objects at every zoom.
 
-## Required semantic-world outcomes
+### 6. Mobile HUD reduction
+
+Persistent mobile map screen:
+
+- compact country/date;
+- play/pause/speed;
+- at most 2–3 high-value qualitative status cues;
+- one urgent alert if needed.
+
+Move exact values, `+1/+7/+30`, sound/title return, auto-pause explanation and secondary state to drawers/settings/details.
+
+### 7. Map Studio foundation
+
+Create development-only `?mapStudio=1` for map authoring/management.
+
+Required modes:
+
+- topology inspect (read-only in P0);
+- geography/terrain authoring;
+- POI/institution placement;
+- political snapshot preview;
+- camera preset editing;
+- Day0/rebellion/project/late snapshot preview;
+- validation;
+- MapPatch v1 JSON import/export.
+
+No direct Map Studio -> GitHub write path.
+
+## Map architecture
 
 ```text
-SEMANTIC_WORLD_OBJECT_REWORK: COMPLETE_OR_BLOCKED
-R3F_PRODUCTION_RENDERER_RETAINED: YES
-WORLD_SCENE_MODEL_RETAINED: YES
-FOOD_CIVIC_INDUSTRIAL_SILHOUETTES_DISTINCT: YES
-AUTHORED_POI_FAMILIES_RECOGNISABLE: YES
-REBELLION_LOCATABLE_WITHOUT_TEXT_IN_3S: YES
-CONTROLLER_CHANGE_VISIBLE_WITHOUT_CHRONICLE: YES
-ROUTE_CHANNELS_VISUALLY_DISTINCT: YES
-DAY0_LATE_WORLD_VISUALLY_DIFFERENT: YES
-ROADMAP_BRANCHES_READABLE_AT_GLANCE: YES
-DEFAULT_HUD_DOMINATES_GAZE: NO
-RAW_DEBUG_TMI_LEAKAGE: NO
-MOBILE_WORLD_FIRST: PASS
-SITES_REDEPLOYED: YES_IF_PRODUCTION_CHANGED
+MapTopologyDefinition  [authoritative]
+-> MapGeographyDefinition [authored presentation + truth-linked geography]
+-> MapSemanticContent     [authored POI/institutions]
+-> MapPoliticalProjection [runtime derived]
+-> MapActivityProjection  [runtime derived]
+-> MapViewPreset          [presentation]
+-> MapStyleDefinition     [presentation]
+-> R3F
+```
+
+Every visual item must remain classifiable as:
+
+```text
+AUTHORITATIVE_PROJECTION
+DERIVED_PRESENTATION
+DECORATIVE_SUBSTRATE
+```
+
+## Acceptance markers
+
+```text
+MAP_ARCHITECTURE_LAYERING: PASS
+MAP_STUDIO_FOUNDATION: YES_OR_EXACT_BLOCKER
+CONTINUOUS_SHARED_TERRAIN_MESH: YES
+NORMAL_INTERNAL_HEX_GRID_VISIBLE: NO
+FACTION_TERRITORY_OUTER_BOUNDARY_ONLY: YES
+FRONT_BOUNDARY_SEGMENTS_ONLY: YES
+IDEOLOGY_BOARD_RING_DOMINANT: NO
+MAP_VIEW_PRESETS: YES
+MOBILE_DEFAULT_CAMERA_PLAYER_THEATER: YES
+WORLD_CONTENT_OCCUPANCY_DESKTOP_WIDTH: >=75%
+WORLD_CONTENT_OCCUPANCY_DESKTOP_HEIGHT: >=55%
+WORLD_CONTENT_OCCUPANCY_MOBILE_WIDTH: >=88%
+FIRST_MOBILE_VIEWPORT_WORLD_SHARE: >=60%
+PERSISTENT_MOBILE_STATUS_CUES: <=3
+MAP_LOD_POLICY: IMPLEMENTED
+POI_OBJECTS_READ_BEFORE_LABELS: YES
+TITLE_BRIEFING_CONTENT_AUTHORING_PIPELINE: RETAINED
 P0_PRODUCT_PASS: NOT_SELF_DECLARED
 GATE1F: NOT_READY
 V02: NOT_STARTED
@@ -121,37 +192,32 @@ V02: NOT_STARTED
 
 ## Required visual evidence
 
-Capture from the exact deployed source commit:
+From the exact deployed source commit:
 
-- Day 0 continuous world with hex grid not dominant;
-- same world with one selected hex showing contextual grid affordance;
-- first rebellion/territorial change;
-- project implementing;
-- project completed;
-- late-state world;
-- Institutional Roadmap;
-- title screen + Content Studio title edit/preview;
-- briefing beat + Content Studio briefing edit/preview;
-- 390×844 mobile world-first screen with actual world-stage width/height measurement.
-
-Automated tests alone cannot close this task.
+- desktop Day 0 with world-content occupancy measurement;
+- mobile default player-theater camera;
+- selected single hex contextual outline;
+- rebellion showing merged occupied area/front rather than full-cell grid;
+- ideology surface treatment without dominant rings;
+- project implementing/completed;
+- late state;
+- Map Studio geography/POI/camera view;
+- 390×844 first viewport showing >=60% world share.
 
 ## Hard boundaries
 
-- no simulation/topology rewrite;
-- no replacement of LandHex authority;
-- no renderer migration without demonstrated blocker;
-- no runtime LLM dependency for production gameplay;
-- no fake direct Content Studio -> GitHub write path;
-- no exact army/cargo/person locations absent from state;
-- no new tactical/unit simulation just for decoration;
-- no fake project progress/completion;
-- no generic research/reform/political mana;
-- no scripted historical focus authority;
-- no direct renderer mutation of WorldState;
+- no renderer migration;
+- no LandHex/topology rewrite in this P0 map pass;
+- no LandHex-count increase merely for decoration;
+- no runtime LLM dependency;
+- no direct Map Studio or Content Studio GitHub write;
+- no invented army/cargo/person positions;
+- no decorative element that falsely implies unsupported mechanics;
+- no fake project lifecycle;
+- no generic research/political mana;
 - no persistence V9;
 - no Gate1F PASS;
 - no V02;
 - no successor self-authorization.
 
-Stop after implementing/testing/deploying this targeted rework and updating the result. ChatGPT performs the final product review.
+Stop after implementation/testing/deployment/result update. ChatGPT performs final product review.
