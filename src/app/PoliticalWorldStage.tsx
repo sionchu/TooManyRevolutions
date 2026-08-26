@@ -34,6 +34,7 @@ import {
 import {
   deriveMapVisualSystem,
   MAP_MATERIAL_SYSTEM,
+  selectIntegratedLandmarksForLod,
   type MapVisualSystem,
 } from "../presentation/mapVisualSystem";
 import {
@@ -331,35 +332,6 @@ function polygonPrismGeometry(
   return geometry;
 }
 
-function pyramidGeometry(
-  points: readonly PolygonPoint[],
-  height: number,
-): THREE.BufferGeometry {
-  const center = points.reduce(
-    (total, point) =>
-      [total[0] + point[0], total[1] + point[1]] as PolygonPoint,
-    [0, 0] as PolygonPoint,
-  );
-  const centerX = center[0] / points.length;
-  const centerZ = center[1] / points.length;
-  const vertices = points.flatMap(([x, z]) => [x, 0, z]);
-  vertices.push(centerX, height, centerZ);
-  const indices: number[] = [];
-  const apex = points.length;
-  for (let index = 0; index < points.length; index += 1) {
-    const next = (index + 1) % points.length;
-    indices.push(index, next, apex);
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(vertices, 3),
-  );
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
 function KitPrism({
   points,
   height,
@@ -391,31 +363,6 @@ function KitPrism({
   );
 }
 
-function KitPyramid({
-  points,
-  height,
-  color,
-}: {
-  readonly points: readonly PolygonPoint[];
-  readonly height: number;
-  readonly color: string;
-}) {
-  const geometry = useMemo(
-    () => pyramidGeometry(points, height),
-    [height, points],
-  );
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  return (
-    <mesh geometry={geometry}>
-      <meshStandardMaterial
-        color={color}
-        roughness={MAP_MATERIAL_SYSTEM.roughness}
-        metalness={MAP_MATERIAL_SYSTEM.metalness}
-      />
-    </mesh>
-  );
-}
-
 function ContactShadow({ scale = 1 }: { readonly scale?: number }) {
   return (
     <mesh
@@ -431,241 +378,6 @@ function ContactShadow({ scale = 1 }: { readonly scale?: number }) {
         depthWrite={false}
       />
     </mesh>
-  );
-}
-
-function UrbanClusterKit({ scale = 1 }: { readonly scale?: number }) {
-  const small = useMemo(
-    () =>
-      [
-        [-0.38, -0.22],
-        [-0.1, -0.32],
-        [0.18, -0.2],
-        [0.28, 0.12],
-        [-0.06, 0.26],
-        [-0.34, 0.14],
-      ] as const,
-    [],
-  );
-  const tall = useMemo(
-    () =>
-      [
-        [-0.18, -0.2],
-        [0.08, -0.24],
-        [0.22, 0.02],
-        [0.08, 0.22],
-        [-0.18, 0.16],
-        [-0.3, -0.02],
-      ] as const,
-    [],
-  );
-  return (
-    <group scale={[scale, scale, scale]}>
-      <ContactShadow scale={0.95} />
-      <KitPrism
-        points={small}
-        height={0.22}
-        color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
-      />
-      <KitPrism
-        points={tall}
-        height={0.38}
-        topScale={0.72}
-        color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
-      />
-      <KitPyramid
-        points={tall}
-        height={0.56}
-        color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
-      />
-    </group>
-  );
-}
-
-function CapitalPalaceKit({ scale = 1 }: { readonly scale?: number }) {
-  const body = useMemo(
-    () =>
-      [
-        [-0.5, -0.34],
-        [0.5, -0.34],
-        [0.4, 0.3],
-        [0.08, 0.42],
-        [-0.4, 0.3],
-      ] as const,
-    [],
-  );
-  const roof = useMemo(
-    () =>
-      [
-        [-0.4, -0.26],
-        [0.4, -0.26],
-        [0.3, 0.25],
-        [-0.3, 0.25],
-      ] as const,
-    [],
-  );
-  return (
-    <group scale={[scale, scale, scale]}>
-      <ContactShadow scale={1.25} />
-      <KitPrism
-        points={body}
-        height={0.42}
-        color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
-      />
-      <KitPyramid
-        points={roof}
-        height={0.3}
-        color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
-      />
-      <mesh position={[0, 0.65, 0]}>
-        <octahedronGeometry args={[0.14, 0]} />
-        <meshStandardMaterial
-          color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
-          roughness={0.92}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-function AssemblyKit({ scale = 1 }: { readonly scale?: number }) {
-  const hall = useMemo(
-    () =>
-      [
-        [-0.44, -0.25],
-        [0.44, -0.25],
-        [0.34, 0.26],
-        [-0.34, 0.26],
-      ] as const,
-    [],
-  );
-  return (
-    <group scale={[scale, scale, scale]}>
-      <ContactShadow scale={1.05} />
-      <KitPrism
-        points={hall}
-        height={0.4}
-        color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
-      />
-      <KitPyramid
-        points={hall}
-        height={0.28}
-        color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
-      />
-      <mesh position={[0, 0.53, 0]}>
-        <octahedronGeometry args={[0.12, 0]} />
-        <meshStandardMaterial
-          color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
-          roughness={0.92}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-function IndustryWorksKit({ scale = 1 }: { readonly scale?: number }) {
-  const works = useMemo(
-    () =>
-      [
-        [-0.52, -0.3],
-        [0.46, -0.3],
-        [0.52, 0.16],
-        [0.18, 0.3],
-        [-0.48, 0.18],
-      ] as const,
-    [],
-  );
-  return (
-    <group scale={[scale, scale, scale]}>
-      <ContactShadow scale={1.18} />
-      <KitPrism
-        points={works}
-        height={0.34}
-        topScale={0.86}
-        color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
-      />
-      <mesh position={[-0.18, 0.55, 0]}>
-        <cylinderGeometry args={[0.08, 0.11, 0.5, 7]} />
-        <meshStandardMaterial
-          color={MAP_MATERIAL_SYSTEM.terrainShadow}
-          roughness={0.98}
-        />
-      </mesh>
-      <mesh position={[0.22, 0.46, 0.05]}>
-        <cylinderGeometry args={[0.06, 0.08, 0.32, 7]} />
-        <meshStandardMaterial
-          color={MAP_MATERIAL_SYSTEM.terrainShadow}
-          roughness={0.98}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-function FieldsKit({ scale = 1 }: { readonly scale?: number }) {
-  const field = useMemo(
-    () =>
-      [
-        [-0.58, -0.28],
-        [0.55, -0.28],
-        [0.48, 0.24],
-        [-0.52, 0.24],
-      ] as const,
-    [],
-  );
-  return (
-    <group scale={[scale, scale, scale]}>
-      <ContactShadow scale={1.28} />
-      <KitPrism points={field} height={0.035} topScale={0.98} color="#b6a261" />
-      {[-0.28, -0.08, 0.12, 0.32].map((x) => (
-        <mesh key={x} position={[x, 0.045, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[0.05, 0.8]} />
-          <meshBasicMaterial
-            color="#d6c17b"
-            transparent
-            opacity={0.62}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-function FortGateKit({ scale = 1 }: { readonly scale?: number }) {
-  const wall = useMemo(
-    () =>
-      [
-        [-0.52, -0.3],
-        [0.52, -0.3],
-        [0.42, 0.3],
-        [-0.42, 0.3],
-      ] as const,
-    [],
-  );
-  return (
-    <group scale={[scale, scale, scale]}>
-      <ContactShadow scale={1.08} />
-      <KitPrism
-        points={wall}
-        height={0.22}
-        color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
-      />
-      <KitPyramid
-        points={wall}
-        height={0.48}
-        color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
-      />
-      <mesh position={[0, 0.2, -0.32]}>
-        <planeGeometry args={[0.24, 0.24]} />
-        <meshBasicMaterial
-          color="#b86d4d"
-          transparent
-          opacity={0.92}
-          depthWrite={false}
-        />
-      </mesh>
-    </group>
   );
 }
 
@@ -705,6 +417,10 @@ function IntegratedRegionArtLayer({
   readonly lodTier: MapLodTier;
 }) {
   const lod = compositionLodForMapLod(lodTier);
+  const visiblePlacements = selectIntegratedLandmarksForLod(
+    plan.placements,
+    lodTier,
+  );
   return (
     <group
       userData={{
@@ -713,7 +429,7 @@ function IntegratedRegionArtLayer({
         renderer: "ProceduralWorldArtKitRenderer",
       }}
     >
-      {plan.placements.map((placement) => (
+      {visiblePlacements.map((placement) => (
         <ProceduralWorldArtKitRenderer
           key={`${placement.regionId}:${placement.family}:${placement.assetId}`}
           resolvedPlacement={placement}
@@ -895,6 +611,7 @@ function IdeologySurfaceLayer({
   readonly lodTier: MapLodTier;
 }) {
   if (lodTier === "far") return null;
+  const showDirectionalTreatment = lodTier === "near";
   const regionPolygons = (regionId: string) =>
     runtimeGeometry.regionSurfaces.filter(
       (polygon) => polygon.semanticKey === `region:${regionId}`,
@@ -907,12 +624,12 @@ function IdeologySurfaceLayer({
     architecture.political.factionTerritories.map((territory) => [
       territory.factionId,
       Math.min(
-        0.3,
+        0.22,
         0.11 +
           Math.max(
             ...architecture.activity.factionPresence
               .filter((presence) => presence.factionId === territory.factionId)
-              .map((presence) => presence.organization * 0.16),
+              .map((presence) => presence.organization * 0.1),
             0,
           ),
       ),
@@ -937,22 +654,24 @@ function IdeologySurfaceLayer({
               }
               opacity={
                 DEFAULT_MAP_STYLE.ideologySurfaceOpacity *
-                (0.55 + surface.support * 0.5)
+                (0.38 + surface.support * 0.3)
               }
               renderOrder={2}
             />
-            <SurfaceDirectionalTreatment
-              polygon={polygon}
-              color={
-                IDEOLOGY_SURFACE_COLORS[
-                  ideologySurfacePaletteIndex(surface.ideologyId)
-                ]
-              }
-              opacity={
-                0.12 + surface.radicalism * 0.22 + surface.organization * 0.12
-              }
-              patternIndex={ideologySurfacePaletteIndex(surface.ideologyId)}
-            />
+            {showDirectionalTreatment ? (
+              <SurfaceDirectionalTreatment
+                polygon={polygon}
+                color={
+                  IDEOLOGY_SURFACE_COLORS[
+                    ideologySurfacePaletteIndex(surface.ideologyId)
+                  ]
+                }
+                opacity={
+                  0.07 + surface.radicalism * 0.12 + surface.organization * 0.08
+                }
+                patternIndex={ideologySurfacePaletteIndex(surface.ideologyId)}
+              />
+            ) : null}
           </group>
         )),
       )}
@@ -1080,14 +799,14 @@ function BoundaryLayer({
         visibleOwnerSegments,
         DEFAULT_MAP_STYLE.ownerBoundaryColor,
         DEFAULT_MAP_STYLE.ownerBoundaryWidth,
-        0.52,
+        0.28,
         8,
       )}
       {renderSegments(
         visibleControllerSegments,
         DEFAULT_MAP_STYLE.controllerBoundaryColor,
         DEFAULT_MAP_STYLE.controllerBoundaryWidth,
-        0.84,
+        0.72,
         10,
       )}
       {renderSegments(
@@ -1282,282 +1001,6 @@ function Settlement({
   );
 }
 
-function LegacyPoiObject({
-  poi,
-}: {
-  readonly poi: WorldSceneModel["pois"][number];
-}) {
-  if (poi.kind === "port") {
-    return (
-      <group position={poi.position}>
-        <mesh position={[0, 0.04, 0]} rotation={[0, 0, Math.PI / 2]}>
-          <boxGeometry args={[0.82, 0.1, 0.16]} />
-          <meshStandardMaterial color="#765b46" roughness={1} />
-        </mesh>
-        <mesh position={[0.12, 0.34, 0]}>
-          <cylinderGeometry args={[0.035, 0.035, 0.64, 6]} />
-          <meshStandardMaterial color="#4c4038" roughness={1} />
-        </mesh>
-        <mesh position={[0.25, 0.49, 0]} rotation={[0, 0, -0.25]}>
-          <planeGeometry args={[0.24, 0.18]} />
-          <meshStandardMaterial color="#e2c875" side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[-0.22, 0.16, 0]}>
-          <boxGeometry args={[0.16, 0.26, 0.12]} />
-          <meshStandardMaterial color="#a86f4b" roughness={0.9} />
-        </mesh>
-      </group>
-    );
-  }
-  if (poi.kind === "mine") {
-    return (
-      <group position={poi.position}>
-        <mesh position={[0, 0.14, 0]}>
-          <boxGeometry args={[0.58, 0.24, 0.42]} />
-          <meshStandardMaterial color="#56515a" roughness={1} />
-        </mesh>
-        <mesh position={[0, 0.29, 0.2]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[0.15, 0.07, 6, 12, Math.PI]} />
-          <meshStandardMaterial color="#292932" roughness={1} />
-        </mesh>
-        <mesh position={[-0.18, 0.52, -0.02]}>
-          <cylinderGeometry args={[0.05, 0.07, 0.48, 6]} />
-          <meshStandardMaterial color="#35353d" roughness={1} />
-        </mesh>
-        <mesh position={[0.18, 0.45, -0.02]}>
-          <cylinderGeometry args={[0.04, 0.06, 0.32, 6]} />
-          <meshStandardMaterial color="#35353d" roughness={1} />
-        </mesh>
-      </group>
-    );
-  }
-  if (poi.kind === "fort") {
-    return (
-      <group position={poi.position}>
-        <mesh position={[0, 0.12, 0]}>
-          <boxGeometry args={[0.62, 0.24, 0.52]} />
-          <meshStandardMaterial color="#6c6670" roughness={1} />
-        </mesh>
-        {[
-          [-0.25, 0.34, -0.19],
-          [0.25, 0.34, -0.19],
-          [-0.25, 0.34, 0.19],
-          [0.25, 0.34, 0.19],
-        ].map(([x, y, z]) => (
-          <mesh key={`${x}:${z}`} position={[x, y, z]}>
-            <cylinderGeometry args={[0.09, 0.11, 0.42, 6]} />
-            <meshStandardMaterial color="#817985" roughness={1} />
-          </mesh>
-        ))}
-        <mesh position={[0, 0.45, 0]}>
-          <boxGeometry args={[0.08, 0.22, 0.08]} />
-          <meshStandardMaterial color="#d8b769" />
-        </mesh>
-      </group>
-    );
-  }
-  if (poi.kind === "granary") {
-    return (
-      <group position={poi.position}>
-        <mesh position={[-0.16, 0.2, 0]}>
-          <cylinderGeometry args={[0.16, 0.18, 0.4, 10]} />
-          <meshStandardMaterial color="#d2a45c" roughness={0.9} />
-        </mesh>
-        <mesh position={[0.16, 0.2, 0]}>
-          <cylinderGeometry args={[0.16, 0.18, 0.4, 10]} />
-          <meshStandardMaterial color="#c69050" roughness={0.9} />
-        </mesh>
-        <mesh position={[-0.16, 0.45, 0]}>
-          <coneGeometry args={[0.18, 0.18, 10]} />
-          <meshStandardMaterial color="#8d5439" roughness={0.9} />
-        </mesh>
-        <mesh position={[0.16, 0.45, 0]}>
-          <coneGeometry args={[0.18, 0.18, 10]} />
-          <meshStandardMaterial color="#8d5439" roughness={0.9} />
-        </mesh>
-      </group>
-    );
-  }
-  return (
-    <group position={poi.position}>
-      <mesh position={[0, 0.18, 0]}>
-        <boxGeometry args={[0.62, 0.36, 0.42]} />
-        <meshStandardMaterial color="#b38c67" roughness={0.9} />
-      </mesh>
-      {[-0.2, 0, 0.2].map((x) => (
-        <mesh key={x} position={[x, 0.42, 0.18]}>
-          <cylinderGeometry args={[0.035, 0.045, 0.3, 6]} />
-          <meshStandardMaterial color="#e4ce99" />
-        </mesh>
-      ))}
-      <mesh position={[0, 0.47, 0]}>
-        <coneGeometry args={[0.4, 0.2, 4]} />
-        <meshStandardMaterial color="#6f4b43" roughness={0.9} />
-      </mesh>
-    </group>
-  );
-}
-
-function PoiObject({ poi }: { readonly poi: WorldSceneModel["pois"][number] }) {
-  const port = useMemo(
-    () =>
-      [
-        [-0.62, -0.16],
-        [0.62, -0.16],
-        [0.48, 0.16],
-        [-0.48, 0.16],
-      ] as const,
-    [],
-  );
-  const mine = useMemo(
-    () =>
-      [
-        [-0.42, -0.3],
-        [0.38, -0.3],
-        [0.48, 0.12],
-        [0.1, 0.3],
-        [-0.44, 0.16],
-      ] as const,
-    [],
-  );
-  const fort = useMemo(
-    () =>
-      [
-        [-0.46, -0.3],
-        [0.46, -0.3],
-        [0.38, 0.3],
-        [-0.38, 0.3],
-      ] as const,
-    [],
-  );
-  const granary = useMemo(
-    () =>
-      [
-        [-0.32, -0.22],
-        [0.32, -0.22],
-        [0.32, 0.22],
-        [-0.32, 0.22],
-      ] as const,
-    [],
-  );
-  const assembly = useMemo(
-    () =>
-      [
-        [-0.5, -0.24],
-        [0.5, -0.24],
-        [0.34, 0.3],
-        [-0.34, 0.3],
-      ] as const,
-    [],
-  );
-  return (
-    <group
-      position={poi.position}
-      userData={{ assetId: `asset.poi.${poi.kind}` }}
-    >
-      <ContactShadow scale={0.84} />
-      {poi.kind === "port" ? (
-        <>
-          <KitPrism
-            points={port}
-            height={0.12}
-            color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
-          />
-          <mesh position={[0.3, 0.36, 0]}>
-            <cylinderGeometry args={[0.035, 0.05, 0.6, 7]} />
-            <meshStandardMaterial
-              color={MAP_MATERIAL_SYSTEM.terrainShadow}
-              roughness={0.98}
-            />
-          </mesh>
-          <mesh position={[0.38, 0.52, 0]} rotation={[0, 0, -0.2]}>
-            <planeGeometry args={[0.28, 0.2]} />
-            <meshStandardMaterial
-              color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
-              side={THREE.DoubleSide}
-              roughness={0.92}
-            />
-          </mesh>
-        </>
-      ) : poi.kind === "mine" ? (
-        <>
-          <KitPrism
-            points={mine}
-            height={0.28}
-            color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
-          />
-          <mesh position={[-0.18, 0.56, 0]}>
-            <cylinderGeometry args={[0.065, 0.09, 0.5, 7]} />
-            <meshStandardMaterial
-              color={MAP_MATERIAL_SYSTEM.terrainShadow}
-              roughness={0.98}
-            />
-          </mesh>
-          <mesh position={[0.2, 0.46, 0.04]}>
-            <cylinderGeometry args={[0.05, 0.075, 0.32, 7]} />
-            <meshStandardMaterial
-              color={MAP_MATERIAL_SYSTEM.terrainShadow}
-              roughness={0.98}
-            />
-          </mesh>
-        </>
-      ) : poi.kind === "fort" ? (
-        <>
-          <KitPrism
-            points={fort}
-            height={0.24}
-            color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
-          />
-          <KitPyramid
-            points={fort}
-            height={0.52}
-            color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
-          />
-          <mesh position={[0, 0.25, -0.32]}>
-            <planeGeometry args={[0.2, 0.24]} />
-            <meshBasicMaterial
-              color="#b86d4d"
-              transparent
-              opacity={0.92}
-              depthWrite={false}
-            />
-          </mesh>
-        </>
-      ) : poi.kind === "granary" ? (
-        <>
-          <KitPrism
-            points={granary}
-            height={0.32}
-            color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
-          />
-          <KitPyramid
-            points={granary}
-            height={0.54}
-            color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
-          />
-          <mesh position={[0, 0.36, 0.24]}>
-            <planeGeometry args={[0.14, 0.22]} />
-            <meshBasicMaterial color="#d7bf79" depthWrite={false} />
-          </mesh>
-        </>
-      ) : (
-        <>
-          <KitPrism
-            points={assembly}
-            height={0.38}
-            color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
-          />
-          <KitPyramid
-            points={assembly}
-            height={0.68}
-            color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
-          />
-        </>
-      )}
-    </group>
-  );
-}
-
 function ProceduralPoiObject({
   poi,
   lodTier,
@@ -1584,83 +1027,6 @@ function ProceduralPoiObject({
   );
 }
 
-function LegacyInstitutionLandmark({
-  landmark,
-}: {
-  readonly landmark: WorldSceneModel["institutions"][number];
-}) {
-  const capital = landmark.kind === "capital-seat";
-  return (
-    <group position={landmark.position}>
-      <mesh position={[0, 0.08, 0]}>
-        <boxGeometry
-          args={[capital ? 0.7 : 0.8, 0.16, capital ? 0.58 : 0.48]}
-        />
-        <meshStandardMaterial
-          color={capital ? "#8e684c" : "#a48661"}
-          roughness={0.9}
-        />
-      </mesh>
-      <mesh position={[0, 0.35, 0]}>
-        <boxGeometry
-          args={[capital ? 0.5 : 0.62, 0.48, capital ? 0.42 : 0.32]}
-        />
-        <meshStandardMaterial
-          color={capital ? "#d9bd82" : "#c9ad7a"}
-          roughness={0.86}
-        />
-      </mesh>
-      {capital ? (
-        <>
-          <mesh position={[-0.28, 0.42, 0]}>
-            <coneGeometry args={[0.12, 0.42, 6]} />
-            <meshStandardMaterial color="#6c4140" roughness={0.9} />
-          </mesh>
-          <mesh position={[0.28, 0.42, 0]}>
-            <coneGeometry args={[0.12, 0.42, 6]} />
-            <meshStandardMaterial color="#6c4140" roughness={0.9} />
-          </mesh>
-        </>
-      ) : (
-        [-0.22, 0, 0.22].map((x) => (
-          <mesh key={x} position={[x, 0.62, 0.18]}>
-            <cylinderGeometry args={[0.035, 0.045, 0.34, 6]} />
-            <meshStandardMaterial color="#f0d9a1" />
-          </mesh>
-        ))
-      )}
-      <mesh position={[0, 0.78, 0]}>
-        <boxGeometry args={[0.055, 0.28, 0.055]} />
-        <meshStandardMaterial color="#efd58f" />
-      </mesh>
-    </group>
-  );
-}
-
-function InstitutionLandmark({
-  landmark,
-}: {
-  readonly landmark: WorldSceneModel["institutions"][number];
-}) {
-  const capital = landmark.kind === "capital-seat";
-  return (
-    <group
-      position={landmark.position}
-      userData={{
-        assetId: capital
-          ? "asset.capital.palace"
-          : "asset.institution.assembly",
-      }}
-    >
-      {capital ? (
-        <CapitalPalaceKit scale={0.78} />
-      ) : (
-        <AssemblyKit scale={0.72} />
-      )}
-    </group>
-  );
-}
-
 function ProceduralInstitutionLandmark({
   landmark,
   lodTier,
@@ -1677,196 +1043,6 @@ function ProceduralInstitutionLandmark({
       lod={compositionLodForMapLod(lodTier)}
       scale={landmark.kind === "capital-seat" ? 0.78 : 0.72}
     />
-  );
-}
-
-function ProjectScaffold() {
-  return (
-    <group>
-      {[
-        [-0.34, 0.34, -0.24],
-        [0.34, 0.34, -0.24],
-        [-0.34, 0.34, 0.24],
-        [0.34, 0.34, 0.24],
-      ].map(([x, y, z]) => (
-        <mesh key={`${x}:${z}`} position={[x, y, z]}>
-          <boxGeometry args={[0.035, 0.7, 0.035]} />
-          <meshStandardMaterial color="#d98755" />
-        </mesh>
-      ))}
-      <mesh position={[0, 0.66, -0.24]}>
-        <boxGeometry args={[0.72, 0.035, 0.035]} />
-        <meshStandardMaterial color="#d98755" />
-      </mesh>
-      <mesh position={[0, 0.66, 0.24]}>
-        <boxGeometry args={[0.72, 0.035, 0.035]} />
-        <meshStandardMaterial color="#d98755" />
-      </mesh>
-    </group>
-  );
-}
-
-function LegacyProjectLandmark({
-  project,
-}: {
-  readonly project: WorldSceneModel["projects"][number];
-}) {
-  const color =
-    project.status === "completed"
-      ? "#e6c66d"
-      : project.status === "implementing"
-        ? "#d98755"
-        : "#8b9185";
-  if (project.status === "not-started") {
-    return (
-      <group position={project.position}>
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.26, 0.3, 8]} />
-          <meshBasicMaterial color="#8b9185" transparent opacity={0.7} />
-        </mesh>
-        {[-0.24, 0.24].map((x) => (
-          <mesh key={x} position={[x, 0.16, 0]}>
-            <boxGeometry args={[0.035, 0.28, 0.035]} />
-            <meshStandardMaterial color="#9a927d" />
-          </mesh>
-        ))}
-      </group>
-    );
-  }
-  const implementing = project.status === "implementing";
-  const surfaceProps = {
-    color,
-    roughness: 0.86,
-    transparent: implementing,
-    opacity: implementing ? 0.78 : 1,
-  };
-  return (
-    <group position={project.position}>
-      {project.silhouette === "granary" ? (
-        <>
-          <mesh position={[0, 0.12, 0]}>
-            <boxGeometry args={[0.7, 0.2, 0.5]} />
-            <meshStandardMaterial {...surfaceProps} />
-          </mesh>
-          {[-0.2, 0.2].map((x) => (
-            <mesh key={x} position={[x, 0.4, 0]}>
-              <cylinderGeometry args={[0.16, 0.18, 0.42, 10]} />
-              <meshStandardMaterial {...surfaceProps} />
-            </mesh>
-          ))}
-          <mesh position={[-0.2, 0.66, 0]}>
-            <coneGeometry args={[0.18, 0.18, 10]} />
-            <meshStandardMaterial color="#f5e3ae" roughness={0.8} />
-          </mesh>
-          <mesh position={[0.2, 0.66, 0]}>
-            <coneGeometry args={[0.18, 0.18, 10]} />
-            <meshStandardMaterial color="#f5e3ae" roughness={0.8} />
-          </mesh>
-        </>
-      ) : project.silhouette === "assembly-hall" ? (
-        <>
-          <mesh position={[0, 0.22, 0]}>
-            <boxGeometry args={[0.78, 0.42, 0.48]} />
-            <meshStandardMaterial {...surfaceProps} />
-          </mesh>
-          {[-0.25, 0, 0.25].map((x) => (
-            <mesh key={x} position={[x, 0.52, 0.25]}>
-              <cylinderGeometry args={[0.045, 0.055, 0.38, 8]} />
-              <meshStandardMaterial color="#f5e3ae" roughness={0.82} />
-            </mesh>
-          ))}
-          <mesh position={[0, 0.54, 0]}>
-            <coneGeometry args={[0.5, 0.24, 4]} />
-            <meshStandardMaterial color="#f5e3ae" roughness={0.8} />
-          </mesh>
-        </>
-      ) : (
-        <>
-          <mesh position={[0, 0.2, 0]}>
-            <boxGeometry args={[0.82, 0.4, 0.52]} />
-            <meshStandardMaterial {...surfaceProps} />
-          </mesh>
-          <mesh position={[-0.24, 0.58, -0.04]}>
-            <cylinderGeometry args={[0.06, 0.08, 0.58, 8]} />
-            <meshStandardMaterial color="#5c5050" roughness={1} />
-          </mesh>
-          <mesh position={[0.24, 0.5, -0.04]}>
-            <cylinderGeometry args={[0.05, 0.07, 0.42, 8]} />
-            <meshStandardMaterial color="#5c5050" roughness={1} />
-          </mesh>
-          <mesh position={[0, 0.48, 0.27]}>
-            <boxGeometry args={[0.48, 0.08, 0.08]} />
-            <meshStandardMaterial color="#f5e3ae" roughness={0.8} />
-          </mesh>
-        </>
-      )}
-      {implementing ? <ProjectScaffold /> : null}
-    </group>
-  );
-}
-
-function ConstructionFrameKit({ scale = 1 }: { readonly scale?: number }) {
-  const beam = useMemo(
-    () =>
-      [
-        [-0.07, -0.07],
-        [0.07, -0.07],
-        [0.07, 0.07],
-        [-0.07, 0.07],
-      ] as const,
-    [],
-  );
-  return (
-    <group scale={[scale, scale, scale]}>
-      {[
-        [-0.36, 0.34, -0.24],
-        [0.36, 0.34, -0.24],
-        [-0.36, 0.34, 0.24],
-        [0.36, 0.34, 0.24],
-      ].map(([x, y, z]) => (
-        <group key={`${x}:${z}`} position={[x, y, z]}>
-          <KitPrism points={beam} height={0.68} color="#d98755" />
-        </group>
-      ))}
-    </group>
-  );
-}
-
-function ProjectLandmark({
-  project,
-}: {
-  readonly project: WorldSceneModel["projects"][number];
-}) {
-  const baseScale = project.landmarkKind === "food" ? 0.84 : 0.8;
-  return (
-    <group
-      position={project.position}
-      userData={{ assetId: `asset.project.${project.landmarkKind}` }}
-    >
-      {project.status === "not-started" ? (
-        <>
-          <ContactShadow scale={0.7} />
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[0.24, 0.28, 12]} />
-            <meshBasicMaterial
-              color="#9b9b89"
-              transparent
-              opacity={0.56}
-              depthWrite={false}
-            />
-          </mesh>
-        </>
-      ) : project.landmarkKind === "food" ? (
-        <FieldsKit scale={baseScale} />
-      ) : project.landmarkKind === "civic" ? (
-        <AssemblyKit scale={baseScale} />
-      ) : (
-        <IndustryWorksKit scale={baseScale} />
-      )}
-      {project.status === "implementing" ? (
-        <ConstructionFrameKit scale={0.7} />
-      ) : null}
-    </group>
   );
 }
 
@@ -1894,25 +1070,6 @@ function ProceduralProjectLandmark({
   );
 }
 
-function FactionBanner({ position }: { readonly position: WorldScenePoint }) {
-  return (
-    <group position={[position[0], position[1] + 0.1, position[2]]}>
-      <mesh position={[0, 0.3, 0]}>
-        <cylinderGeometry args={[0.025, 0.025, 0.62, 6]} />
-        <meshStandardMaterial color="#4a3030" roughness={1} />
-      </mesh>
-      <mesh position={[0.12, 0.52, 0]}>
-        <boxGeometry args={[0.24, 0.16, 0.035]} />
-        <meshStandardMaterial color="#dd554f" roughness={0.86} />
-      </mesh>
-      <mesh position={[0, 0.08, 0]}>
-        <boxGeometry args={[0.32, 0.08, 0.28]} />
-        <meshStandardMaterial color="#6c4740" roughness={1} />
-      </mesh>
-    </group>
-  );
-}
-
 function ProceduralFactionBanner({
   position,
 }: {
@@ -1924,63 +1081,6 @@ function ProceduralFactionBanner({
       position={position}
       lod="micro"
     />
-  );
-}
-
-function LegacyConflictActivity({
-  conflict,
-}: {
-  readonly conflict: WorldSceneModel["conflicts"][number];
-}) {
-  if (conflict.visualKind === "rebellion-camp") {
-    return (
-      <group position={conflict.position}>
-        {[-0.2, 0.04, 0.27].map((x) => (
-          <mesh key={x} position={[x, 0.16, (x * 1.7) % 0.12]}>
-            <coneGeometry args={[0.14, 0.25, 5]} />
-            <meshStandardMaterial color="#8f4a3f" roughness={1} />
-          </mesh>
-        ))}
-        <mesh position={[0.32, 0.58, 0]}>
-          <sphereGeometry args={[0.1, 8, 8]} />
-          <meshBasicMaterial color="#a7a09a" transparent opacity={0.38} />
-        </mesh>
-        <mesh position={[0.38, 0.76, 0.02]}>
-          <sphereGeometry args={[0.07, 8, 8]} />
-          <meshBasicMaterial color="#b5aea4" transparent opacity={0.24} />
-        </mesh>
-      </group>
-    );
-  }
-  if (conflict.visualKind === "coup-beacon") {
-    return (
-      <group position={conflict.position}>
-        <mesh position={[0, 0.3, 0]}>
-          <cylinderGeometry args={[0.09, 0.13, 0.58, 6]} />
-          <meshStandardMaterial color="#55424c" roughness={1} />
-        </mesh>
-        <mesh position={[0, 0.69, 0]}>
-          <octahedronGeometry args={[0.16, 0]} />
-          <meshBasicMaterial color="#f3c66c" />
-        </mesh>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[0.45, 0.045, 6, 18]} />
-          <meshBasicMaterial color="#f0524d" transparent opacity={0.8} />
-        </mesh>
-      </group>
-    );
-  }
-  return (
-    <group position={conflict.position}>
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.44, 0.06, 6, 18]} />
-        <meshBasicMaterial color="#f0524d" />
-      </mesh>
-      <mesh position={[0, 0.25, 0]}>
-        <octahedronGeometry args={[0.18, 0]} />
-        <meshBasicMaterial color="#f3c66c" />
-      </mesh>
-    </group>
   );
 }
 
@@ -2084,6 +1184,7 @@ function WorldScene({
   );
   const showDetailedObjects = lodTier !== "far";
   const showMinorObjects = lodTier === "near";
+  const showRouteDetails = lodTier === "near";
   return (
     <>
       <color attach="background" args={[visualSystem.material.fogColor]} />
@@ -2149,12 +1250,14 @@ function WorldScene({
                 width={route.active ? 2 : 1}
                 dashed={route.visualKind === "migration-direction"}
               />
-              <RouteChannelGlyph
-                start={route.start}
-                end={route.end}
-                visualKind={route.visualKind}
-              />
-              {route.active ? (
+              {showRouteDetails ? (
+                <RouteChannelGlyph
+                  start={route.start}
+                  end={route.end}
+                  visualKind={route.visualKind}
+                />
+              ) : null}
+              {showRouteDetails && route.active ? (
                 <RoutePulse
                   start={route.start}
                   end={route.end}
@@ -2184,6 +1287,7 @@ function WorldScene({
               .filter(
                 (poi) =>
                   lodTier === "near" ||
+                  highlightedRegionIds.has(poi.regionId) ||
                   poi.kind === "port" ||
                   poi.kind === "mine" ||
                   poi.kind === "fort",
@@ -2204,6 +1308,8 @@ function WorldScene({
           ? model.institutions
               .filter(
                 (landmark) =>
+                  (lodTier === "near" ||
+                    highlightedRegionIds.has(landmark.regionId)) &&
                   !isEvidenceCoveredByRegionComposition(
                     integratedArtPlan,
                     landmark.regionId,
@@ -2222,6 +1328,8 @@ function WorldScene({
           ? model.projects
               .filter(
                 (project) =>
+                  (lodTier === "near" ||
+                    highlightedRegionIds.has(project.regionId)) &&
                   !isEvidenceCoveredByRegionComposition(
                     integratedArtPlan,
                     project.regionId,
@@ -2237,21 +1345,12 @@ function WorldScene({
               ))
           : null}
         {showMinorObjects && factionPresenceAnchors.length > 0
-          ? factionPresenceAnchors
-              .filter(
-                (presence) =>
-                  !isEvidenceCoveredByRegionComposition(
-                    integratedArtPlan,
-                    presence.regionId,
-                    presence.id,
-                  ),
-              )
-              .map((presence) => (
-                <ProceduralFactionBanner
-                  key={presence.id}
-                  position={presence.position}
-                />
-              ))
+          ? factionPresenceAnchors.map((presence) => (
+              <ProceduralFactionBanner
+                key={presence.id}
+                position={presence.position}
+              />
+            ))
           : null}
         {model.conflicts.map((conflict) => (
           <ConflictActivity key={conflict.id} conflict={conflict} />
@@ -2290,19 +1389,6 @@ function WorldScene({
     </>
   );
 }
-
-// Kept as a reference during this targeted art migration; production JSX uses
-// the authored procedural kit components above.
-void LegacyPoiObject;
-void LegacyInstitutionLandmark;
-void LegacyProjectLandmark;
-void LegacyConflictActivity;
-void UrbanClusterKit;
-void FortGateKit;
-void PoiObject;
-void InstitutionLandmark;
-void ProjectLandmark;
-void FactionBanner;
 
 function controllerLabel(
   kind: WorldSceneModel["hexes"][number]["controller"]["kind"],
@@ -2580,6 +1666,12 @@ export function PoliticalWorldStage({
     () => deriveMapVisualSystem(model, architecture, lodTier),
     [architecture, lodTier, model],
   );
+  const visibleIntegratedLandmarkCount = useMemo(
+    () =>
+      selectIntegratedLandmarksForLod(integratedArtPlan.placements, lodTier)
+        .length,
+    [integratedArtPlan.placements, lodTier],
+  );
   const renderedVisualSystem = labelsHidden
     ? { ...visualSystem, labels: [] as const }
     : visualSystem;
@@ -2610,6 +1702,9 @@ export function PoliticalWorldStage({
           data-map-integrated-kit-placement-count={
             integratedArtPlan.placements.length
           }
+          data-map-integrated-visible-landmark-count={
+            visibleIntegratedLandmarkCount
+          }
           data-map-integrated-kit-family-count={
             new Set(
               integratedArtPlan.placements.map((placement) => placement.family),
@@ -2624,6 +1719,12 @@ export function PoliticalWorldStage({
           data-map-icon-system="tmr-semantic-registry"
           data-land-hex-count={model.hexes.length}
           data-map-runtime-geometry="continuous-surface"
+          data-map-default-terrain-detail={
+            lodTier === "near" ? "visible" : "hidden"
+          }
+          data-map-directional-treatment={
+            lodTier === "near" ? "visible" : "hidden"
+          }
           data-map-runtime-polygon-count={
             runtimeGeometry.terrainMesh.polygonCount
           }
