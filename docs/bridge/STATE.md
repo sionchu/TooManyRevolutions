@@ -2,7 +2,7 @@
 
 UPDATED: 2026-08-26
 REPOSITORY: sionchu/TooManyRevolutions
-CURRENT_GATE: Gate 1F / PAUSED_FOR_GAMEBUILDERS_P0_WORLD_STAGE_REWORK
+CURRENT_GATE: Gate 1F / PAUSED_FOR_GAMEBUILDERS_P0_PRODUCT_REWORK
 GATE1F_CHATGPT_DECISION: NOT_READY
 V02: NOT_STARTED
 PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
@@ -15,56 +15,98 @@ F05_FIX1..F05_FIX24: accepted core progression
 GAMEBUILDERS_DEMO_SPRINT_01: TECHNICAL_PASS / ACCEPTED_AS_VERTICAL_SLICE
 ```
 
-## Current P0 review state
+## Accepted P0 engineering checkpoint
+
+The world-stage engine rework is accepted as an engineering/architecture checkpoint.
+
+```text
+R3F_ENGINE_INTEGRATION: PASS
+REAL_RENDERER_BENCHMARK: PASS
+SECOND_RENDERER_BENCHMARK: PASS (Pixi comparison only)
+WORLD_RENDERER_DECISION: THREE_R3F
+WORLD_SCENE_MODEL: PASS
+ROADMAP_GRAPH_KERNEL: PASS
+QUALITATIVE_DEFAULT_HUD_DIRECTION: PASS
+REFERENCE_TRACEABILITY_METHOD: PASS
+PRODUCTION_CODE_CHECKPOINT: 31180d977e75e4646332678c36812abc30a3a7fd
+REVIEWED_BRANCH_HEAD: 5594fe17c02b281b7f51ba2e05578190aa21d3bd
+```
+
+Preserve this work. Do not restart renderer selection or simulation architecture without a demonstrated blocker.
+
+## Current authorization
 
 ```text
 CURRENT_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
-CURRENT_TASK_STATUS: REWORK_REQUIRED / AUTHORIZED
+CURRENT_TASK_STATUS: TARGETED_REWORK_REQUIRED / AUTHORIZED
 WORK_BRANCH: gamebuilders-product-surface-p0
-REVIEWED_IMPLEMENTATION_HEAD: 267dd27a3cfae939e97d4c535a559f46f571a9a7
-P0_TECHNICAL_PROGRESS: RETAIN
-P0_PRODUCT_PASS: NO
-P0_WORLD_STAGE_REWORK: COMPLETE / AWAITING PRODUCT REVIEW
+CURRENT_REWORK: SEMANTIC_WORLD_OBJECT_AND_ART_READABILITY
+P0_PRODUCT_VISUAL_PASS: NO
+NEXT_AUTHORIZED_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
 ```
 
-## Current rework evidence
+Review:
+- `docs/P0_WORLD_STAGE_REWORK_CODE_REVIEW_2026-08-26.md`
+
+Current addendum:
+- `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_SEMANTIC_WORLD_OBJECT_ART_REWORK_ADDENDUM.md`
+
+## Why product PASS is still withheld
+
+Source inspection after the R3F rework found remaining product-level gaps:
+
+1. `ProjectLandmark` accepts `food | civic | industrial` but renders one generic project silhouette;
+2. capital/terrain/route proof exists, but authored settlement/POI object identity is still sparse;
+3. faction/conflict activity is spatially grounded but remains largely abstract ring/sphere/line language;
+4. route motion is present but channel-specific visual grammar is weak;
+5. fresh post-rework screenshots have not yet been independently accepted by ChatGPT.
+
+This is not an engine failure. It is a semantic world-object, visual language and game-readability pass on the accepted R3F architecture.
+
+## Current required markers
 
 ```text
-REFERENCE_TRACEABILITY_MATRIX: PASS
-THREE_R3F_SPIKE: PASS
-SECOND_RENDERER_SPIKE: PASS
-WORLD_RENDERER_DECISION: THREE_R3F
-WORLD_RENDERER_DECISION_EVIDENCE: PRESENT
-WORLD_SCENE_MODEL: YES
-2_5D_OR_ISOMETRIC_WORLD_STAGE: YES
-HEX_TERRAIN_READABLE: YES
-SETTLEMENT_POI_WORLD_OBJECTS: YES
-ROUTE_ACTIVITY_VISIBLE: YES
-REBELLION_CONFLICT_SPATIAL_ACTIVITY_VISIBLE: YES
-STATE_PROJECTS_READ_AS_WORLD_OBJECTS: YES
-INSTITUTIONAL_ROADMAP_IS_NODE_GRAPH: YES
-RAW_INTERNAL_IDS_ON_PLAYER_SURFACE: NO
-DEFAULT_EXACT_NUMBER_TMI_DOMINATES: NO
-MOBILE_WORLD_FIRST_VISUAL_QA: PASS
-SITES_REDEPLOYED: YES
+SEMANTIC_WORLD_OBJECT_REWORK: COMPLETE_OR_BLOCKED
+R3F_PRODUCTION_RENDERER_RETAINED: YES
+WORLD_SCENE_MODEL_RETAINED: YES
+FOOD_CIVIC_INDUSTRIAL_SILHOUETTES_DISTINCT: YES
+AUTHORED_POI_FAMILIES_RECOGNISABLE: YES
+REBELLION_LOCATABLE_WITHOUT_TEXT_IN_3S: YES
+CONTROLLER_CHANGE_VISIBLE_WITHOUT_CHRONICLE: YES
+ROUTE_CHANNELS_VISUALLY_DISTINCT: YES
+DAY0_LATE_WORLD_VISUALLY_DIFFERENT: YES
+ROADMAP_BRANCHES_READABLE_AT_GLANCE: YES
+DEFAULT_HUD_DOMINATES_GAZE: NO
+RAW_DEBUG_TMI_LEAKAGE: NO
+MOBILE_WORLD_FIRST: PASS
+SITES_REDEPLOYED: YES_IF_PRODUCTION_CHANGED
+P0_PRODUCT_PASS: NOT_SELF_DECLARED
 ```
 
-The implementation and deployed source checkpoint is
-`31180d977e75e4646332678c36812abc30a3a7fd`. The public Site version 20 was
-tested from that exact production code commit. The result document contains
-the benchmark measurements, long-horizon checkpoints, verification status,
-and deployment hashes.
+## Required human-visible evidence
+
+Fresh production screenshots must cover:
+
+- Day 0 world;
+- first rebellion/territorial change;
+- project implementing;
+- project completed;
+- late-state world;
+- Institutional Roadmap;
+- 390×844 mobile world-first view.
+
+Automated tests alone cannot close product acceptance.
 
 ## Preserved authority and boundaries
 
-- existing TypeScript simulation/action/time and EventStore remain
-  authoritative;
-- presentation uses `WorldSceneModel -> PoliticalWorldStage` and does not
-  write WorldState or create a second clock;
-- `SerializedSimulationSnapshotV8` remains the persistence boundary;
-- no simulation rewrite, invented army/front/cargo fact, generic political
-  currency, persistence V9, Gate 1F PASS, V02, or successor self-authorization.
-
-The full test runner collected 80 files / 598 passing assertions but exited 1
-after four Vitest worker `onTaskUpdate` timeouts. This remains recorded as
-`ASSERTIONS_PASS / RUNNER_EXIT_FAIL`, not as a hidden pass.
+- existing TypeScript simulation/action/time and EventStore remain authoritative;
+- R3F is a presentation consumer through `WorldSceneModel`;
+- no second authoritative renderer/game clock;
+- no direct renderer mutation of WorldState;
+- no exact army/cargo/person positions absent from state;
+- no fake project lifecycle;
+- `SerializedSimulationSnapshotV8` remains persistence authority;
+- no generic research/political mana;
+- no Gate 1F PASS;
+- no V02;
+- no successor self-authorization.
