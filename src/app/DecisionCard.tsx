@@ -1,4 +1,5 @@
 import { PLAYER_COPY } from "../presentation/design/copyRegistry.ko";
+import { TMR_ICON_IDS } from "../presentation/design/iconRegistry";
 import type {
   InterventionDefinition,
   InterventionEffect,
@@ -16,6 +17,7 @@ import {
   RULE_LABELS,
   RULE_VALUE_LABELS,
 } from "./gamePresentation";
+import { TmrIcon } from "./icons/TmrIcon";
 
 function currentObservation(
   effect: InterventionEffect,
@@ -195,7 +197,14 @@ export function DecisionCard({
           type="button"
           onClick={() => onSubmit(definition.id)}
         >
-          이 선택을 실행 <span aria-hidden="true">↗</span>
+          <TmrIcon
+            className="action-button-icon"
+            iconId={TMR_ICON_IDS.ui.decision}
+            size={20}
+            decorative
+            tone="accent"
+          />
+          <span>이 선택을 실행</span>
         </button>
       ) : (
         <p className="locked-reason" role="status">

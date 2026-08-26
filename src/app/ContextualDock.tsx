@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
 
+import {
+  TMR_ICON_IDS,
+  type TmrIconId,
+} from "../presentation/design/iconRegistry";
+import { TmrIcon } from "./icons/TmrIcon";
+
 export type ContextPanel =
   "map" | "agenda" | "decisions" | "region" | "chronicle";
 
@@ -12,6 +18,13 @@ const CONTEXT_TABS = [
   readonly id: Exclude<ContextPanel, "region">;
   readonly label: string;
 }>;
+
+const CONTEXT_TAB_ICONS = {
+  map: TMR_ICON_IDS.ui.map,
+  agenda: TMR_ICON_IDS.ui.governance,
+  decisions: TMR_ICON_IDS.ui.decision,
+  chronicle: TMR_ICON_IDS.ui.chronicle,
+} as const satisfies Record<Exclude<ContextPanel, "region">, TmrIconId>;
 
 const PANEL_TITLES: Readonly<Record<Exclude<ContextPanel, "map">, string>> = {
   agenda: "현재 국정",
@@ -56,7 +69,14 @@ export function ContextualDock({
               data-context-panel={tab.id}
               onClick={() => onSelectPanel(tab.id)}
             >
-              {tab.label}
+              <TmrIcon
+                className="context-tab-icon"
+                iconId={CONTEXT_TAB_ICONS[tab.id]}
+                size={20}
+                decorative
+                tone={isSelected ? "inverse" : "neutral"}
+              />
+              <span>{tab.label}</span>
             </button>
           );
         })}
@@ -69,9 +89,17 @@ export function ContextualDock({
           aria-label={PANEL_TITLES[activePanel]}
         >
           <div className="drawer-heading">
-            <div>
-              <span className="eyebrow">지도에서 호출한 정보</span>
-              <h2>{PANEL_TITLES[activePanel]}</h2>
+            <div className="drawer-heading-title">
+              <TmrIcon
+                iconId={TMR_ICON_IDS.ui.details}
+                size={20}
+                decorative
+                tone="neutral"
+              />
+              <div>
+                <span className="eyebrow">지도에서 호출한 정보</span>
+                <h2>{PANEL_TITLES[activePanel]}</h2>
+              </div>
             </div>
             <button
               className="drawer-close"

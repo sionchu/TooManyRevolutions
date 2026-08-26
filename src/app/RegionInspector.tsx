@@ -1,6 +1,8 @@
 import type { PresentationRegion } from "../presentation/presentationState";
+import { TMR_ICON_IDS } from "../presentation/design/iconRegistry";
 import type { ScenarioDefinition } from "../sim/state/scenario";
 import { countryName, formatAmount } from "./gamePresentation";
+import { TmrIcon } from "./icons/TmrIcon";
 
 function controllerLabel(kind: PresentationRegion["control"]["kind"]): string {
   switch (kind) {
@@ -31,8 +33,18 @@ export function RegionInspector({
   return (
     <div className="region-inspector" aria-live="polite">
       <div className="inspector-title">
-        <span className="eyebrow">선택 지역</span>
-        <h3>{region.name}</h3>
+        <div className="inspector-heading-row">
+          <TmrIcon
+            iconId={TMR_ICON_IDS.ui.details}
+            size={20}
+            decorative
+            tone="neutral"
+          />
+          <div>
+            <span className="eyebrow">선택 지역</span>
+            <h3>{region.name}</h3>
+          </div>
+        </div>
         <p className="inspector-owner">
           소유: {countryName(scenario, region.ownerCountryId)} · 물리 통제:{" "}
           {controllerLabel(region.control.kind)}

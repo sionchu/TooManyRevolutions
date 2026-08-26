@@ -2,6 +2,11 @@ import type { GameEvent } from "../sim/events/event";
 import type { PresentationConflict } from "../presentation/presentationState";
 import type { ScenarioDefinition } from "../sim/state/scenario";
 import { eventLabel } from "./gamePresentation";
+import {
+  crisisIconIdForConflictKind,
+  crisisIconIdForEvent,
+} from "./crisisIcon";
+import { TmrIcon } from "./icons/TmrIcon";
 
 function conflictKindLabel(kind: PresentationConflict["kind"]): string {
   switch (kind) {
@@ -46,6 +51,10 @@ export function CrisisBanner({
   const activeConflict = activeConflicts[0];
   if (activeConflict === undefined && event === undefined) return null;
   const mapped = event === undefined ? null : eventLabel(event, scenario);
+  const crisisIconId =
+    activeConflict === undefined
+      ? crisisIconIdForEvent(event)
+      : crisisIconIdForConflictKind(activeConflict.kind);
   const title =
     activeConflict === undefined
       ? (mapped?.title ?? "현재 사건")
@@ -60,8 +69,20 @@ export function CrisisBanner({
       role="status"
       aria-live="assertive"
       data-active-conflict-count={activeConflicts.length}
+      data-crisis-icon-id={crisisIconId ?? "none"}
     >
-      <span className="crisis-stamp">현재 사건</span>
+      <div className="crisis-stamp">
+        {crisisIconId === null ? null : (
+          <TmrIcon
+            className="crisis-banner-icon"
+            iconId={crisisIconId}
+            size={24}
+            decorative
+            tone="crisis"
+          />
+        )}
+        <span>현재 사건</span>
+      </div>
       <div>
         <strong>{title}</strong>
         <span>{detail}</span>
