@@ -1124,12 +1124,12 @@ export function deriveMapViewPresets(
     {
       id: "mobile.player-theater",
       label: "모바일 플레이어 극장",
-      x: player[0],
+      x: player[0] - 0.2,
       z: player[2],
       // The player theatre is intentionally tighter than the desktop world
       // fit so the first narrow viewport is occupied by actual geography,
       // while the separate full-world action remains available.
-      zoom: 2.15,
+      zoom: 1.62,
       minZoom: 0.95,
       maxZoom: 2.35,
       truthClass: "DERIVED_PRESENTATION",

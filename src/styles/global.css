@@ -4467,8 +4467,11 @@ body,
   display: grid;
   grid-column: auto;
   grid-row: auto;
-  grid-template-areas: "playback status slow jumps";
-  grid-template-columns: auto minmax(3.5rem, 1fr) auto auto;
+  grid-template-areas:
+    "playback slow jumps"
+    "status status status";
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  grid-template-rows: auto auto;
   align-items: center;
   min-width: 0;
   overflow: hidden;
@@ -5415,5 +5418,14 @@ body,
 
   .event-response-actions button {
     flex: 1 1 0;
+  }
+}
+
+@media (min-width: 761px) {
+  .map-first-shell .contextual-drawer .thesis-note {
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+    font-size: 0.64rem;
+    line-height: 1.3;
   }
 }

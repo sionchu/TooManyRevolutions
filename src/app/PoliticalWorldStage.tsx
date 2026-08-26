@@ -280,22 +280,25 @@ function SpriteLabel({
   const texture = useMemo(() => {
     if (typeof document === "undefined") return null;
     const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 96;
+    canvas.width = 2048;
+    canvas.height = 384;
     const context = canvas.getContext("2d");
     if (context === null) return null;
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.font = "700 34px Noto Serif KR, Georgia, serif";
+    context.font = "700 136px Noto Serif KR, Georgia, serif";
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.lineJoin = "round";
-    context.lineWidth = 10;
-    context.strokeStyle = "rgba(244, 234, 210, 0.92)";
+    context.lineWidth = 36;
+    context.strokeStyle = "rgba(16, 23, 20, 0.96)";
     context.strokeText(label, canvas.width / 2, canvas.height / 2);
     context.fillStyle = color;
     context.fillText(label, canvas.width / 2, canvas.height / 2);
     const nextTexture = new THREE.CanvasTexture(canvas);
     nextTexture.colorSpace = THREE.SRGBColorSpace;
+    nextTexture.minFilter = THREE.LinearFilter;
+    nextTexture.magFilter = THREE.LinearFilter;
+    nextTexture.generateMipmaps = false;
     return nextTexture;
   }, [color, label]);
   useEffect(
@@ -714,13 +717,21 @@ function screenSpaceLabels(
     if (projected.z < -1 || projected.z > 1) continue;
     const centerX = ((projected.x + 1) / 2) * width;
     const centerY = ((1 - projected.y) / 2) * height;
-    const textWidth = Math.max(44, [...label.text].length * 9 * label.scale);
+    const textWidth = Math.max(56, [...label.text].length * 12 * label.scale);
     const rect: MapScreenSpaceRect = {
       minX: centerX - textWidth / 2,
       maxX: centerX + textWidth / 2,
-      minY: centerY - 12,
-      maxY: centerY + 12,
+      minY: centerY - 16,
+      maxY: centerY + 16,
     };
+    if (
+      rect.minX < 8 ||
+      rect.maxX > width - 8 ||
+      rect.minY < 8 ||
+      rect.maxY > height - 8
+    ) {
+      continue;
+    }
     const collides = occupied.some(
       (other) =>
         rect.minX < other.maxX + 8 &&
@@ -1468,7 +1479,7 @@ function WorldScene({
               label={label.text}
               position={label.position}
               color={color}
-              scale={label.scale * 1.35 * DEFAULT_MAP_STYLE.labelScale[lodTier]}
+              scale={label.scale * 1.7 * DEFAULT_MAP_STYLE.labelScale[lodTier]}
             />
           );
         })}
