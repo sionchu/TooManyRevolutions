@@ -1,7 +1,30 @@
 import type { MapArchitecture, MapLodTier } from "./mapArchitecture";
+import type { MapObjectFamily, MapScaleRole } from "./mapVisual/worldArt";
 import type { WorldSceneModel, WorldScenePoint } from "./worldSceneModel";
 
 export type MapVisualScale = "macro" | "meso" | "micro";
+
+export interface MapIntegratedPlacementLodMetadata {
+  readonly family: MapObjectFamily;
+  readonly scaleRole: MapScaleRole;
+  readonly visibleAt: readonly MapVisualScale[];
+}
+
+const DEFAULT_FAR_LANDMARK_FAMILIES: ReadonlySet<MapObjectFamily> = new Set([
+  "palace",
+  "factory-iron-works",
+  "port-dock",
+  "fort",
+]);
+
+const DEFAULT_MEDIUM_LANDMARK_FAMILIES: ReadonlySet<MapObjectFamily> = new Set([
+  "palace",
+  "factory-iron-works",
+  "water-shelf",
+  "port-dock",
+  "fort",
+  "checkpoint-gate",
+]);
 
 export type MapVisualAssetId =
   | "asset.capital.palace"
@@ -320,6 +343,34 @@ function visualScaleForLod(lodTier: MapLodTier): MapVisualScale {
   return "micro";
 }
 
+/**
+ * Keep the authored composition plan intact while selecting only its
+ * dominant, evidence-backed silhouettes for the default map read. The near
+ * tier remains the complete factual composition so focus/zoom can reveal
+ * the authored detail without creating a second renderer or LOD system.
+ */
+export function selectIntegratedLandmarksForLod<
+  T extends MapIntegratedPlacementLodMetadata,
+>(placements: readonly T[], lodTier: MapLodTier): readonly T[] {
+  const visualScale = visualScaleForLod(lodTier);
+  const allowedFamilies =
+    lodTier === "far"
+      ? DEFAULT_FAR_LANDMARK_FAMILIES
+      : lodTier === "medium"
+        ? DEFAULT_MEDIUM_LANDMARK_FAMILIES
+        : null;
+  return placements.filter((placement) => {
+    // Faction presence is represented by the connected-cluster anchor
+    // helper in mapArchitecture. Never let a per-region composition
+    // placement bypass that cap at near LOD.
+    if (placement.family === "faction-banner") return false;
+    return (
+      placement.visibleAt.includes(visualScale) &&
+      (allowedFamilies === null || allowedFamilies.has(placement.family))
+    );
+  });
+}
+
 function countryForRegion(
   model: WorldSceneModel,
   regionId: string,
@@ -589,7 +640,7 @@ export function deriveMapVisualSystem(
         region.position,
         70,
         0.82,
-        ["meso", "micro"],
+        ["micro"],
         "AUTHORITATIVE_PROJECTION",
       ),
     );
@@ -603,14 +654,12 @@ export function deriveMapVisualSystem(
         project.position,
         64,
         0.74,
-        ["meso", "micro"],
+        ["micro"],
         "DERIVED_PRESENTATION",
       ),
     );
   }
   for (const poi of model.pois) {
-    const majorPoi =
-      poi.kind === "port" || poi.kind === "mine" || poi.kind === "fort";
     labels.push(
       labelCandidate(
         poi.id,
@@ -621,7 +670,7 @@ export function deriveMapVisualSystem(
           ? 58
           : 48,
         0.7,
-        majorPoi ? ["meso", "micro"] : ["micro"],
+        ["micro"],
         "AUTHORITATIVE_PROJECTION",
       ),
     );

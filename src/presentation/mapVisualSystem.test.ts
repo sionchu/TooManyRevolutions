@@ -5,6 +5,7 @@ import {
   deriveMapVisualSystem,
   MAP_MATERIAL_SYSTEM,
   MAP_VISUAL_ASSET_KIT,
+  selectIntegratedLandmarksForLod,
   validateMapVisualSystem,
 } from "./mapVisualSystem";
 import { derivePresentationState } from "./presentationState";
@@ -47,10 +48,55 @@ describe("MAP_VISUAL_SYSTEM", () => {
     expect(micro.visualScale).toBe("micro");
     expect(macro.compositions).toHaveLength(model.regions.length);
     expect(macro.labels.every((label) => label.kind !== "region")).toBe(true);
-    expect(meso.labels.some((label) => label.kind === "region")).toBe(true);
+    expect(
+      meso.labels.every(
+        (label) =>
+          label.kind === "country" ||
+          label.kind === "capital" ||
+          label.kind === "crisis",
+      ),
+    ).toBe(true);
+    expect(meso.labels.length).toBeLessThanOrEqual(8);
+    expect(micro.labels.some((label) => label.kind === "region")).toBe(true);
     expect(architecture.sharedTerrainMesh.logicalLandHexCount).toBe(
       model.hexes.length,
     );
+  });
+
+  it("keeps only dominant authored silhouettes in the default map tier", () => {
+    const placements = [
+      {
+        family: "palace",
+        scaleRole: "signature-capital",
+        visibleAt: ["macro", "meso", "micro"],
+      },
+      {
+        family: "water-shelf",
+        scaleRole: "decorative-prop",
+        visibleAt: ["macro", "meso", "micro"],
+      },
+      {
+        family: "dense-town",
+        scaleRole: "settlement",
+        visibleAt: ["meso", "micro"],
+      },
+      {
+        family: "faction-banner",
+        scaleRole: "decorative-prop",
+        visibleAt: ["micro"],
+      },
+    ] as const;
+
+    expect(
+      selectIntegratedLandmarksForLod(placements, "medium").map(
+        (placement) => placement.family,
+      ),
+    ).toEqual(["palace", "water-shelf"]);
+    expect(
+      selectIntegratedLandmarksForLod(placements, "near").map(
+        (placement) => placement.family,
+      ),
+    ).toEqual(["palace", "water-shelf", "dense-town"]);
   });
 
   it("keeps the authored kit coherent and grounded", () => {
