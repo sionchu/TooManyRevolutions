@@ -30,12 +30,16 @@ Integrate the current accepted implementation commits:
 
 - `641d112f8f6c125e5dce33fbe8736b49b4f3c601`
 - `fd46de162b81814a1c61caccaf09ab4a31641738`
+- `a780e3df108dbdf4490d42859af1d880d4fdd663` — accepted FIX1 renderer contract
 
 These contain:
 - truth-aware region composition contract
 - 17 procedural low-poly asset kits
 - material/scale/grounding contracts
 - `resolveRegionCompositionPlacements`
+- dimension-safe reusable `ProceduralWorldArtKitRenderer`
+- unit primitive geometry + X/Y/Z mesh scaling contract
+- grounding/LOD/stable Kit-ID render descriptors
 - R3F authoring gallery
 
 Do not loosen truth requirements to make art appear.
@@ -84,6 +88,7 @@ Resolve conflicts in favor of 02 for:
 
 - `mapVisual/worldArt*`
 - `mapVisual/proceduralKitGeometry*`
+- `mapVisual/ProceduralWorldArtKitRenderer*`
 - `mapContent/regionComposition*`
 
 Resolve conflicts in favor of 03 for:
@@ -96,6 +101,10 @@ After cherry-pick, run typecheck immediately before further integration.
 ### B. Actual World Art in the strategy map
 
 Integrate `regionCompositionEvidenceFromWorldSceneModel` + `resolveRegionCompositionPlacements` into the map presentation.
+
+Use `ProceduralWorldArtKitRenderer` from accepted 02 FIX1 rather than reimplementing primitive rendering inside `PoliticalWorldStage`.
+
+The integrator must provide the factual 3D position/Y grounding input. The reusable renderer may consume that Y when the Kit accepts terrain height, but it must not sample or invent terrain height itself.
 
 Use the 17 procedural kits for factual world objects. Do not render duplicate old generic landmark geometry and new kit geometry simultaneously.
 
@@ -196,7 +205,7 @@ Forbidden:
 Run at minimum:
 
 - focused map-runtime tests
-- world-art tests
+- world-art tests including `ProceduralWorldArtKitRenderer.test.ts`
 - region composition authority tests
 - icon tests
 - `inspect:t018`
@@ -247,7 +256,7 @@ Create/update:
 
 Include:
 - base/head SHA
-- source commits integrated
+- source commits integrated, including 02 FIX1 `a780e3d`
 - conflict resolutions
 - actual changed files
 - world-art integration mapping
@@ -256,7 +265,7 @@ Include:
 - screenshot paths
 - tests
 - known limitations
-- pending 02/03/04 follow-up commits not yet integrated
+- pending 03/04 follow-up commits not yet integrated
 
 Commit/push and STOP.
 
