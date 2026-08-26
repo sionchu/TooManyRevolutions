@@ -32,113 +32,134 @@ V02: NOT_STARTED
 ```text
 CURRENT_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
 CURRENT_TASK_STATUS: AUTHORIZED
-TASK_FILE: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0.md
-MAP_FIRST_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_FIRST_ADDENDUM.md
-GAMEPLAY_REALITY_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAMEPLAY_REALITY_ADDENDUM.md
-GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM.md
-GAME_VISUAL_UX_RENDER_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_VISUAL_UX_RENDER_ADDENDUM.md
-BASE_IMPLEMENTATION_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
 WORK_BRANCH: gamebuilders-product-surface-p0
+BASE_IMPLEMENTATION_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
+LATEST_P0_BRANCH_HEAD_BEFORE_NEW_LOOP_WORK: 55ec2334cd32953207d3bd144fdf793b5b808b9f
 NEXT_AUTHORIZED_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
 ```
 
-## In-progress P0 review finding — BLOCKING
-
-Latest inspected P0 branch head during this review:
+Current task/addenda are listed in `docs/bridge/CURRENT_TASK.md`. The latest added player-loop/world-feel requirements are additionally grounded in:
 
 ```text
-P0_INSPECTED_HEAD: 11cd70d82756cc89bd4b9a8c1f92a55fe7c32991
-USER_OBSERVED_LATE_TICK: ~1528
-USER_REPORTED_FEELING: visually static / text feels fictitious / not game-like / normal responsive web page
+docs/GDD_GAME_LOOP_WORLD_FEEL_ADDENDUM_2026-08-26.md
+docs/DECISION_GAMEBUILDERS_P0_GAME_LOOP_RENDERER_CONTENT_STUDIO_2026-08-26.md
+docs/QA_GAMEBUILDERS_P0_GAME_LOOP_WORLD_FEEL_2026-08-26.md
+docs/BACKLOG_GAMEBUILDERS_P0_GAME_LOOP_WORLD_FEEL_2026-08-26.md
+docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM.md
 ```
 
-The P0 has added modular design registries, replaceable assets, title/briefing flow, real neighboring Countries, responsive decomposition and a political atlas. These are useful foundations, but P0 is still blocked because the product does not yet deliver a living game-world or game-native visual grammar.
+## P0 checkpoint already achieved at branch head 55ec2334
 
-### Gameplay-reality blockers
-
-1. `runSimulationStep()` emits next-tick system `actionProposals`, but the inspected demo runtime discards them after each committed step. Faction and foreign heuristic proposals therefore do not consistently become next-tick ActionRecords in hands-on play.
-2. The accepted monthly ideology-diffusion system exists but the inspected demo runtime does not install it, so cross-border ideology propagation can be absent from actual play.
-3. The atlas can hide authoritative LandHex controller changes behind legal Region owner coloring.
-4. Coup/rebellion visibility can depend on recent-event history rather than persistent current active Conflict state.
-5. Raw routine event churn and long decision prose obscure meaningful political history.
-6. Existing Policy/`ENACT_POLICY` institutional gameplay is not yet fully surfaced to the player.
-7. The player territorial substrate / camera composition can exhaust visible spatial motion quickly.
-
-### Game-feel / motivation blockers
-
-Current loop risks reading as:
-
-```text
-time -> crisis text -> intervention text -> time
-```
-
-The player needs accumulating visible history:
-
-```text
-real Policy path
-+ map-linked State Projects / landmarks backed by existing action lifecycles
-+ factual ideology / control / border / crisis visual transitions
-+ persistent medium-term objective and blockers
-```
-
-A visual `Institutional Roadmap` may expose actual PolicyDefinition prerequisites/incompatibilities, but must not become a generic focus tree, research system, policy mana, or authored story progression.
-
-### Visual / renderer blockers
-
-The current composition still follows normal web-dashboard grammar:
-
-```text
-page/header
--> equal metric boxes
--> form-like time controls
--> bordered map content card
--> large empty map margins
--> more bordered text boxes
-```
-
-The normal gameplay target is instead:
-
-```text
-compact game chrome
--> world/map fills the primary viewport
--> factual overlays/landmarks/motion on that world
--> collapsible contextual drawers/sheets
-```
-
-Mobile must not become a stack of desktop cards. The first gameplay viewport should be map-first with compact HUD and bottom-sheet details.
-
-A bounded PixiJS v8 + React renderer spike is authorized. TMR TypeScript simulation/time/action remains authoritative. Phaser may be evaluated, but no wholesale engine migration or second game clock is authorized in this sprint.
-
-### Content-authoring requirement
-
-Create a separate development-only Content Studio (`?contentStudio=1` or equivalent) backed by stable content IDs. It should support search/filter/edit/live preview where practical, local draft persistence, diff/reset, JSON patch import/export, placeholder validation, and branch/variant metadata. Static Sites cannot directly commit to GitHub; do not fake that capability.
-
-Dense form/admin UI is appropriate in Content Studio only and must not leak into gameplay.
-
-## Required remaining P0 result markers
+The result published on the P0 branch reports the following real gameplay-reality repairs and deployed hands-on evidence:
 
 ```text
 SYSTEM_PROPOSAL_CARRY_LOOP: IMPLEMENTED_AND_TESTED
 IDEOLOGY_DIFFUSION_IN_DEMO_RUNTIME: ENABLED
 CURRENT_CONTROLLER_VISUALLY_DISTINCT_FROM_OWNER: YES
 ACTIVE_CONFLICT_PERSISTENT_PRESENTATION: YES
+SIGNIFICANT_EVENT_FEED: YES
 PLAYER_POLICY_ACTIONS: YES
+CONSOLIDATION_OBJECTIVE_BLOCKERS_VISIBLE: YES
+PLAYER_OBSERVABLE_DYNAMICS_AUDIT: PASS
+DAY_1000_LOOKS_IDENTICAL_TO_DAY_0: NO
+MOBILE_MAP_FIRST_VIEWPORT: PASS at that checkpoint
+SITES_REDEPLOYED: YES
+```
+
+The deployed/source checkpoint showed factual controller migration, active rebellion/coup presentation, ideology changes, policy actions, EventStore records and consolidation blockers. These fixes should not be reimplemented from scratch unless regression evidence requires it.
+
+## Why P0 is still BLOCKING / NOT ACCEPTED
+
+The `COMPLETE` wording in the branch result predates later, stronger P0 addenda. Current P0 scope is therefore not complete.
+
+Hands-on mobile review after the gameplay-reality repair found that the product can still feel like:
+
+```text
+time passes
+-> rebellion/crisis
+-> auto-pause
+-> text-heavy policy/intervention choice
+-> resume
+-> repeat
+```
+
+The player sees factual changes, but the experience still lacks enough game-native flow, readable spatial change, medium-term institutional/state-building progression and accumulated visible history.
+
+### Remaining game-loop blockers
+
+1. Routine/ordinary changes must not make repeated auto-pause/text interaction the dominant loop.
+2. The map must be readable as the evolving game board before reports are opened.
+3. Chronicle must become a factual `ChronicleDigest`, not a low-level ideology/faction log.
+4. Policy choices need a visible medium-term `Institutional Roadmap` based on real PolicyDefinition prerequisites/incompatibilities.
+5. 2–4 mechanically defensible existing lifecycles should become map-linked State Projects/landmarks with real progress/completion and persistent traces; if current authority cannot support this, the exact blocker must be documented rather than faked.
+6. State/Event changes need factual `WorldVisualDelta` feedback.
+7. Player-facing branch/variant copy needs a development-only Content Studio.
+
+### Remaining visual / renderer blockers
+
+Persistent gameplay must stop following normal webpage/admin grammar:
+
+```text
+header / metric boxes
+-> form-like time controls
+-> crisis card
+-> map inside a bordered content box
+-> more explanatory boxes
+```
+
+Target:
+
+```text
+compact game HUD
+-> world/map fills primary viewport
+-> spatial controller/ideology/conflict/project feedback
+-> contextual drawers/sheets on demand
+```
+
+A bounded PixiJS v8 + React renderer spike is authorized. The existing TMR TypeScript simulation/action/time pipeline remains authoritative. No whole-engine migration or second game clock is authorized. If Pixi is not deadline-safe, retain one SVG production renderer and implement the same map-first/camera/WorldVisualDelta requirements there.
+
+### Documentation alignment blocker
+
+Before further P0 implementation, Codex must fold the durable requirements from the current GDD/decision/QA/backlog addenda into the canonical relevant sections of:
+
+```text
+docs/GDD.md
+docs/DECISIONS.md
+docs/BACKLOG.md
+docs/QA_PLAYTEST.md
+```
+
+Update `docs/ARCHITECTURE.md` only where renderer/content/presentation authority boundaries need durable clarification. Historical decisions must not be deleted.
+
+## Required remaining P0 result markers
+
+```text
+DOCUMENTATION_ALIGNMENT: PASS
+ROUTINE_AUTO_PAUSE_DOMINATES_GAME_LOOP: NO
+MAP_MAJOR_CHANGE_READABLE_WITHOUT_REPORT: YES
+DAY_0_INTERMEDIATE_LATE_VISUAL_DIVERGENCE: PASS
 INSTITUTIONAL_ROADMAP: YES
 GENERIC_TECH_OR_POLICY_MANA: NO
-STATE_PROJECT_PRESENTATION: YES
-COMPLETED_PROJECT_LEAVES_MAP_VISIBLE_TRACE: YES
+STATE_PROJECT_PRESENTATION: YES_OR_EXACT_AUTHORITY_BLOCKER_DOCUMENTED
+PROJECT_PROGRESS_USES_EXISTING_LIFECYCLE: YES
+COMPLETED_PROJECT_LEAVES_MAP_VISIBLE_TRACE: YES_OR_BLOCKER_DOCUMENTED
 WORLD_VISUAL_DELTA_PIPELINE: YES
+CHRONICLE_DIGEST: YES
+CHRONICLE_SOURCE_EVENT_PROVENANCE: YES
 CONTENT_STUDIO: YES
+CONTENT_BRANCH_VARIANT_EDITING: YES
 CONTENT_JSON_IMPORT_EXPORT: YES
+RENDERER_DECISION: PIXI_OR_SVG_FALLBACK_DOCUMENTED
 WEB_DASHBOARD_VISUAL_GRAMMAR_DOMINANT: NO
 MAP_OCCUPIES_PRIMARY_VIEWPORT: YES
 MAP_WORLD_BOUNDS_FILLED: YES
-RAW_HEX_TEST_STRIP_APPEARANCE: NO
 PERSISTENT_PARAGRAPHS_ON_MAIN_MAP: NO
+PRIMARY_HUD_COMPACT: YES
 CAMERA_PAN_ZOOM_FOCUS: YES
+POLICY_AND_PROJECT_VISUAL_TRACE: YES
 MOBILE_STACKED_CARD_PAGE_FEEL: NO
-PLAYER_OBSERVABLE_DYNAMICS_AUDIT: PASS_OR_BLOCKER_DOCUMENTED
-DAY_1000_VISUALLY_AND_SYSTEMICALLY_DISTINCT_FROM_DAY_0: YES_OR_CORE_BLOCKER_PROVEN
+SCREENSHOT_VISUAL_REVIEW: PASS_OR_BLOCKERS_DOCUMENTED
+SITES_REDEPLOYED_FROM_REVIEWED_COMMIT: YES
 ```
 
 ## Locked product / spatial direction
@@ -147,6 +168,18 @@ DAY_1000_VISUALLY_AND_SYSTEMICALLY_DISTINCT_FROM_DAY_0: YES_OR_CORE_BLOCKER_PROV
 내 왕국에 혁명이 너무 많다
 TOO MANY REVOLUTIONS
 정권은 무너져도, 국가는 계속된다.
+```
+
+Core loop direction:
+
+```text
+choose medium-term institutional/state-building direction
+-> let time flow while the world remains legible
+-> watch ideology/factions/territory/conflicts/projects change spatially
+-> selectively intervene
+-> choices alter future availability and authoritative state
+-> completed choices leave visible history
+-> next decisions emerge from the changed world
 ```
 
 GDD spatial contract:
@@ -160,11 +193,14 @@ revolution becomes territory
 ```
 
 Reference roles:
-- Plague Inc. / Rebel Inc.: persistent living map, spatial feedback, pacing;
-- Rebel Inc. Azure Dam: visible map-linked development objective under political/security pressure;
-- Against the Storm: strategic decisions/upgrades producing visible world/building changes and game-native HUD hierarchy;
-- CK3: political geography / heraldry / territory identity;
-- Suzerain / Papers Please: title/briefing/decision flavor only.
+- Plague Inc. / Rebel Inc.: persistent living map, spatial feedback and time flow;
+- Civilization: tree readability/path satisfaction only, not research-point authority;
+- Rebel Inc. Azure Dam: visible map-linked medium-term project;
+- Against the Storm: strategic choices/upgrades visibly changing the world;
+- Frostpunk: laws/state-building with visible consequences;
+- Victoria / Paradox: institutional/faction trade-offs, not persistent dashboard UI;
+- CK3: political geography / territory identity;
+- Suzerain / Papers Please: briefing/decision flavor only.
 
 ## Design / partial-edit contract
 
@@ -182,7 +218,8 @@ Design Tokens
 
 Content Registry
 -> stable player-facing text IDs
--> Content Studio editing and patch export
+-> branch/variant metadata
+-> Content Studio editing and JSON patch export/import
 ```
 
 Do not regress to a monolithic AI image, one giant React component, or hardcoded player copy scattered through components.
@@ -198,6 +235,7 @@ Do not regress to a monolithic AI image, one giant React component, or hardcoded
 - no fake countries / Agenda / EventStore facts;
 - no direct UI/renderer mutation of WorldState;
 - all actions use common action/simulation boundaries;
+- EventStore remains append-only; ChronicleDigest is presentation-only;
 - no scripted/scheduled coup/rebellion;
 - no fake project completion;
 - no generic tech/reform/policy currency;
