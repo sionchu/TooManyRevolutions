@@ -12,8 +12,7 @@ PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
 
 ```text
 F04: CLOSED / PASS
-F05: measurement complete; Gate 1F NOT_READY
-F05_FIX1..F05_FIX23: accepted progression through rebellion persistence bootstrap episode
+F05_FIX1..F05_FIX23: accepted core progression
 GAMEBUILDERS_DEMO_SPRINT_01: TECHNICAL_PASS / ACCEPTED_AS_VERTICAL_SLICE
 ```
 
@@ -23,13 +22,10 @@ GAMEBUILDERS_DEMO_SPRINT_01: TECHNICAL_PASS / ACCEPTED_AS_VERTICAL_SLICE
 CORE_IMPLEMENTATION_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
 GAMEBUILDERS_REVIEWED_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
 PERSISTENCE_FORMAT: V8
-TIME_FLOW_STATUS: PASS
 DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
 GATE1F: NOT_READY
 V02: NOT_STARTED
 ```
-
-The reviewed GameBuilders demo is a real thin client over the accepted simulation core, but product review found that the title/build-up/world-map/art/asset/UI surface is still not convincing enough for final submission. The next authorized work is therefore a P0 product-surface sprint rather than deeper F05 implementation.
 
 ## Current authorization
 
@@ -37,15 +33,70 @@ The reviewed GameBuilders demo is a real thin client over the accepted simulatio
 CURRENT_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
 CURRENT_TASK_STATUS: AUTHORIZED
 TASK_FILE: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0.md
+MAP_FIRST_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_FIRST_ADDENDUM.md
+GAMEPLAY_REALITY_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAMEPLAY_REALITY_ADDENDUM.md
 BASE_IMPLEMENTATION_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
 WORK_BRANCH: gamebuilders-product-surface-p0
-RESULT_PATH: docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md
 NEXT_AUTHORIZED_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
 ```
 
-## P0 product direction
+## In-progress P0 review finding — BLOCKING
 
-Locked player-facing identity:
+Latest inspected P0 branch head during hands-on review:
+
+```text
+P0_INSPECTED_HEAD: a4287a1dd5978bd87713a9ecb019e270331b7239
+P0_COMMITS_AHEAD_OF_DEMO_BASE: 15
+USER_OBSERVED_LATE_TICK: ~1528
+USER_REPORTED_FEELING: visually static / text feels fictitious / not game-like
+```
+
+The P0 has successfully added modular design registries, replaceable assets, title/briefing flow, real neighbor Countries, a political atlas, responsive components, and map-first decomposition. However, those improvements do not yet solve the more important gameplay-readability/integration problem.
+
+Independent source review found:
+
+1. `runSimulationStep()` emits next-tick system `actionProposals`, but current `demoGame.ts` discards them after each committed step. Faction and foreign heuristic proposals therefore do not become the next tick's ActionRecords in the player runtime.
+2. The accepted monthly ideology diffusion system exists but the demo runtime does not install `createIdeologyDiffusionPhaseHook()`, so cross-border ideology propagation is absent from actual play.
+3. The political atlas base fill uses Region legal ownership rather than current LandHex controller, so rebellion/occupation can change authoritative territorial control without a correspondingly obvious map-color change.
+4. Current coup/rebellion UI derives from a recent-event window; unresolved active Conflicts can disappear from player presentation after routine events accumulate.
+5. Raw recent events and long explanatory decision cards overuse text. Game theory is currently explained rather than made quickly playable.
+6. Current player action UI exposes Interventions but not the already implemented Policy/`ENACT_POLICY` institution path.
+7. The player's territorial substrate remains small enough that crisis territorial movement can exhaust visible front motion quickly while the accepted late-state unresolved-conflict issue persists.
+
+Therefore static visual polish is no longer the next priority. The mandatory Gameplay Reality addendum must be completed before P0 can pass.
+
+## P0 reality target
+
+The actual player runtime must visibly realize existing accepted systems:
+
+```text
+player Policy + Intervention input
++ carried faction/foreign system actions through common ActionRecord intake
++ contact-driven ideology diffusion
++ visible current LandHex control changes
++ persistent active crisis state
++ meaningful sparse political event feedback
++ clear consolidation objective/blockers
+```
+
+The map remains the persistent playfield. Text/dialog/drawers explain changes; they do not substitute for changes.
+
+Required new P0 result markers include:
+
+```text
+SYSTEM_PROPOSAL_CARRY_LOOP: IMPLEMENTED_AND_TESTED
+IDEOLOGY_DIFFUSION_IN_DEMO_RUNTIME: ENABLED
+CURRENT_CONTROLLER_VISUALLY_DISTINCT_FROM_OWNER: YES
+ACTIVE_CONFLICT_PERSISTENT_PRESENTATION: YES
+SIGNIFICANT_EVENT_FEED: YES
+PLAYER_POLICY_ACTIONS: YES
+CONSOLIDATION_OBJECTIVE_BLOCKERS_VISIBLE: YES
+PLAYER_OBSERVABLE_DYNAMICS_AUDIT: PASS_OR_BLOCKER_DOCUMENTED
+DAY_1000_LOOKS_IDENTICAL_TO_DAY_0: NO
+MOBILE_MAP_FIRST_VIEWPORT: PASS
+```
+
+## Locked product / spatial direction
 
 ```text
 내 왕국에 혁명이 너무 많다
@@ -53,13 +104,21 @@ TOO MANY REVOLUTIONS
 정권은 무너져도, 국가는 계속된다.
 ```
 
-The P0 must deliver an intentional title -> opening briefing -> main-game flow, a visually dominant political atlas with real neighboring scenario Countries, coherent generated/procedural asset language, responsive screen composition, and decision UX that makes strategic trade-offs legible without inventing future outcomes.
+GDD spatial contract:
+
+```text
+politics is calculated at Region scale
+territory moves on LandHexes
+ideology spreads as color/pattern
+authoritative organizations become map markers
+revolution becomes territory
+```
+
+Plague Inc. / Rebel Inc. are the primary persistent-map/pacing references. CK3 is political geography. Suzerain/Papers Please are title/briefing/decision framing only.
 
 ## Design system / partial-edit contract
 
-Visual implementation must be modular and DB-like rather than a one-shot AI composition.
-
-Required conceptual stack:
+Keep the in-progress modular stack:
 
 ```text
 Design Tokens
@@ -67,40 +126,12 @@ Design Tokens
 -> Design Registry
 -> Asset Manifest
 -> Layer Registry
--> Component Registry
+-> Components
 -> Screen Composition
 -> State / Crisis Overlay
 ```
 
-Asset, layer, component, copy, and country visual identities use stable semantic IDs. AI-generated assets must carry style-family/prompt/provenance/version metadata and remain individually replaceable. Map/UI layers require explicit stable z-order. Normal player UI must not expose design/debug vocabulary.
-
-## External reference policy
-
-Commercial games are reference-only: Suzerain, Papers Please, Crusader Kings III, Frostpunk 2.
-
-Vetted GitHub references:
-
-```text
-Azgaar/Fantasy-Map-Generator: MIT; political-map and data/render separation reference
-Hellenic/react-hexgrid: MIT; optional coordinate/rendering reference
-freeciv/freeciv-web: AGPL; UX reference only, no code copying by default
-```
-
-Additional GitHub repositories/agent skills may be inspected only with explicit license/reputation/use decisions. Do not adopt random AI design skill repositories merely from search ranking.
-
-## Game theory design lens
-
-Use opportunity cost, externalities, strategic response, credible commitment, signaling/uncertainty, coordination/collective action, and principal-agent tension only where existing authoritative state or declared intervention effects support them.
-
-Player-facing decisions should distinguish certain cost/effect from current observations and uncertain response. No solver, universal utility score, response probability fabrication, or hidden strategy meter is authorized.
-
-## Product-QC items carried forward
-
-The P0 must also correct the reviewed demo issues:
-
-- remove `Renderer-neutral`, `LandHex projection`, `ActionRecord`, `authoritative history`, `T018`, `RunOutcome`, fixture IDs and raw ideology IDs from player UI;
-- fix `RESOURCE_SHORTAGE_CHANGED` display to use actual payload field `scarcity`;
-- rebuild the 3-minute capture path around the improved title/briefing/world map and a deterministic real crisis trajectory when feasible without scripting.
+Do not regress to a monolithic AI image or one giant component.
 
 ## Preserved architecture constraints
 
@@ -109,16 +140,15 @@ The P0 must also correct the reviewed demo issues:
 - physical territorial authority remains only `WorldState.landHexStates[*].controller`;
 - Region.stateControl is not territorial ownership;
 - fronts remain derived;
-- presentation may not invent armies/crowds/fronts or fake countries;
-- neighboring countries displayed in the world atlas must be valid authored scenario entities;
+- no invented armies/crowds/fronts;
+- no fake countries / Agenda / EventStore facts;
 - no direct UI WorldState mutation;
-- actions use existing common action/simulation boundary;
-- no fake/scheduled coup, rebellion, Agenda, or EventStore history;
-- no hidden pacing mechanic;
-- no F05 operational-evidence/settlement implementation in P0;
+- all actions use common action/simulation boundaries;
+- no scripted/scheduled coup/rebellion;
+- no hidden pacing timer/RNG cheat;
+- no new F05 operational-evidence/settlement implementation in P0;
 - no persistence V9;
-- no commercial-game asset copying;
-- no unvetted copyleft code import;
+- no solver/universal utility score;
 - Gate 1F remains NOT_READY;
 - V02 remains NOT_STARTED;
 - no successor task self-authorization.
