@@ -99,20 +99,172 @@ const BASE_CONTENT_RECORDS: readonly ContentRecord[] = [
     notes: "국가 연속성 fantasy hook",
     tags: ["identity", "hook"],
   }),
-  ...PLAYER_COPY.briefing.beats.map((beat, index) =>
+  record({
+    id: "tmr.copy.title.eyebrow",
+    category: "title",
+    screen: "title",
+    branchOrVariantId: "default",
+    conditionLabel: "타이틀 상단 문구",
+    text: PLAYER_COPY.title.eyebrow,
+    maxRecommendedLength: 48,
+    notes: "authoring-time generated title draft",
+    tags: ["title", "eyebrow", "draft"],
+  }),
+  record({
+    id: "tmr.copy.title.hook",
+    category: "title",
+    screen: "title",
+    branchOrVariantId: "default",
+    conditionLabel: "타이틀 hook",
+    text: PLAYER_COPY.title.hook,
+    maxRecommendedLength: 80,
+    notes: "authoring-time generated title draft",
+    tags: ["title", "hook", "draft"],
+  }),
+  record({
+    id: "tmr.copy.title.action",
+    category: "title",
+    screen: "title",
+    branchOrVariantId: "default",
+    conditionLabel: "새 게임 action",
+    text: PLAYER_COPY.title.action,
+    maxRecommendedLength: 24,
+    notes: "title action label",
+    tags: ["title", "action"],
+  }),
+  record({
+    id: "tmr.copy.title.secondary",
+    category: "title",
+    screen: "title",
+    branchOrVariantId: "default",
+    conditionLabel: "세계 설명 toggle",
+    text: PLAYER_COPY.title.secondary,
+    maxRecommendedLength: 24,
+    notes: "title secondary action label",
+    tags: ["title", "action"],
+  }),
+  record({
+    id: "tmr.copy.title.world-note-title",
+    category: "title",
+    screen: "title",
+    branchOrVariantId: "default",
+    conditionLabel: "세계 설명 제목",
+    text: PLAYER_COPY.title.worldNoteTitle,
+    maxRecommendedLength: 32,
+    notes: "title optional world note heading",
+    tags: ["title", "world-note"],
+  }),
+  record({
+    id: "tmr.copy.title.world-note",
+    category: "title",
+    screen: "title",
+    branchOrVariantId: "default",
+    conditionLabel: "세계 설명 본문",
+    text: PLAYER_COPY.title.worldNote,
+    maxRecommendedLength: 180,
+    notes: "authoring-time generated title draft",
+    tags: ["title", "world-note", "draft"],
+  }),
+  record({
+    id: "tmr.copy.title.footer",
+    category: "title",
+    screen: "title",
+    branchOrVariantId: "default",
+    conditionLabel: "타이틀 footer",
+    text: PLAYER_COPY.title.footer,
+    maxRecommendedLength: 100,
+    notes: "authoring-time generated title draft",
+    tags: ["title", "footer", "draft"],
+  }),
+  record({
+    id: "tmr.copy.title.asset-note",
+    category: "title",
+    screen: "title",
+    branchOrVariantId: "default",
+    conditionLabel: "타이틀 기록 표기",
+    text: "1897 · 헌정 위기 기록 제1호",
+    maxRecommendedLength: 48,
+    notes: "reviewed static title art note",
+    tags: ["title", "asset-note"],
+  }),
+  record({
+    id: "tmr.copy.briefing.label",
+    category: "briefing",
+    screen: "briefing",
+    branchOrVariantId: "default",
+    conditionLabel: "브리핑 masthead",
+    text: PLAYER_COPY.briefing.label,
+    maxRecommendedLength: 60,
+    notes: "authoring-time generated opening briefing draft",
+    tags: ["opening", "masthead", "draft"],
+  }),
+  record({
+    id: "tmr.copy.briefing.skip",
+    category: "briefing",
+    screen: "briefing",
+    branchOrVariantId: "default",
+    conditionLabel: "브리핑 skip action",
+    text: PLAYER_COPY.briefing.skip,
+    maxRecommendedLength: 24,
+    notes: "opening briefing action label",
+    tags: ["opening", "action"],
+  }),
+  record({
+    id: "tmr.copy.briefing.next",
+    category: "briefing",
+    screen: "briefing",
+    branchOrVariantId: "default",
+    conditionLabel: "브리핑 next action",
+    text: PLAYER_COPY.briefing.next,
+    maxRecommendedLength: 24,
+    notes: "opening briefing action label",
+    tags: ["opening", "action"],
+  }),
+  record({
+    id: "tmr.copy.briefing.finish",
+    category: "briefing",
+    screen: "briefing",
+    branchOrVariantId: "default",
+    conditionLabel: "브리핑 finish action",
+    text: PLAYER_COPY.briefing.finish,
+    maxRecommendedLength: 24,
+    notes: "opening briefing action label",
+    tags: ["opening", "action"],
+  }),
+  record({
+    id: "tmr.copy.briefing.remember",
+    category: "briefing",
+    screen: "briefing",
+    branchOrVariantId: "default",
+    conditionLabel: "브리핑 remember option",
+    text: PLAYER_COPY.briefing.remember,
+    maxRecommendedLength: 24,
+    notes: "reserved opening briefing option label",
+    tags: ["opening", "action"],
+  }),
+  ...PLAYER_COPY.briefing.beats.flatMap((beat, index) => [
+    record({
+      id: `tmr.copy.briefing.beat-${index + 1}.eyebrow`,
+      category: "briefing",
+      screen: "briefing",
+      branchOrVariantId: `briefing-beat-${index + 1}`,
+      conditionLabel: `브리핑 ${index + 1} 상단 문구`,
+      text: beat.eyebrow,
+      maxRecommendedLength: 32,
+      notes: "authoring-time generated opening briefing draft",
+      tags: ["opening", "eyebrow", "variant", "draft"],
+    }),
     record({
       id: `tmr.copy.briefing.beat-${index + 1}.title`,
       category: "briefing",
       screen: "briefing",
       branchOrVariantId: `briefing-beat-${index + 1}`,
-      conditionLabel: `브리핑 ${index + 1}`,
+      conditionLabel: `브리핑 ${index + 1} 제목`,
       text: beat.title,
       maxRecommendedLength: 70,
-      notes: "실제 authored opening briefing beat",
-      tags: ["opening", "variant"],
+      notes: "authoring-time generated opening briefing draft",
+      tags: ["opening", "title", "variant", "draft"],
     }),
-  ),
-  ...PLAYER_COPY.briefing.beats.map((beat, index) =>
     record({
       id: `tmr.copy.briefing.beat-${index + 1}.body`,
       category: "briefing",
@@ -121,10 +273,10 @@ const BASE_CONTENT_RECORDS: readonly ContentRecord[] = [
       conditionLabel: `브리핑 ${index + 1} 설명`,
       text: beat.body,
       maxRecommendedLength: 160,
-      notes: "실제 authored opening briefing support copy",
-      tags: ["opening", "body", "variant"],
+      notes: "authoring-time generated opening briefing draft",
+      tags: ["opening", "body", "variant", "draft"],
     }),
-  ),
+  ]),
   ...Object.entries(PLAYER_COPY.main).flatMap(([key, text]) =>
     typeof text === "string"
       ? [
@@ -143,6 +295,93 @@ const BASE_CONTENT_RECORDS: readonly ContentRecord[] = [
       : [],
   ),
 ];
+
+export interface ResolvedTitleContent {
+  readonly eyebrow: string;
+  readonly koTitle: string;
+  readonly enTitle: string;
+  readonly tagline: string;
+  readonly hook: string;
+  readonly action: string;
+  readonly secondary: string;
+  readonly worldNoteTitle: string;
+  readonly worldNote: string;
+  readonly footer: string;
+  readonly assetNote: string;
+}
+
+export interface ResolvedBriefingBeat {
+  readonly eyebrow: string;
+  readonly title: string;
+  readonly body: string;
+  readonly eyebrowId: string;
+  readonly titleId: string;
+  readonly bodyId: string;
+}
+
+export interface ResolvedOpeningBriefingContent {
+  readonly label: string;
+  readonly skip: string;
+  readonly next: string;
+  readonly finish: string;
+  readonly remember: string;
+  readonly beats: readonly ResolvedBriefingBeat[];
+}
+
+function textById(records: readonly ContentRecord[], id: string): string {
+  const item = records.find((record) => record.id === id);
+  if (item === undefined) throw new Error(`Missing player content ID: ${id}`);
+  return item.text;
+}
+
+export function resolveTitleContent(
+  records: readonly ContentRecord[],
+): ResolvedTitleContent {
+  return {
+    eyebrow: textById(records, "tmr.copy.title.eyebrow"),
+    koTitle: textById(records, "tmr.copy.title.ko"),
+    enTitle: textById(records, "tmr.copy.title.en"),
+    tagline: textById(records, "tmr.copy.title.tagline"),
+    hook: textById(records, "tmr.copy.title.hook"),
+    action: textById(records, "tmr.copy.title.action"),
+    secondary: textById(records, "tmr.copy.title.secondary"),
+    worldNoteTitle: textById(records, "tmr.copy.title.world-note-title"),
+    worldNote: textById(records, "tmr.copy.title.world-note"),
+    footer: textById(records, "tmr.copy.title.footer"),
+    assetNote: textById(records, "tmr.copy.title.asset-note"),
+  };
+}
+
+export function resolveOpeningBriefingContent(
+  records: readonly ContentRecord[],
+): ResolvedOpeningBriefingContent {
+  const beatIndexes = records
+    .map((record) => /^tmr\.copy\.briefing\.beat-(\d+)\.title$/.exec(record.id))
+    .flatMap((match) => (match === null ? [] : [Number(match[1])]));
+  const beats = [...new Set(beatIndexes)].sort(
+    (first, second) => first - second,
+  );
+  return {
+    label: textById(records, "tmr.copy.briefing.label"),
+    skip: textById(records, "tmr.copy.briefing.skip"),
+    next: textById(records, "tmr.copy.briefing.next"),
+    finish: textById(records, "tmr.copy.briefing.finish"),
+    remember: textById(records, "tmr.copy.briefing.remember"),
+    beats: beats.map((index) => {
+      const eyebrowId = `tmr.copy.briefing.beat-${index}.eyebrow`;
+      const titleId = `tmr.copy.briefing.beat-${index}.title`;
+      const bodyId = `tmr.copy.briefing.beat-${index}.body`;
+      return {
+        eyebrow: textById(records, eyebrowId),
+        title: textById(records, titleId),
+        body: textById(records, bodyId),
+        eyebrowId,
+        titleId,
+        bodyId,
+      };
+    }),
+  };
+}
 
 const STATIC_CONTENT_RECORDS: readonly ContentRecord[] = [
   record({

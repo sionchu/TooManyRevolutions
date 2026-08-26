@@ -6,6 +6,8 @@ import {
   buildContentRegistry,
   contentLengthWarning,
   parseContentPatch,
+  resolveOpeningBriefingContent,
+  resolveTitleContent,
   type ContentRecord,
 } from "../presentation/design/contentRegistry";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
@@ -118,6 +120,26 @@ export function ContentStudio() {
   const changedRecords = records.filter(
     (item) => drafts[item.id] !== undefined && drafts[item.id] !== item.text,
   );
+  const previewRecords = useMemo(
+    () =>
+      applyContentPatch(records, {
+        version: 1,
+        changes: changedRecords.map((item) => ({
+          id: item.id,
+          text: drafts[item.id] ?? item.text,
+        })),
+      }),
+    [changedRecords, drafts, records],
+  );
+  const titlePreview = useMemo(
+    () => resolveTitleContent(previewRecords),
+    [previewRecords],
+  );
+  const briefingPreview = useMemo(
+    () => resolveOpeningBriefingContent(previewRecords),
+    [previewRecords],
+  );
+  const [previewBeatIndex, setPreviewBeatIndex] = useState(0);
 
   const updateSelectedText = (text: string) => {
     if (selected === null) return;
@@ -241,6 +263,32 @@ export function ContentStudio() {
           </select>
         </label>
       </section>
+      <nav className="studio-scope-tabs" aria-label="타이틀 브리핑 바로가기">
+        <button
+          type="button"
+          className={category === "title" ? "active" : undefined}
+          onClick={() => setCategory("title")}
+          data-content-filter="title"
+        >
+          타이틀
+        </button>
+        <button
+          type="button"
+          className={category === "briefing" ? "active" : undefined}
+          onClick={() => setCategory("briefing")}
+          data-content-filter="briefing"
+        >
+          브리핑
+        </button>
+        <button
+          type="button"
+          className={category === "all" ? "active" : undefined}
+          onClick={() => setCategory("all")}
+          data-content-filter="all"
+        >
+          전체 콘텐츠
+        </button>
+      </nav>
       <div className="studio-layout">
         <aside className="studio-record-list" aria-label="stable ID 목록">
           <div className="studio-list-heading">
@@ -344,6 +392,83 @@ export function ContentStudio() {
               {status}
             </p>
           </div>
+          <section className="studio-preview" data-content-preview>
+            <div className="studio-editor-heading">
+              <div>
+                <span className="eyebrow">live preview</span>
+                <h2>타이틀 / 브리핑 미리보기</h2>
+              </div>
+              <span className="studio-baseline">현재 로컬 초안 반영</span>
+            </div>
+            <div className="studio-preview-grid">
+              <article
+                className="studio-title-preview"
+                data-preview-screen="title"
+              >
+                <span className="eyebrow" data-preview-field="title.eyebrow">
+                  {titlePreview.eyebrow}
+                </span>
+                <small data-preview-field="title.en">
+                  {titlePreview.enTitle}
+                </small>
+                <h3 data-preview-field="title.ko">{titlePreview.koTitle}</h3>
+                <p data-preview-field="title.tagline">{titlePreview.tagline}</p>
+                <p data-preview-field="title.hook">{titlePreview.hook}</p>
+                <button
+                  type="button"
+                  disabled
+                  data-preview-field="title.action"
+                >
+                  {titlePreview.action}
+                </button>
+              </article>
+              <article
+                className="studio-briefing-preview"
+                data-preview-screen="briefing"
+              >
+                <div className="studio-preview-beat-picker">
+                  <span className="eyebrow">{briefingPreview.label}</span>
+                  <label>
+                    beat
+                    <select
+                      value={previewBeatIndex}
+                      onChange={(event) =>
+                        setPreviewBeatIndex(Number(event.target.value))
+                      }
+                    >
+                      {briefingPreview.beats.map((_, index) => (
+                        <option key={index} value={index}>
+                          {index + 1}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                {briefingPreview.beats[previewBeatIndex] === undefined ? (
+                  <p>브리핑 beat가 없습니다.</p>
+                ) : (
+                  <>
+                    <span
+                      className="eyebrow"
+                      data-preview-field="briefing.eyebrow"
+                    >
+                      {briefingPreview.beats[previewBeatIndex]!.eyebrow}
+                    </span>
+                    <h3 data-preview-field="briefing.title">
+                      {briefingPreview.beats[previewBeatIndex]!.title}
+                    </h3>
+                    <p data-preview-field="briefing.body">
+                      {briefingPreview.beats[previewBeatIndex]!.body}
+                    </p>
+                  </>
+                )}
+                <div className="studio-preview-actions">
+                  <span>{briefingPreview.skip}</span>
+                  <span>{briefingPreview.next} →</span>
+                </div>
+              </article>
+            </div>
+          </section>
         </section>
       </div>
     </main>

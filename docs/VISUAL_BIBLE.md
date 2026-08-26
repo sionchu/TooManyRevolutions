@@ -297,6 +297,59 @@ USE DIRECTLY` 및 `DO NOT SHIP`이다.
 
 실제 구현이 아니라 Gate 1V 중후반 평가 규격만 정의한다.
 
+## 11. Semantic world-object language
+
+P0 world stage의 지도는 텍스트 목록이 아니라 현재 정치 세계를 읽는
+주 playfield다. 모든 semantic object는 다음 renderer-neutral family와
+truth classification을 가진다.
+
+| Family | Truth classification | Visual contract |
+| --- | --- | --- |
+| `SettlementVisual` | `DERIVED_PRESENTATION` | existing Country/Region settlement projection; legal owner와 controller를 혼동시키지 않는다 |
+| `PoiVisual` | `AUTHORITATIVE_PROJECTION` | authored Region/LandHex에 결박된 port, mine, fort/checkpoint 등 stable place |
+| `StateProjectVisual` | `DERIVED_PRESENTATION` | existing intervention commitment/event lifecycle의 not-started, implementing, completed projection |
+| `FactionActivityVisual` | `DERIVED_PRESENTATION` | 실제 faction-controlled LandHex에만 banner/occupied-site cue |
+| `ConflictActivityVisual` | `DERIVED_PRESENTATION` | 실제 active Conflict와 affected/contested Region에만 camp/beacon/front cue |
+| `RouteActivityVisual` | `DERIVED_PRESENTATION` | existing ContactGraph channel의 trade, information, migration, border grammar |
+| `InstitutionLandmarkVisual` | `AUTHORITATIVE_PROJECTION` | authored capital-seat/assembly-hall content identity |
+| `DecorativeTerrainVisual` | `DECORATIVE_SUBSTRATE` | political truth를 가리지 않는 low-poly terrain, elevation, coast, vegetation substrate |
+
+음식·배급 project는 granary/storehouse, civic project는 assembly hall,
+industrial project는 workshop/public-works silhouette을 사용한다. `not-started`
+는 ring과 survey stakes만, `implementing`은 translucent body와 scaffold,
+`completed`는 durable structure를 보여 준다. 이 변화는 새 timer/resource가
+아니라 기존 intervention commitment와 completion event의 presentation이다.
+
+Authored POI는 임의의 색이나 위치에서 추론하지 않는다. 현재 demo scenario의
+실제 Region과 그 Region에 속한 LandHex identity를 metadata에 기록하고,
+`WorldSceneModel`이 해당 anchor를 검증한 뒤 R3F에 투영한다. faction banner,
+rebellion camp/beacon, controller emphasis도 실제 state/event evidence에서만
+파생한다. exact army, cargo, person count/location은 표현하지 않는다.
+
+Route channel은 warm octahedron trade flow, thin signal ring information,
+spaced directional migration marks, gate/checkpoint border line으로 구분한다.
+이는 활동 channel의 의미를 읽게 하는 grammar이며 literal cargo/person 수가
+아니다. 기본 gaze order는 `WORLD → spatial cue → decision opportunity →
+compact qualitative state → exact detail`이다. raw ID/enum/debug vocabulary는
+상세 surface 뒤에 둔다.
+
+## 12. Continuous terrain and authored player copy
+
+`LandHex`는 topology, controller, movement와 territorial mechanics의 logical
+authority다. 기본 art unit은 hex pillar가 아니다. 정상 camera의 reading order는
+`terrain → country/controller boundary → roads/routes → places/projects →
+conflict activity`이며, tile outline은 선택·hover·controller/front·strategic
+lens에서만 contextual하게 드러난다. 타일 top은 shared continuous surface처럼
+읽혀야 하고, 수직성은 terrain relief, palace, fort, mine, project와 conflict
+object가 담당한다. 기본 화면에서 모든 hex의 side wall과 outline이 board look을
+지배하면 안 된다.
+
+Title/Opening Briefing의 visible copy도 source-code prose가 아니라 stable
+ContentRegistry record다. baseline은 authoring-time generated/imported draft로
+시작하고 Content Studio에서 filter, edit, diff, preview, local draft, reset,
+JSON patch export를 수행한다. production runtime에는 LLM/API 의존성이 없고,
+Content Studio가 GitHub에 직접 쓰는 것처럼 가장하지 않는다.
+
 Capital 또는 politically active area를 다음과 같이 구성한다.
 
 - 6–10 visible LandHex를 baseline candidate로 검토한다. architecture constant가 아님.

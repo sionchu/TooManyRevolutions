@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 import {
-  PLAYER_COPY,
-  PRODUCT_IDENTITY,
-} from "../presentation/design/copyRegistry.ko";
+  getGameBuildersOpeningBriefingContent,
+  getGameBuildersTitleContent,
+} from "../presentation/design/playerContent";
 import { BrandMark } from "./BrandMark";
 
 export function OpeningBriefing({
@@ -12,8 +12,10 @@ export function OpeningBriefing({
   readonly onComplete: () => void;
 }) {
   const [beatIndex, setBeatIndex] = useState(0);
-  const beat = PLAYER_COPY.briefing.beats[beatIndex]!;
-  const isLastBeat = beatIndex === PLAYER_COPY.briefing.beats.length - 1;
+  const content = getGameBuildersOpeningBriefingContent();
+  const titleContent = getGameBuildersTitleContent();
+  const beat = content.beats[beatIndex]!;
+  const isLastBeat = beatIndex === content.beats.length - 1;
 
   return (
     <main
@@ -25,23 +27,36 @@ export function OpeningBriefing({
         <div className="briefing-masthead">
           <BrandMark compact />
           <div>
-            <p className="eyebrow">{PLAYER_COPY.briefing.label}</p>
-            <strong>{PRODUCT_IDENTITY.enTitle}</strong>
+            <p className="eyebrow" data-content-id="tmr.copy.briefing.label">
+              {content.label}
+            </p>
+            <strong data-content-id="tmr.copy.title.en">
+              {titleContent.enTitle}
+            </strong>
           </div>
           <span className="briefing-page">
             {String(beatIndex + 1).padStart(2, "0")} /{" "}
-            {String(PLAYER_COPY.briefing.beats.length).padStart(2, "0")}
+            {String(content.beats.length).padStart(2, "0")}
           </span>
         </div>
         <div className="briefing-rule" />
         <section className="briefing-copy">
-          <p className="eyebrow">{beat.eyebrow}</p>
-          <h1 id="briefing-title">{beat.title}</h1>
-          <p>{beat.body}</p>
+          <p className="eyebrow" data-content-id={beat.eyebrowId}>
+            {beat.eyebrow}
+          </p>
+          <h1 id="briefing-title" data-content-id={beat.titleId}>
+            {beat.title}
+          </h1>
+          <p data-content-id={beat.bodyId}>{beat.body}</p>
         </section>
         <div className="briefing-actions">
-          <button className="quiet-button" type="button" onClick={onComplete}>
-            {PLAYER_COPY.briefing.skip}
+          <button
+            className="quiet-button"
+            type="button"
+            onClick={onComplete}
+            data-content-id="tmr.copy.briefing.skip"
+          >
+            {content.skip}
           </button>
           <button
             className="primary-button"
@@ -51,9 +66,15 @@ export function OpeningBriefing({
               else setBeatIndex((index) => index + 1);
             }}
           >
-            {isLastBeat
-              ? PLAYER_COPY.briefing.finish
-              : PLAYER_COPY.briefing.next}
+            <span
+              data-content-id={
+                isLastBeat
+                  ? "tmr.copy.briefing.finish"
+                  : "tmr.copy.briefing.next"
+              }
+            >
+              {isLastBeat ? content.finish : content.next}
+            </span>
             <span aria-hidden="true">→</span>
           </button>
         </div>

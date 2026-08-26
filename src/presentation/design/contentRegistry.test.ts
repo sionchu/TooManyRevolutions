@@ -7,6 +7,8 @@ import {
   buildContentRegistry,
   contentLengthWarning,
   parseContentPatch,
+  resolveOpeningBriefingContent,
+  resolveTitleContent,
   validateContentPatch,
 } from "./contentRegistry";
 
@@ -17,6 +19,21 @@ describe("stable content registry", () => {
     expect(new Set(records.map((record) => record.id)).size).toBe(
       records.length,
     );
+    const title = resolveTitleContent(records);
+    const briefing = resolveOpeningBriefingContent(records);
+    expect(title.koTitle).toBe("내 왕국에 혁명이 너무 많다");
+    expect(title.hook.length).toBeGreaterThan(0);
+    expect(briefing.beats).toHaveLength(4);
+    expect(
+      briefing.beats.every((beat) => beat.titleId.includes("briefing")),
+    ).toBe(true);
+    expect(
+      records
+        .filter(
+          (record) => record.screen === "title" || record.screen === "briefing",
+        )
+        .every((record) => record.id.startsWith("tmr.copy.")),
+    ).toBe(true);
     expect(
       records.some((record) => record.branchOrVariantId !== "default"),
     ).toBe(true);

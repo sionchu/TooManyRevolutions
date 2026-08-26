@@ -6,9 +6,41 @@ import type {
   PresentationState,
 } from "./presentationState";
 import type { LandHexTerrain } from "../sim/state/territorialTopology";
+import {
+  authoredWorldSceneContentForScenario,
+  type AuthoredWorldSceneContent,
+  type AuthoredWorldSceneInstitutionDefinition,
+  type AuthoredWorldScenePoiDefinition,
+  type WorldSceneInstitutionKind,
+  type WorldScenePoiKind,
+} from "./worldSceneContent";
 
 export type WorldSceneTruthClass =
   "AUTHORITATIVE_PROJECTION" | "DERIVED_PRESENTATION" | "DECORATIVE_SUBSTRATE";
+
+export type WorldSceneObjectFamily =
+  | "SettlementVisual"
+  | "PoiVisual"
+  | "StateProjectVisual"
+  | "FactionActivityVisual"
+  | "ConflictActivityVisual"
+  | "RouteActivityVisual"
+  | "InstitutionLandmarkVisual"
+  | "DecorativeTerrainVisual";
+
+export type WorldSceneRouteVisualKind =
+  | "trade-warm-flow"
+  | "information-signal"
+  | "migration-direction"
+  | "border-gate";
+
+export type WorldSceneFactionVisualKind = "banner" | "occupied-site";
+
+export type WorldSceneConflictVisualKind =
+  "rebellion-camp" | "coup-beacon" | "armed-conflict-front";
+
+export type WorldSceneProjectSilhouette =
+  "granary" | "assembly-hall" | "workshop";
 
 export type WorldSceneProjectStatus =
   "not-started" | "implementing" | "completed";
@@ -33,6 +65,7 @@ export interface WorldSceneHex {
   readonly ownerCountryId: PresentationRegion["ownerCountryId"];
   readonly position: WorldScenePoint;
   readonly height: number;
+  readonly objectFamily: "DecorativeTerrainVisual";
   readonly truthClass: "AUTHORITATIVE_PROJECTION";
 }
 
@@ -51,6 +84,32 @@ export interface WorldSceneSettlement {
   readonly regionId: PresentationRegion["regionId"];
   readonly name: string;
   readonly kind: "capital";
+  readonly objectFamily: "SettlementVisual";
+  readonly visualKind: "capital-palace";
+  readonly position: WorldScenePoint;
+  readonly truthClass: "AUTHORITATIVE_PROJECTION";
+}
+
+export interface WorldScenePoi {
+  readonly id: string;
+  readonly countryId: PresentationCountry["countryId"];
+  readonly regionId: PresentationRegion["regionId"];
+  readonly anchorLandHexId: PresentationLandHex["landHexId"];
+  readonly name: string;
+  readonly kind: WorldScenePoiKind;
+  readonly objectFamily: "PoiVisual";
+  readonly position: WorldScenePoint;
+  readonly truthClass: "AUTHORITATIVE_PROJECTION";
+}
+
+export interface WorldSceneInstitutionLandmark {
+  readonly id: string;
+  readonly countryId: PresentationCountry["countryId"];
+  readonly regionId: PresentationRegion["regionId"];
+  readonly anchorLandHexId: PresentationLandHex["landHexId"];
+  readonly name: string;
+  readonly kind: WorldSceneInstitutionKind;
+  readonly objectFamily: "InstitutionLandmarkVisual";
   readonly position: WorldScenePoint;
   readonly truthClass: "AUTHORITATIVE_PROJECTION";
 }
@@ -82,6 +141,8 @@ export interface WorldSceneRoute {
   readonly channel: PresentationState["contactRoutes"][number]["channel"];
   readonly active: boolean;
   readonly strength: number;
+  readonly objectFamily: "RouteActivityVisual";
+  readonly visualKind: WorldSceneRouteVisualKind;
   readonly start: WorldScenePoint;
   readonly end: WorldScenePoint;
   readonly truthClass: "AUTHORITATIVE_PROJECTION";
@@ -94,6 +155,8 @@ export interface WorldSceneFactionPresence {
   readonly controlledLandHexIds: readonly string[];
   readonly position: WorldScenePoint;
   readonly organization: number;
+  readonly objectFamily: "FactionActivityVisual";
+  readonly visualKind: WorldSceneFactionVisualKind;
   readonly truthClass: "AUTHORITATIVE_PROJECTION";
 }
 
@@ -103,12 +166,16 @@ export interface WorldSceneConflictMarker {
   readonly kind: PresentationConflict["kind"];
   readonly regionIds: readonly PresentationRegion["regionId"][];
   readonly position: WorldScenePoint;
+  readonly objectFamily: "ConflictActivityVisual";
+  readonly visualKind: WorldSceneConflictVisualKind;
   readonly truthClass: "AUTHORITATIVE_PROJECTION";
 }
 
 export interface WorldSceneFront {
   readonly id: string;
   readonly conflictId: string;
+  readonly firstLandHexId: string;
+  readonly secondLandHexId: string;
   readonly start: WorldScenePoint;
   readonly end: WorldScenePoint;
   readonly truthClass: "DERIVED_PRESENTATION";
@@ -119,10 +186,12 @@ export interface WorldSceneProjectLandmark {
   readonly name: string;
   readonly regionId: PresentationRegion["regionId"];
   readonly landmarkKind: WorldSceneProjectInput["landmarkKind"];
+  readonly silhouette: WorldSceneProjectSilhouette;
   readonly status: WorldSceneProjectStatus;
   readonly progress: number;
   readonly sourceEventIds: readonly string[];
   readonly position: WorldScenePoint;
+  readonly objectFamily: "StateProjectVisual";
   readonly truthClass: "DERIVED_PRESENTATION";
 }
 
@@ -135,6 +204,8 @@ export interface WorldSceneModel {
   readonly regions: readonly WorldSceneRegionLabel[];
   readonly influences: readonly WorldSceneInfluence[];
   readonly settlements: readonly WorldSceneSettlement[];
+  readonly pois: readonly WorldScenePoi[];
+  readonly institutions: readonly WorldSceneInstitutionLandmark[];
   readonly routes: readonly WorldSceneRoute[];
   readonly factionPresence: readonly WorldSceneFactionPresence[];
   readonly conflicts: readonly WorldSceneConflictMarker[];
@@ -166,17 +237,64 @@ export function worldPositionForAxial(q: number, r: number): WorldScenePoint {
 export function terrainHeight(terrain: LandHexTerrain): number {
   switch (terrain) {
     case "coast":
-      return 0.12;
+      return 0.08;
     case "wetlands":
-      return 0.16;
+      return 0.1;
     case "plains":
-      return 0.22;
+      return 0.12;
     case "forest":
-      return 0.34;
+      return 0.18;
     case "hills":
-      return 0.48;
+      return 0.28;
     case "mountains":
-      return 0.72;
+      return 0.38;
+  }
+}
+
+function routeVisualKind(
+  channel: PresentationState["contactRoutes"][number]["channel"],
+): WorldSceneRouteVisualKind {
+  switch (channel) {
+    case "trade":
+      return "trade-warm-flow";
+    case "information":
+      return "information-signal";
+    case "migration":
+      return "migration-direction";
+    case "border":
+      return "border-gate";
+  }
+}
+
+function projectSilhouette(
+  landmarkKind: WorldSceneProjectInput["landmarkKind"],
+): WorldSceneProjectSilhouette {
+  switch (landmarkKind) {
+    case "food":
+      return "granary";
+    case "civic":
+      return "assembly-hall";
+    case "industrial":
+      return "workshop";
+  }
+}
+
+function factionVisualKind(
+  controlledLandHexIds: readonly string[],
+): WorldSceneFactionVisualKind {
+  return controlledLandHexIds.length > 0 ? "occupied-site" : "banner";
+}
+
+function conflictVisualKind(
+  kind: PresentationConflict["kind"],
+): WorldSceneConflictVisualKind {
+  switch (kind) {
+    case "rebellion":
+      return "rebellion-camp";
+    case "coup":
+      return "coup-beacon";
+    default:
+      return "armed-conflict-front";
   }
 }
 
@@ -233,6 +351,7 @@ function createHexes(
         ownerCountryId: region.ownerCountryId,
         position: worldPositionForAxial(hex.coordinate.q, hex.coordinate.r),
         height: terrainHeight(hex.terrain),
+        objectFamily: "DecorativeTerrainVisual" as const,
         truthClass: "AUTHORITATIVE_PROJECTION" as const,
       };
     });
@@ -300,10 +419,92 @@ function createSettlements(
           regionId: country.capitalRegionId,
           name: `${country.name} 수도`,
           kind: "capital" as const,
+          objectFamily: "SettlementVisual" as const,
+          visualKind: "capital-palace" as const,
           position: [center[0], 0.62, center[2]] as WorldScenePoint,
           truthClass: "AUTHORITATIVE_PROJECTION" as const,
         },
       ];
+    });
+}
+
+function authoredObjectPosition(
+  definition: {
+    readonly anchorLandHexId: string;
+    readonly regionId: string;
+    readonly offsetX: number;
+    readonly offsetZ: number;
+  },
+  hexesById: ReadonlyMap<string, WorldSceneHex>,
+): WorldScenePoint | null {
+  const hex = hexesById.get(definition.anchorLandHexId);
+  if (hex === undefined || hex.regionId !== definition.regionId) return null;
+  return [
+    hex.position[0] + definition.offsetX,
+    hex.height + 0.04,
+    hex.position[2] + definition.offsetZ,
+  ];
+}
+
+function createPois(
+  presentation: PresentationState,
+  content: AuthoredWorldSceneContent,
+  hexesById: ReadonlyMap<string, WorldSceneHex>,
+): readonly WorldScenePoi[] {
+  const regions = new Map(
+    presentation.regions.map((region) => [region.regionId, region]),
+  );
+  return [...content.pois]
+    .sort((first, second) => compareStableText(first.id, second.id))
+    .flatMap((definition: AuthoredWorldScenePoiDefinition) => {
+      const region = regions.get(definition.regionId);
+      const position = authoredObjectPosition(definition, hexesById);
+      return region === undefined || position === null
+        ? []
+        : [
+            {
+              id: definition.id,
+              countryId: region.ownerCountryId,
+              regionId: definition.regionId,
+              anchorLandHexId: definition.anchorLandHexId,
+              name: definition.name,
+              kind: definition.kind,
+              objectFamily: "PoiVisual" as const,
+              position,
+              truthClass: "AUTHORITATIVE_PROJECTION" as const,
+            },
+          ];
+    });
+}
+
+function createInstitutionLandmarks(
+  presentation: PresentationState,
+  content: AuthoredWorldSceneContent,
+  hexesById: ReadonlyMap<string, WorldSceneHex>,
+): readonly WorldSceneInstitutionLandmark[] {
+  const regions = new Map(
+    presentation.regions.map((region) => [region.regionId, region]),
+  );
+  return [...content.institutions]
+    .sort((first, second) => compareStableText(first.id, second.id))
+    .flatMap((definition: AuthoredWorldSceneInstitutionDefinition) => {
+      const region = regions.get(definition.regionId);
+      const position = authoredObjectPosition(definition, hexesById);
+      return region === undefined || position === null
+        ? []
+        : [
+            {
+              id: definition.id,
+              countryId: region.ownerCountryId,
+              regionId: definition.regionId,
+              anchorLandHexId: definition.anchorLandHexId,
+              name: definition.name,
+              kind: definition.kind,
+              objectFamily: "InstitutionLandmarkVisual" as const,
+              position,
+              truthClass: "AUTHORITATIVE_PROJECTION" as const,
+            },
+          ];
     });
 }
 
@@ -379,6 +580,8 @@ function createRoutes(
               channel: route.channel,
               active: route.active,
               strength: route.effectiveStrength,
+              objectFamily: "RouteActivityVisual" as const,
+              visualKind: routeVisualKind(route.channel),
               start: [start[0], 0.18, start[2]] as WorldScenePoint,
               end: [end[0], 0.18, end[2]] as WorldScenePoint,
               truthClass: "AUTHORITATIVE_PROJECTION" as const,
@@ -412,6 +615,8 @@ function createFactionPresence(
               ),
               position: averagePosition(positions),
               organization: token.organization,
+              objectFamily: "FactionActivityVisual" as const,
+              visualKind: factionVisualKind(token.controlledLandHexIds),
               truthClass: "AUTHORITATIVE_PROJECTION" as const,
             },
           ];
@@ -448,6 +653,8 @@ function createConflicts(
               kind: conflict.kind,
               regionIds,
               position: averagePosition(points),
+              objectFamily: "ConflictActivityVisual" as const,
+              visualKind: conflictVisualKind(conflict.kind),
               truthClass: "AUTHORITATIVE_PROJECTION" as const,
             },
           ];
@@ -469,6 +676,8 @@ function createFronts(
             {
               id: front.frontId,
               conflictId: front.conflictId,
+              firstLandHexId: front.firstLandHexId,
+              secondLandHexId: front.secondLandHexId,
               start: [
                 start.position[0],
                 start.height + 0.05,
@@ -501,6 +710,7 @@ function createProjects(
               name: project.name,
               regionId: project.anchorRegionId,
               landmarkKind: project.landmarkKind,
+              silhouette: projectSilhouette(project.landmarkKind),
               status: project.status,
               progress: project.progress,
               sourceEventIds: [...project.sourceEventIds].sort(
@@ -511,6 +721,7 @@ function createProjects(
                 0.96,
                 center[2] - 0.34,
               ] as WorldScenePoint,
+              objectFamily: "StateProjectVisual" as const,
               truthClass: "DERIVED_PRESENTATION" as const,
             },
           ];
@@ -524,6 +735,9 @@ export function deriveWorldSceneModel(
   const hexes = createHexes(presentation);
   const regionCenters = regionPositions(hexes);
   const hexesById = new Map(hexes.map((hex) => [hex.id, hex]));
+  const authoredContent = authoredWorldSceneContentForScenario(
+    presentation.scenarioId,
+  );
   const allPoints = hexes.map((hex) => hex.position);
   return {
     scenarioId: presentation.scenarioId,
@@ -534,6 +748,12 @@ export function deriveWorldSceneModel(
     regions: createRegionLabels(presentation, regionCenters),
     influences: createInfluences(presentation, regionCenters),
     settlements: createSettlements(presentation, regionCenters),
+    pois: createPois(presentation, authoredContent, hexesById),
+    institutions: createInstitutionLandmarks(
+      presentation,
+      authoredContent,
+      hexesById,
+    ),
     routes: createRoutes(presentation, regionCenters),
     factionPresence: createFactionPresence(presentation, hexesById),
     conflicts: createConflicts(presentation, regionCenters),

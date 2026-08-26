@@ -2094,3 +2094,68 @@ persistence work is introduced.
 Medium. The renderer-neutral model and compatibility alias keep a future
 renderer replacement bounded; the reference traceability matrix and deployed
 visual QA would need to be repeated for another selection.
+
+## ADR-048 — Semantic world-object and art-readability layer
+
+### Status
+
+Accepted for the authorized `GAMEBUILDERS_PRODUCT_SURFACE_P0` targeted rework.
+
+### Problem
+
+The accepted R3F world stage had correct factual layers but the same generic
+project landmark geometry for food, civic, and industrial projects. Authored
+places, faction/conflict activity, and route channels were spatially present
+but not recognisable enough before reading a drawer or Chronicle.
+
+### Decision
+
+Keep R3F and `WorldSceneModel` as the production architecture. Add explicit
+renderer-neutral object families and truth classifications; bind authored POIs
+and institutional landmarks to existing scenario Region/LandHex identities;
+project distinct code-native silhouettes for existing project lifecycle states;
+and give factual route/faction/conflict channels distinct symbolic geometry.
+
+### Consequences
+
+The world can communicate place, development, controller change, conflict, and
+channel activity before text without adding simulation entities, writers,
+timers, resources, or persistence fields. Fresh exact-deployment screenshots
+are required for product review because tests cannot establish visual
+recognition alone.
+
+### Reversal cost
+
+Medium. The renderer-neutral families keep a future renderer bounded, but
+rendered evidence and the semantic reference matrix would need to be repeated
+if the object grammar were replaced.
+
+## ADR-049 — Continuous terrain and ContentRegistry player-copy source
+
+### Status
+
+Accepted for the authorized P0 supplement.
+
+### Problem
+
+The logical LandHex topology was visually overrepresented as individual raised
+hex tokens, especially on mobile. Title and briefing text also had an authoring
+workflow in the repository but the runtime screens still read `PLAYER_COPY`
+directly, preventing a complete stable-ID edit/preview path.
+
+### Decision
+
+Retain LandHex and R3F. Render a flat, continuous terrain surface from the same
+topology, omit default hex outlines, and reveal them contextually for selection,
+controller/faction, and conflict/front situations. Move every visible
+title/briefing field behind stable ContentRegistry records; use Content Studio
+for local draft editing, preview, diff, and JSON patch export. Treat baseline
+prose as authoring-time generated/imported draft content and keep runtime LLM
+independent.
+
+### Consequences
+
+The world reads as terrain with political objects above it rather than a board
+of pillars. Mobile map width/height becomes an explicit acceptance measurement.
+Screen copy can be revised without editing React components, while repository
+review remains the authority for applying exported patches.

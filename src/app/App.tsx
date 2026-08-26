@@ -613,7 +613,6 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
 export function App() {
   const [screen, setScreen] = useState<ProductScreen>("title");
   if (
-    import.meta.env.DEV &&
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("contentStudio") === "1"
   ) {

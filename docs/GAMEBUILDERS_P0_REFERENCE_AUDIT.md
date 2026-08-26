@@ -49,3 +49,29 @@ No third-party art, screenshot, shader, map data, or code is in the TMR bundle.
   from the existing active Conflict/front projection only.
 - Save/load remains `SerializedSimulationSnapshotV8`; no persistence V9 work is
   part of this checkpoint.
+
+## Targeted semantic rendered-output acceptance
+
+The accepted R3F/WorldSceneModel architecture is retained. This matrix records
+the rendered-output checks for the semantic object-language rework.
+
+| Observed principle | TMR adaptation | Exact implementation layer | Forbidden transfer | Rendered-output acceptance |
+| --- | --- | --- | --- | --- |
+| Plague Inc./Rebel Inc. keep a changing world as the primary playfield. | Spatial conflict, controller, project, and route cues remain over the terrain while time advances. | `WorldSceneModel` → `PoliticalWorldStage` | No copied map, crisis rules, or assets. | Day 0 and late-state captures show different factual world layers without opening Chronicle. |
+| Against the Storm makes development legible through changed settlement objects. | Food/civic/industrial projects use granary, assembly-hall, and workshop silhouettes with lifecycle states. | `ProjectLandmark` and `WorldSceneModel.projects` | No new construction economy, timer, or fake completion. | Implementing has scaffold/translucent body; completed has a durable type-specific silhouette. |
+| CK-style geography makes neighboring political identity legible. | Authored port, mine, fort/checkpoint, capital-seat, and assembly-hall anchors use existing Region/LandHex identity. | `worldSceneContent.ts`, `createPois`, `createInstitutionLandmarks` | No arbitrary inferred POI or invented location. | Each authored place is recognisable on the map and remains bound to its scenario anchor. |
+| Faction/conflict activity needs a world cue before a report. | Actual faction-controlled hexes receive banners; actual active conflicts receive camp/beacon/front language. | `FactionBanner`, `ConflictActivity` | No army positions, troop counts, battle formations, or fake fronts. | First rebellion/territorial change is locatable in under three seconds from the map alone. |
+| Route channels communicate different kinds of movement. | Trade, information, migration, and border channels receive distinct line/glyph/pulse grammar. | `RouteChannelGlyph`, `routeLineColor`, `RoutePulse` | No literal cargo/person particles or population counts. | Channel kind is distinguishable without reading raw enum text. |
+| Civilization/HOI4 branch surfaces use spatial hierarchy. | Existing roadmap graph keeps branch/path hierarchy, enacted persistence, and blocked/reachable states. | `InstitutionalRoadmapPanel` / graph kernel | No tech currency, focus authority, or scripted historical outcome. | Roadmap capture reads branches and path state at a glance with concise Korean labels. |
+| TMR prior baseline was generic rings, landmarks, and dashboard vocabulary. | Replace generic project/route/conflict cues with authored code-native geometry while keeping map-first composition. | R3F scene layers and contextual drawers | No commercial art/code/assets copied. | Desktop and 390×844 mobile captures retain world-first gaze and avoid raw debug leakage. |
+
+All new signature geometry is project-authored Three.js primitives. No external
+asset source or license was added by this checkpoint.
+
+## Continuous terrain and authoring acceptance
+
+| Finding / principle | TMR adaptation | Exact implementation layer | Forbidden transfer | Acceptance |
+| --- | --- | --- | --- | --- |
+| Strategy maps use a logical tile calculation layer below a continuous world. | Keep LandHex as logical topology while flat terrain surface, relief, objects, and politics read before tile geometry. | `TerrainWorldSurface`, `TerrainBackdrop`, `WorldSceneModel.terrainHeight` | No topology rewrite, copied commercial terrain art, or second spatial authority. | Default Day 0 capture does not read as raised hex pillars; selection/controller/front can reveal hex context. |
+| Strategy-game mobile maps prioritize the world over surrounding chrome. | Full-bleed safe-area map stage with 62svh minimum target and compressed secondary HUD. | `.map-first-shell`, `.world-stage`, `.world-scene-viewport` mobile rules | No desktop card shrink or dashboard-first mobile composition. | 390×844 measured map width is at least 94% usable viewport and height target is recorded. |
+| Authoring systems keep player copy editable and traceable. | Stable title/briefing ContentRegistry records, local draft/preview/diff, and JSON patch handoff. | `contentRegistry.ts`, `playerContent.ts`, `ContentStudio`, `TitleScreen`, `OpeningBriefing` | No runtime LLM, direct GitHub write, or copy-only React source. | Title and briefing fields are editable/previewable in the deployed `contentStudio=1` surface. |

@@ -2651,3 +2651,53 @@ P0 may author additional demo ScenarioDefinition content for readable geography,
 but may not add fake armies/fronts/crowds, scheduled crises, a second conflict
 writer, persistence V9, F05 operational evidence/settlement runtime, Gate 1F or
 V02.
+
+## 19.1 Semantic world-object presentation boundary
+
+The semantic world-object pass preserves the accepted authority pipeline:
+
+```text
+WorldState / EventStore
+        -> PresentationState
+        -> WorldSceneModel
+        -> PoliticalWorldStage (R3F)
+```
+
+`WorldSceneModel` now names explicit presentation families:
+`SettlementVisual`, `PoiVisual`, `StateProjectVisual`, `FactionActivityVisual`,
+`ConflictActivityVisual`, `RouteActivityVisual`, `InstitutionLandmarkVisual`,
+and `DecorativeTerrainVisual`. Each projected object carries a truth
+classification. Authored POI/institution metadata is static scenario content,
+but every anchor is validated against an existing Country/Region/LandHex
+identity before projection; it is not a new WorldState or persistence entity.
+
+State-project silhouettes are derived from the existing intervention lifecycle.
+Only the existing commitment/event evidence changes not-started, implementing,
+and completed presentation. The renderer does not own progress, completion,
+time, or a writer. Faction banners and conflict camp/beacon/front cues are
+derived from actual faction controller and active Conflict evidence. Route
+glyphs describe the existing ContactGraph channel, not literal cargo or
+person entities.
+
+The R3F scene remains read-only. It does not call a simulation writer, mutate
+LandHex/Conflict/Government state, introduce a second clock, or alter
+`SerializedSimulationSnapshotV8`. No tactical army, exact location, crowd,
+resource, fake project, or historical focus fact may be created for visual
+decoration.
+
+## 19.2 Continuous terrain and content-authoring boundary
+
+LandHex remains the authoritative logical/topological unit. The continuous
+terrain pass changes only presentation: a shared code-native surface and
+backdrop render the existing hex coordinates without dominant per-tile side
+walls, while a transparent hit surface preserves selection callbacks. Contextual
+hex outlines appear only for selected tiles, faction/controller evidence, or
+front/strategic context. Country/legal owner tint, controller marks, Country
+labels, fronts, and authored objects remain separate channels.
+
+Title and Opening Briefing consume resolved records from the same stable
+`ContentRegistry` that Content Studio edits. The baseline records are static
+authoring-time draft content. Content Studio stores local drafts, shows baseline
+versus edited diff, renders title/current briefing previews, and exports a
+validated JSON patch. Applying that patch to the repository remains an explicit
+reviewed handoff; there is no direct admin-to-GitHub write and no runtime LLM.

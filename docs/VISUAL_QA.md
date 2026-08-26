@@ -199,3 +199,34 @@ Date:
 - generic fantasy UI trope
 - inconsistent material treatment
 - excessive ornamental density
+
+## 10. Semantic world-object readability gate
+
+For the authorized P0 semantic rework, review the exact deployed source at
+fresh checkpoints. The reviewer records the source commit, public URL, viewport,
+and screenshot path for each row.
+
+| Check | Evidence required | Pass condition |
+| --- | --- | --- |
+| Project silhouettes | Day implementing and completed captures | food/granary, civic/assembly-hall, and industrial/workshop identities differ; lifecycle is visible without a timer |
+| Authored POIs | Day 0 capture plus DOM/model inspection | port, mine, fort/checkpoint, capital-seat, and assembly-hall are recognisable and anchored to existing scenario identity |
+| Conflict/controller | first rebellion/territorial-change capture | active rebellion is locatable in under three seconds; controller change is visible without Chronicle |
+| Route grammar | Day 0/late capture plus model inspection | trade, information, migration, and border channels use distinct visual language without literal people/cargo |
+| Late-world divergence | Day 0 vs 1000+ capture | built/political/conflict layers visibly differ while remaining state-derived |
+| Roadmap | roadmap capture | branch hierarchy, enacted, reachable, blocked, and incompatible states read at a glance; no raw IDs |
+| HUD/mobile | desktop and 390×844 captures | map remains primary; default HUD does not dominate gaze; no card-wall collapse or horizontal overflow |
+
+The semantic gate may close only with all seven fresh captures and the
+automated verification suite. A screenshot generated from an unpushed or
+non-deployed local bundle is not production evidence.
+
+## 11. Continuous terrain / content-authoring gate
+
+| Check | Evidence required | Pass condition |
+| --- | --- | --- |
+| Terrain substrate | Day 0 exact-deployment capture | terrain reads continuously; no dominant raised pillar or always-visible grid |
+| Contextual hex | selected-hex and rebellion/front captures | selection/controller/front context reveals the relevant outline without turning on a global board grid |
+| Mobile world stage | 390×844 DOM measurements and capture | world stage width ≥94% of usable viewport, height ≥62svh where browser chrome allows, no large surrounding card |
+| Title authoring | title screen plus Content Studio edit/preview | all visible title fields have stable IDs and preview updates from local draft |
+| Briefing authoring | briefing beat plus Content Studio edit/preview | label, beat eyebrow/title/body, actions are stable records and patch-exportable |
+| Runtime boundary | build/source inspection | no runtime LLM/API and no direct admin-to-GitHub write path |

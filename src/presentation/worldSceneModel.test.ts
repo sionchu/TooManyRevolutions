@@ -15,6 +15,16 @@ describe("renderer-neutral WorldSceneModel", () => {
     );
     expect(model.countries).toHaveLength(3);
     expect(model.settlements).toHaveLength(3);
+    expect(model.pois.map((poi) => poi.kind)).toEqual([
+      "mine",
+      "fort",
+      "fort",
+      "port",
+    ]);
+    expect(model.institutions.map((landmark) => landmark.kind)).toEqual([
+      "assembly-hall",
+      "capital-seat",
+    ]);
     expect(model.routes.filter((route) => route.active).length).toBeGreaterThan(
       0,
     );
@@ -22,6 +32,22 @@ describe("renderer-neutral WorldSceneModel", () => {
     expect(model.conflicts).toHaveLength(1);
     expect(model.fronts.length).toBeGreaterThan(0);
     expect(model.projects).toHaveLength(3);
+    expect(model.projects.map((project) => project.silhouette)).toEqual([
+      "assembly-hall",
+      "granary",
+      "workshop",
+    ]);
+    expect(new Set(model.routes.map((route) => route.visualKind)).size).toBe(3);
+    expect(
+      model.factionPresence.every(
+        (presence) => presence.objectFamily === "FactionActivityVisual",
+      ),
+    ).toBe(true);
+    expect(
+      model.conflicts.every(
+        (conflict) => conflict.objectFamily === "ConflictActivityVisual",
+      ),
+    ).toBe(true);
     expect(
       model.hexes.every((hex) => hex.truthClass === "AUTHORITATIVE_PROJECTION"),
     ).toBe(true);
