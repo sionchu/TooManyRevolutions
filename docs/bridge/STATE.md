@@ -1,221 +1,261 @@
 # TMR Bridge State
 
-UPDATED: 2026-08-25
-
+UPDATED: 2026-08-26
 REPOSITORY: sionchu/TooManyRevolutions
 BRANCH: master
-CURRENT_GATE: Gate 1F
-CURRENT_PHASE: F05_FIX16 Coup Coordination Domain Closure — COMPLETE / AWAITING_CHATGPT_REVIEW
-
-## Key commits
-
-F04_CLOSED_COMMIT: 2db9ccd43b09bc4f24bb6980b5bd200b5464c5fc
-F05_MEASUREMENT_COMMIT: 1866287e87072fc9b62f55a4af940f9d0e54b15b
-GATE1F_REVIEW_COMMIT: 2423e629b018052d24f495793e10803cd5a0f837
-F05_FIX8_IMPLEMENTATION_COMMIT: 89f350bd67ced8e49c161f95fa5e2a1c94066d42
-F05_FIX9_RESULT_COMMIT: c373c5ae591911d3650840ae8eac4973d63bde75
-F05_FIX10_RESULT_COMMIT: 98985e84a5448e9d2454847f36e11a4c6cfa3732
-F05_FIX11_RESULT_COMMIT: b8869813f6279572001b3bc17f800f4918c98ad8
-F05_FIX12_RESULT_COMMIT: c79f71c62f6d0048a504a125b3975a446d2f4013
-F05_FIX13_IMPLEMENTATION_COMMIT: 69f857fdb9036725014e676c8633977c421b19df
-F05_FIX14_IMPLEMENTATION_COMMIT: 4345e7fa84d589576db65db1f2df43c8934a9b6f
-F05_FIX14_RESULT_METADATA_COMMIT: 5987b4c6732a91cf516c0eff3dae47cd268510eb
-F05_FIX15_TASK_COMMIT: 8fd27058c95c75f55efda8612bd40a0befe81d67
-F05_FIX15_RESULT_COMMIT: 3489927c5ba67095b6f58b9292e017affeacf659
-F05_FIX15_END_COMMIT: a38614fbb387c072105d4d7568cb199ef6ff5a87
-F05_FIX16_TASK_COMMIT: 7a75116f74fadeb1fa4cc98f91591b1607999ead
-F05_FIX16_RESULT_COMMIT: f096a84
-F05_FIX16_END_COMMIT: f096a84
-
-## Accepted gate history
-
-F04: CLOSED / PASS
-F05: MEASUREMENT_COMPLETE / REVIEWED / Gate 1F NOT_READY
-F05_FIX1: PASS / REVIEWED
-F05_FIX2: terminal pacing writer rejected by continuity evidence gate
-F05_FIX3: PASS / ACCEPTED architecture restoration
-F05_FIX4: PASS / ACCEPTED faction ActionProposal intake
-F05_FIX5: PASS / ACCEPTED grounding-only; `INSUFFICIENT_ACTION_CONSEQUENCE_GROUNDING`
-F05_FIX6: PASS / ACCEPTED political interaction kernel
-F05_FIX7: PASS / ACCEPTED long-horizon integration
-F05_FIX8: PASS / ACCEPTED proposal lifecycle; strict persistence then V4
-F05_FIX9: PASS / ACCEPTED diagnosis `LATE_STEADY_STATE_MIXED_CAUSE`
-F05_FIX10: PASS / ACCEPTED `COVERAGE_REQUIRES_ACTION_SCHEMA_TARGETING`
-F05_FIX11: PASS / ACCEPTED `FUND_MOVEMENT_REQUIRES_NEW_AUTHORING_SEAM`
-F05_FIX12: PASS / ACCEPTED `FUND_MOVEMENT_AUTHORING_SEAM_IMPLEMENTED`
-F05_FIX13: PASS / ACCEPTED `TARGETED_COMMITMENT_KERNEL_IMPLEMENTED_BUT_LATE_REASSESSMENT_UNCHANGED`
-F05_FIX14: PASS / ACCEPTED `FUND_MOVEMENT_LIFECYCLE_IMPLEMENTED_LATE_SILENCE_PERSISTS`
-F05_FIX15: PASS / ACCEPTED `WAR_POLITICS_REQUIRES_NEW_AUTHORITATIVE_DOMAIN`
-
-## F05 late-state diagnosis preserved
-
-Historical F05 / F05_FIX9 reference remains:
-
-```text
-state-grounded max reassessment silence = 1200 days
-post-intervention late silence = 1110 days
-late population = 6 ACCEPT branches >720 days
-country physical LandHexes = 0 in representative late freezes
-active conflicts = rebellion + coup
-rebellion = NO_ACTIVE_FRONT_EDGE
-coup = COUP_HAS_NO_TERRITORIAL_WRITER
-Government remains valid
-run outcome remains active
-T022 consolidation blocked
-T023 dissolution not proven by occupation/Government defeat
-```
-
-F05_FIX9 representative causes remain:
-
-```text
-ACTIVE_CONFLICT_EQUILIBRIUM
-OUTCOME_ELIGIBILITY_STALEMATE
-INTERACTION_COVERAGE_EXHAUSTED
-```
-
-No production task may reinterpret `0 LandHex` or Government defeat as automatic State Dissolution.
-
-## FUND_MOVEMENT route closure
-
-The FUND_MOVEMENT path is complete as an authored/runtime/lifecycle political object but exhausted as the current Gate 1F pacing remedy.
-
-Accepted chain:
-
-```text
-scenario-authored FactionFundMovementTemplate
--> targeted FUND_MOVEMENT ActionRecord schema v2
--> exact authored Region/amount validation
--> authoritative actor-owned earmark commitment
--> derived available resources
--> active same actor/target duplicate guard
--> Agenda visibility without severity bonus
--> state-grounded active -> resolved(actorIntentCeased)
--> resource availability restoration
--> strict persistence/replay
-```
-
-F05_FIX14 showed a real lifecycle under an existing political-accommodation response but no-response remained unresolved for 1200 days. Therefore do not add another FUND_MOVEMENT payoff, target, timer, cooldown, or lifecycle rule for Gate 1F.
-
-Current persistence after this route: `SerializedSimulationSnapshotV6 / format version 6`.
-
-## ChatGPT acceptance of F05_FIX15
-
-F05_FIX15: COMPLETE / REVIEWED / PASS / ACCEPTED
-F05_FIX15_PRIMARY_CLASSIFICATION: WAR_POLITICS_REQUIRES_NEW_AUTHORITATIVE_DOMAIN
-F05_FIX15_NEXT_IMPLEMENTATION_READINESS: NEW_DOMAIN_GROUNDING_REQUIRED
-F05_FIX15_COUP_CURRENT_STATE_SUFFICIENT: NO
-F05_FIX15_COUP_REQUIRES_NEW_COORDINATION_DOMAIN: YES
-F05_FIX15_REBELLION_CURRENT_STATE_SUFFICIENT: NO
-F05_FIX15_REBELLION_REQUIRES_SETTLEMENT_OR_PERSISTENCE_DOMAIN: YES
-F05_FIX15_SHARED_CONFLICT_OBJECTIVE_SCHEMA_REQUIRED: NO
-F05_FIX15_MOBILIZATION_FINANCE_RELEVANT_TO_CURRENT_BLOCKER: NO
-F05_FIX15_OCCUPATION_DISPLACEMENT_RELEVANT_TO_CURRENT_BLOCKER: NO
-F05_FIX15_PRODUCTION_CONFLICT_GAMEPLAY: NONE
-F05_FIX15_PERSISTENCE: V6_UNCHANGED
-
-Accepted interpretation:
-
-- coup is a non-territorial coordination/seizure-of-authority problem; T021's lack of a coup LandHex writer is deliberate, not a missing front bug;
-- existing Faction/Country/Government scalars are attempt/eligibility evidence, not enough to derive coup success/failure honestly;
-- current TMR has no authoritative coordination/alignment/seizure provenance;
-- rebellion with no front cannot be declared ended without persistence/settlement/security/demobilization evidence;
-- a generic shared conflict objective alone would not produce either missing mechanism;
-- Government transition remains nonterminal and State Dissolution remains under T023 evidence only;
-- no production source, Conflict/WorldState schema, T021/T022/T023, or persistence was changed by F05_FIX15.
-
-## F05_FIX16 authorization
-
-F05_FIX16: COMPLETE / AWAITING_CHATGPT_REVIEW
-F05_FIX16_TASK_FILE: `docs/bridge/tasks/F05_FIX16.md`
-F05_FIX16_DIRECTION: close the coup-coordination domain question for Gate 1F.
-
-Research basis:
-
-- Singh: coup outcomes are intra-military coordination problems, not conventional territorial battle or popularity contests;
-- Geddes review of Singh: officers' choices depend strongly on beliefs about what other officers will do; grievance alone does not decide alignment;
-- Powell & Thyne: coups are analytically distinct from other anti-regime activity;
-- repository T018 already exposes `militarySympathy` and `leadership` as unimplemented future-evidence placeholders, but these must not become hidden numeric scores.
-
-Closure question:
-
-```text
-Can TMR represent coup resolution with a bounded coup-only set of explicit decisive coordination actors and categorical observable alignment/action provenance,
-without creating a general military/state-apparatus simulation or hidden coordination score?
-```
-
-Exactly two valid primary outcomes:
-
-```text
-COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE
-COUP_COORDINATION_REJECTED_FOR_GATE1F
-```
-
-If designable:
-
-```text
-NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_AUTHORING_SEAM
-```
-
-If honest implementation requires a broader military/state-apparatus actor, command, communications, hidden-belief, loyalty, or unit system:
-
-```text
-NEXT_IMPLEMENTATION_READINESS: PIVOT_TO_REBELLION_PERSISTENCE_GROUNDING
-```
-
-There is no third `needs more coup grounding` outcome. If rejected, the coup route is closed for the current Gate 1F repair.
-
-F05_FIX16 is grounding/design only. It may not add WorldState/Conflict/Government/Faction fields, actions, coup outcome writers, T018/T021/T022/T023 changes, persistence changes, or production scenario content.
-
-## Current architecture constraints
-
-- player = `CountryId` continuity, not Government;
-- Government transition remains nonterminal;
-- physical territorial authority only through `WorldState.landHexStates[*].controller` / `changeLandHexController()`;
-- `Region.stateControl` is not territorial ownership;
-- fronts remain derived;
-- no `0 LandHex -> defeat/dissolution`;
-- no Government defeat -> continuity damage/restoration;
-- no fake coup LandHex front/writer;
-- no `no front -> peace`;
-- no generic politicalPower/reformPoint/stability/mobilization/effort/war/coup mana;
-- no numeric coup coordination/support/loyalty/inevitability/progress score;
-- no random coup resolution;
-- no hidden score inferred from Faction name/ideology/currentStrategy or existing Country/Faction scalars;
-- no LLM direct authoritative mutation;
-- no FUND_MOVEMENT extension;
-- no V02 until Gate 1F PASS.
-
-## Current gate / persistence
-
+CURRENT_GATE: Gate 1F / TEMPORARILY_PAUSED_FOR_GAMEBUILDERS_PRODUCT_P0
 GATE1F_CHATGPT_DECISION: NOT_READY
-V02: NOT STARTED
-POLITICAL_COMPETITION: IMPLEMENTED — `banned | restricted | plural`
-PERSISTENCE: SerializedSimulationSnapshotV6 / format version 6
+V02: NOT_STARTED
+PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
 
-LAST_COMPLETED_TASK_ID: F05_FIX16
-NEXT_AUTHORIZED_TASK_ID: NONE
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
-CURRENT_TASK_FILE: NONE
-LAST_RESULT_FILE: `docs/bridge/results/F05_FIX16_RESULT.md`
-F05_FIX17: NOT_AUTHORIZED
-FUTURE_REFERENCE_GROUNDING_GATES: `docs/FUTURE_REFERENCE_GROUNDING_GATES.md`
-
-## Repository-root / freshness guard
-
-The real repository is the nested `TooManyRevolutions` directory.
-
-The existing Codex Desktop thread may be reused. A new thread is not required.
-
-Preferred order:
+## Accepted progression
 
 ```text
-1. externally synchronize the real nested repository
-2. verify master/origin-master
-3. in the existing Codex thread/worktree, verify working tree clean
-4. fast-forward only if needed
-5. execute only CURRENT_TASK
+F04: CLOSED / PASS
+F05_FIX1..F05_FIX23: accepted core progression
+GAMEBUILDERS_DEMO_SPRINT_01: TECHNICAL_PASS / ACCEPTED_AS_VERTICAL_SLICE
 ```
 
-If parent `Game-TMR` shows `TooManyRevolutions/` as untracked, `cd TooManyRevolutions` first and never modify/reset/configure the parent repository.
+## Stable core / reviewed demo base
 
-If `master` and `origin/master` are current but the clean Codex worktree HEAD is behind, `git merge --ff-only origin/master` is permitted. Do not reset/rebase/force merely to bypass freshness.
+```text
+CORE_IMPLEMENTATION_HEAD: 82bb6018f2fc87d9f1807cab3c12fb5e2e016775
+GAMEBUILDERS_REVIEWED_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
+PERSISTENCE_FORMAT: V8
+DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
+GATE1F: NOT_READY
+V02: NOT_STARTED
+```
+
+## Current authorization
+
+```text
+CURRENT_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
+CURRENT_TASK_STATUS: AUTHORIZED
+WORK_BRANCH: gamebuilders-product-surface-p0
+BASE_IMPLEMENTATION_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
+LATEST_P0_BRANCH_HEAD_BEFORE_NEW_LOOP_WORK: 55ec2334cd32953207d3bd144fdf793b5b808b9f
+NEXT_AUTHORIZED_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
+```
+
+Current task/addenda are listed in `docs/bridge/CURRENT_TASK.md`. The latest added player-loop/world-feel requirements are additionally grounded in:
+
+```text
+docs/GDD_GAME_LOOP_WORLD_FEEL_ADDENDUM_2026-08-26.md
+docs/ARCHITECTURE_P0_RENDERER_CONTENT_BOUNDARY_ADDENDUM_2026-08-26.md
+docs/DECISION_GAMEBUILDERS_P0_GAME_LOOP_RENDERER_CONTENT_STUDIO_2026-08-26.md
+docs/QA_GAMEBUILDERS_P0_GAME_LOOP_WORLD_FEEL_2026-08-26.md
+docs/BACKLOG_GAMEBUILDERS_P0_GAME_LOOP_WORLD_FEEL_2026-08-26.md
+docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM.md
+```
+
+## P0 checkpoint already achieved at branch head 55ec2334
+
+The result published on the P0 branch reports the following real gameplay-reality repairs and deployed hands-on evidence:
+
+```text
+SYSTEM_PROPOSAL_CARRY_LOOP: IMPLEMENTED_AND_TESTED
+IDEOLOGY_DIFFUSION_IN_DEMO_RUNTIME: ENABLED
+CURRENT_CONTROLLER_VISUALLY_DISTINCT_FROM_OWNER: YES
+ACTIVE_CONFLICT_PERSISTENT_PRESENTATION: YES
+SIGNIFICANT_EVENT_FEED: YES
+PLAYER_POLICY_ACTIONS: YES
+CONSOLIDATION_OBJECTIVE_BLOCKERS_VISIBLE: YES
+PLAYER_OBSERVABLE_DYNAMICS_AUDIT: PASS
+DAY_1000_LOOKS_IDENTICAL_TO_DAY_0: NO
+MOBILE_MAP_FIRST_VIEWPORT: PASS at that checkpoint
+SITES_REDEPLOYED: YES
+```
+
+The deployed/source checkpoint showed factual controller migration, active rebellion/coup presentation, ideology changes, policy actions, EventStore records and consolidation blockers. These fixes should not be reimplemented from scratch unless regression evidence requires it.
+
+## Why P0 is still BLOCKING / NOT ACCEPTED
+
+The `COMPLETE` wording in the branch result predates later, stronger P0 addenda. Current P0 scope is therefore not complete.
+
+Hands-on mobile review after the gameplay-reality repair found that the product can still feel like:
+
+```text
+time passes
+-> rebellion/crisis
+-> auto-pause
+-> text-heavy policy/intervention choice
+-> resume
+-> repeat
+```
+
+The player sees factual changes, but the experience still lacks enough game-native flow, readable spatial change, medium-term institutional/state-building progression and accumulated visible history.
+
+### Remaining game-loop blockers
+
+1. Routine/ordinary changes must not make repeated auto-pause/text interaction the dominant loop.
+2. The map must be readable as the evolving game board before reports are opened.
+3. Chronicle must become a factual `ChronicleDigest`, not a low-level ideology/faction log.
+4. Policy choices need a visible medium-term `Institutional Roadmap` based on real PolicyDefinition prerequisites/incompatibilities.
+5. 2–4 mechanically defensible existing lifecycles should become map-linked State Projects/landmarks with real progress/completion and persistent traces; if current authority cannot support this, the exact blocker must be documented rather than faked.
+6. State/Event changes need factual `WorldVisualDelta` feedback.
+7. Player-facing branch/variant copy needs a development-only Content Studio.
+
+### Remaining visual / renderer blockers
+
+Persistent gameplay must stop following normal webpage/admin grammar:
+
+```text
+header / metric boxes
+-> form-like time controls
+-> crisis card
+-> map inside a bordered content box
+-> more explanatory boxes
+```
+
+Target:
+
+```text
+compact game HUD
+-> world/map fills primary viewport
+-> spatial controller/ideology/conflict/project feedback
+-> contextual drawers/sheets on demand
+```
+
+A bounded PixiJS v8 + React renderer spike is authorized. The existing TMR TypeScript simulation/action/time pipeline remains authoritative. No whole-engine migration or second game clock is authorized. If Pixi is not deadline-safe, retain one SVG production renderer and implement the same map-first/camera/WorldVisualDelta requirements there.
+
+### Documentation alignment blocker
+
+Before further P0 implementation, Codex must fold the durable requirements from the current GDD/architecture/decision/QA/backlog addenda into the canonical relevant sections of:
+
+```text
+docs/GDD.md
+docs/ARCHITECTURE.md
+docs/DECISIONS.md
+docs/BACKLOG.md
+docs/QA_PLAYTEST.md
+```
+
+Historical decisions must not be deleted or weakened.
+
+## Required remaining P0 result markers
+
+```text
+DOCUMENTATION_ALIGNMENT: PASS
+ROUTINE_AUTO_PAUSE_DOMINATES_GAME_LOOP: NO
+MAP_MAJOR_CHANGE_READABLE_WITHOUT_REPORT: YES
+DAY_0_INTERMEDIATE_LATE_VISUAL_DIVERGENCE: PASS
+INSTITUTIONAL_ROADMAP: YES
+GENERIC_TECH_OR_POLICY_MANA: NO
+STATE_PROJECT_PRESENTATION: YES_OR_EXACT_AUTHORITY_BLOCKER_DOCUMENTED
+PROJECT_PROGRESS_USES_EXISTING_LIFECYCLE: YES
+COMPLETED_PROJECT_LEAVES_MAP_VISIBLE_TRACE: YES_OR_BLOCKER_DOCUMENTED
+WORLD_VISUAL_DELTA_PIPELINE: YES
+CHRONICLE_DIGEST: YES
+CHRONICLE_SOURCE_EVENT_PROVENANCE: YES
+CONTENT_STUDIO: YES
+CONTENT_BRANCH_VARIANT_EDITING: YES
+CONTENT_JSON_IMPORT_EXPORT: YES
+RENDERER_DECISION: PIXI_OR_SVG_FALLBACK_DOCUMENTED
+WEB_DASHBOARD_VISUAL_GRAMMAR_DOMINANT: NO
+MAP_OCCUPIES_PRIMARY_VIEWPORT: YES
+MAP_WORLD_BOUNDS_FILLED: YES
+PERSISTENT_PARAGRAPHS_ON_MAIN_MAP: NO
+PRIMARY_HUD_COMPACT: YES
+CAMERA_PAN_ZOOM_FOCUS: YES
+POLICY_AND_PROJECT_VISUAL_TRACE: YES
+MOBILE_STACKED_CARD_PAGE_FEEL: NO
+SCREENSHOT_VISUAL_REVIEW: PASS_OR_BLOCKERS_DOCUMENTED
+SITES_REDEPLOYED_FROM_REVIEWED_COMMIT: YES
+```
+
+## Locked product / spatial direction
+
+```text
+내 왕국에 혁명이 너무 많다
+TOO MANY REVOLUTIONS
+정권은 무너져도, 국가는 계속된다.
+```
+
+Core loop direction:
+
+```text
+choose medium-term institutional/state-building direction
+-> let time flow while the world remains legible
+-> watch ideology/factions/territory/conflicts/projects change spatially
+-> selectively intervene
+-> choices alter future availability and authoritative state
+-> completed choices leave visible history
+-> next decisions emerge from the changed world
+```
+
+GDD spatial contract:
+
+```text
+politics is calculated at Region scale
+territory moves on LandHexes
+ideology spreads as color/pattern
+authoritative organizations become map markers
+revolution becomes territory
+```
+
+Reference roles:
+- Plague Inc. / Rebel Inc.: persistent living map, spatial feedback and time flow;
+- Civilization: tree readability/path satisfaction only, not research-point authority;
+- Rebel Inc. Azure Dam: visible map-linked medium-term project;
+- Against the Storm: strategic choices/upgrades visibly changing the world;
+- Frostpunk: laws/state-building with visible consequences;
+- Victoria / Paradox: institutional/faction trade-offs, not persistent dashboard UI;
+- CK3: political geography / territory identity;
+- Suzerain / Papers Please: briefing/decision flavor only.
+
+## Design / partial-edit contract
+
+Keep and extend:
+
+```text
+Design Tokens
+-> Semantic Tokens
+-> Design Registry
+-> Asset Manifest
+-> Layer Registry
+-> Components
+-> Screen Composition
+-> State / Crisis Overlay
+
+Content Registry
+-> stable player-facing text IDs
+-> branch/variant metadata
+-> Content Studio editing and JSON patch export/import
+```
+
+Do not regress to a monolithic AI image, one giant React component, or hardcoded player copy scattered through components.
+
+## Preserved architecture constraints
+
+- player = CountryId continuity, not ruler/government;
+- Government transition remains nonterminal;
+- physical territorial authority remains only `WorldState.landHexStates[*].controller`;
+- Region.stateControl is not territorial ownership;
+- fronts remain derived;
+- no invented armies/crowds/fronts;
+- no fake countries / Agenda / EventStore facts;
+- no direct UI/renderer mutation of WorldState;
+- all actions use common action/simulation boundaries;
+- EventStore remains append-only; ChronicleDigest is presentation-only;
+- no scripted/scheduled coup/rebellion;
+- no fake project completion;
+- no generic tech/reform/policy currency;
+- no focus-tree/story-node authority;
+- no hidden pacing timer/RNG cheat;
+- no new F05 operational-evidence/settlement implementation in P0;
+- no persistence V9;
+- no solver/universal utility score;
+- Gate 1F remains NOT_READY;
+- V02 remains NOT_STARTED;
+- no successor task self-authorization.
+
+## Deferred core work
+
+```text
+F05_FIX24: COMPLETE / AWAITING_CHATGPT_REVIEW on separate branch
+F05_FIX25_CONDITIONAL_DESIGN_MEMO: NON_AUTHORITATIVE
+F05_FIX25_IMPLEMENTATION: NOT_AUTHORIZED
+```
+
+Do not resume these until GameBuilders P0 is independently reviewed or explicitly paused.
