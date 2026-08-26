@@ -404,3 +404,92 @@ documentation-only and does not alter that tested production bundle.
 This result closes only the authorized `GAMEBUILDERS_PRODUCT_SURFACE_P0`
 world-stage rework. It does not declare Gate 1F PASS, does not start V02, does
 not start F05 follow-up work, and does not authorize the next task.
+
+## Frozen map visual system checkpoint — 271eb18
+
+This section is the current closure for the authorized Map World Architecture
+and Map Visual System pass. The implementation checkpoint is frozen at:
+
+```text
+271eb18b9d713c3d639091b35aa65c2c0d780b69
+feat: implement map visual system authoring pass
+```
+
+The same commit was pushed to `gamebuilders-product-surface-p0` and to the
+Sites project's configured source branch before version creation. No map,
+presentation, simulation, persistence, or renderer code was changed after
+this checkpoint; the remaining changes in this closure are result/evidence
+documents only.
+
+### Production provenance
+
+| Item | Value |
+| --- | --- |
+| Public URL | https://too-many-revolutions-gamebuilders.leeje92.chatgpt.site |
+| Sites project | `appgprj_6a8dd05a84688191b356030d05e3e198` |
+| Sites version | 22 (`appgprj_6a8dd05a84688191b356030d05e3e198~appgver_bd39ca2f44008191ae82d2b97931c2fd`) |
+| Saved source commit | `271eb18b9d713c3d639091b35aa65c2c0d780b69` |
+| Archive | `C:\Temp\tmr-gamebuilders-271eb18.tar.gz` |
+| Archive SHA-256 | `B310EFF7C2CBFC6B4A013AFACA6DBF50786921E8253CBA6FC1756410C79EDE76` |
+| Sites archive content hash | `sha256:353914d24ecff52c526347e27cdf84a5fc48a17a52f27aa41ae78e0fd416d60e` |
+| Deployment | succeeded (`appgdep_6a8eba7747fc8191997ea85025f6168b`) |
+
+`get_site_version` returned the saved source commit above, and `get_site`
+returned the same live URL with latest version 22.
+
+### Production smoke and visual evidence
+
+The exact production URL was exercised through title → `새 게임` → opening
+briefing → `브리핑 건너뛰기` → main world screen.
+
+| Checkpoint | Observed result |
+| --- | --- |
+| Desktop Day 0 | 1440×1000 browser; `desktop.global`, `meso`, LandHex 20, asset kit 15, Region compositions 10, label count 17, occupancy `0.997 × 0.740`, no Internal Server Error |
+| Labels hidden | `?mapLabels=0`; label count 0 while asset kit/compositions and occupancy remained `15 / 10 / 0.997 × 0.740` |
+| Selected Hex | `ideology-fixture.capital-hex`; visible selection text `왕도권 · 아르켄 왕국`; no callback error |
+| Rebellion | three real `+30일` actions reached Day 90; one active rebellion, 8 faction-controller DOM projections, LandHex 20, no Internal Server Error |
+| Mobile | 390×844; `mobile.player-theater`, `near`/`micro`, stage width 390, mobile occupancy `1.000 × 1.000`, first-viewport world share `67.998%`, 3 visible status metrics, no Internal Server Error |
+| Map Studio | 11 visual-authoring modes; `architecture validation PASS`; zero error issues; tick 0 / LandHex 20; no Internal Server Error |
+
+Evidence captured from the exact deployed source is in
+`docs/bridge/results/evidence/`:
+
+- `GAMEBUILDERS_P0_MAP_VISUAL_DEPLOYED_DESKTOP_DAY0.png`
+- `GAMEBUILDERS_P0_MAP_VISUAL_DEPLOYED_LABELS_HIDDEN.png`
+- `GAMEBUILDERS_P0_MAP_VISUAL_DEPLOYED_SELECTED_HEX.png`
+- `GAMEBUILDERS_P0_MAP_VISUAL_DEPLOYED_DAY90_REBELLION.png`
+- `GAMEBUILDERS_P0_MAP_VISUAL_DEPLOYED_MOBILE_PLAYER_THEATER.png`
+- `GAMEBUILDERS_P0_MAP_VISUAL_DEPLOYED_MAP_STUDIO.png`
+
+### Verification record
+
+| Verification | Result |
+| --- | --- |
+| `npm run format` | PASS |
+| `npm run typecheck` | PASS |
+| `npm run lint` | PASS |
+| `npm run build` | PASS; Vite and Sites worker completed |
+| focused map architecture/visual/presentation tests | PASS; 3 files / 14 tests |
+| full `npm test -- --reporter=dot` | 83 files / 610 tests PASS; runner exit 1 from 4 Vitest worker `onTaskUpdate` timeout errors |
+| fork-pool full-suite rerun | 83 files / 610 tests PASS; same 4 `onTaskUpdate` timeout errors; exit 1 |
+| T018 individual inspection | PASS |
+| T021 individual inspection | PASS |
+| T024 individual inspection | PASS |
+| V01 individual inspection | PASS; V02 remains NOT_STARTED |
+| `git diff --check` | PASS |
+
+The four full-suite errors were runner progress-RPC timeouts, not assertion
+failures. They were recorded as `ASSERTIONS_PASS / RUNNER_EXIT_FAIL`; source
+was not changed to hide or bypass them.
+
+### Boundary status
+
+```text
+MAP_VISUAL_SYSTEM: IMPLEMENTED_FOR_REVIEW
+PRIMITIVE_BLOCKOUT_LOOK_DOMINANT: NO (captured production visual review)
+LANDHEX_TOPOLOGY_OR_COUNT_CHANGED: NO (20)
+P0_PRODUCT_PASS: NOT_DECLARED
+GATE1F: NOT_READY
+V02: NOT_STARTED
+F05_FOLLOW_UP: NOT_STARTED
+```
