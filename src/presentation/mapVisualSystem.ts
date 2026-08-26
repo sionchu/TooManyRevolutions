@@ -665,7 +665,7 @@ export function deriveMapVisualSystem(
             : "충돌",
         "crisis",
         conflict.position,
-        95,
+        140,
         0.86,
         ["macro", "meso", "micro"],
         "AUTHORITATIVE_PROJECTION",

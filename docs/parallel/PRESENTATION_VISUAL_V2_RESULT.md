@@ -31,7 +31,7 @@
 | 1 | COMPLETED | shared-relief mesh code/test gate; `docs/parallel/evidence/visual-v2-phase1-terrain-desktop.png`; `docs/parallel/evidence/visual-v2-phase1-terrain-mobile.png` 직접 OPEN 검사. X/Z authorial spacing에 맞춘 공통 corner 공유와 실제 높이/vertex color relief 적용, connected translucent fill 비활성화. |
 | 2 | COMPLETED | 세 역할(capital / industrial / frontier)을 각각 하나의 grounded place composition으로 표시; material adapter와 terrain terrace/contact shadow 적용. `docs/parallel/evidence/visual-v2-phase2-heroes-desktop.png`; `docs/parallel/evidence/visual-v2-phase2-heroes-mobile.png` 직접 OPEN 검사. per-Hex GLTF scatter 없음. |
 | 3 | COMPLETED | `deriveMapVisibilityBudget`로 world/pressure/crisis 모드와 LOD budget을 상태에서 파생. tick 19 factual rebellion에서 affected region LandHex에 crisis contour와 controller/front 변화가 뉴스 overlay와 별도로 먼저 보임. `docs/parallel/evidence/visual-v2-phase3-rebellion-desktop.png`; `docs/parallel/evidence/visual-v2-phase3-rebellion-mobile.png` 직접 OPEN 검사. |
-| 4 | NOT_RUN | - |
+| 4 | COMPLETED | `screenSpaceLabels`가 투영 좌표 기준 충돌 검사 후 우선순위로 cap하며 desktop budget 4/5, mobile 3을 적용. DOM evidence: desktop/mobile `data-map-label-policy=priority-screen-space-collision-cap`, mobile `data-map-label-count=3`, document overflow 0. `docs/parallel/evidence/visual-v2-phase4-labels-desktop.png`; `docs/parallel/evidence/visual-v2-phase4-labels-mobile.png` 직접 OPEN 검사. |
 | 5 | NOT_RUN | - |
 | 6 | NOT_RUN | - |
 | 7 | NOT_RUN | - |

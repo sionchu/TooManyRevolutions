@@ -693,6 +693,48 @@ function projectWorldPointsToCanvas(
   };
 }
 
+function screenSpaceLabels(
+  labels: readonly MapVisualSystem["labels"][number][],
+  camera: THREE.Camera,
+  width: number,
+  height: number,
+  limit: number,
+): readonly MapVisualSystem["labels"][number][] {
+  if (width <= 0 || height <= 0 || limit <= 0) return [];
+  camera.updateMatrixWorld();
+  const occupied: MapScreenSpaceRect[] = [];
+  const visible: MapVisualSystem["labels"][number][] = [];
+  for (const label of [...labels].sort(
+    (first, second) =>
+      second.priority - first.priority ||
+      compareStableText(first.id, second.id),
+  )) {
+    if (visible.length >= limit) break;
+    const projected = new THREE.Vector3(...label.position).project(camera);
+    if (projected.z < -1 || projected.z > 1) continue;
+    const centerX = ((projected.x + 1) / 2) * width;
+    const centerY = ((1 - projected.y) / 2) * height;
+    const textWidth = Math.max(44, [...label.text].length * 9 * label.scale);
+    const rect: MapScreenSpaceRect = {
+      minX: centerX - textWidth / 2,
+      maxX: centerX + textWidth / 2,
+      minY: centerY - 12,
+      maxY: centerY + 12,
+    };
+    const collides = occupied.some(
+      (other) =>
+        rect.minX < other.maxX + 8 &&
+        rect.maxX > other.minX - 8 &&
+        rect.minY < other.maxY + 6 &&
+        rect.maxY > other.minY - 6,
+    );
+    if (collides) continue;
+    occupied.push(rect);
+    visible.push(label);
+  }
+  return visible;
+}
+
 function TerrainWorldSurface({
   runtimeGeometry,
 }: {
@@ -1285,6 +1327,24 @@ function WorldScene({
   const crisisRegionIds = new Set(
     model.conflicts.flatMap((conflict) => conflict.regionIds),
   );
+  const visibleLabels = useMemo(
+    () =>
+      screenSpaceLabels(
+        visualSystem.labels,
+        camera,
+        size.width,
+        size.height,
+        isMobileTheater ? 3 : visibilityBudget.desktopLabelLimit,
+      ),
+    [
+      camera,
+      isMobileTheater,
+      size.height,
+      size.width,
+      visibilityBudget.desktopLabelLimit,
+      visualSystem.labels,
+    ],
+  );
   return (
     <>
       <color attach="background" args={[visualSystem.material.fogColor]} />
@@ -1383,7 +1443,7 @@ function WorldScene({
         {model.conflicts.map((conflict) => (
           <ConflictActivity key={conflict.id} conflict={conflict} />
         ))}
-        {visualSystem.labels.map((label) => {
+        {visibleLabels.map((label) => {
           const region = model.regions.find(
             (candidate) => candidate.id === label.id,
           );
@@ -1706,13 +1766,21 @@ export function PoliticalWorldStage({
     () => deriveMapVisualSystem(model, architecture, lodTier),
     [architecture, lodTier, model],
   );
+  const labelLimit = isMobileViewport ? 3 : visibilityBudget.desktopLabelLimit;
+  const boundedLabels = [...visualSystem.labels]
+    .sort(
+      (first, second) =>
+        second.priority - first.priority ||
+        compareStableText(first.id, second.id),
+    )
+    .slice(0, labelLimit);
   const visibleIntegratedLandmarkCount = useMemo(
     () => selectStrategicHeroPlans(model, integratedArtPlan).length,
     [integratedArtPlan, model],
   );
   const renderedVisualSystem = labelsHidden
     ? { ...visualSystem, labels: [] as const }
-    : visualSystem;
+    : { ...visualSystem, labels: boundedLabels };
   const focusPresetId =
     focusRegionId === null
       ? activePresetId
@@ -1733,7 +1801,7 @@ export function PoliticalWorldStage({
           data-map-visibility-budget={`${visibilityBudget.showIdeology ? "ideology" : "no-ideology"},${visibilityBudget.showFactionPresence ? "faction" : "no-faction"},${visibilityBudget.showMinorObjects ? "minor" : "no-minor"},${visibilityBudget.showRouteDetails ? "routes" : "no-routes"}`}
           data-map-visual-scale={visualSystem.visualScale}
           data-map-label-count={renderedVisualSystem.labels.length}
-          data-map-label-policy="priority-collision-lod"
+          data-map-label-policy="priority-screen-space-collision-cap"
           data-map-composition-count={visualSystem.compositions.length}
           data-map-asset-kit={visualSystem.assets.length}
           data-map-production-assets="kaykit-gltf"
