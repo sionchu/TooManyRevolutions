@@ -32,7 +32,7 @@
 | 2 | COMPLETED | 세 역할(capital / industrial / frontier)을 각각 하나의 grounded place composition으로 표시; material adapter와 terrain terrace/contact shadow 적용. `docs/parallel/evidence/visual-v2-phase2-heroes-desktop.png`; `docs/parallel/evidence/visual-v2-phase2-heroes-mobile.png` 직접 OPEN 검사. per-Hex GLTF scatter 없음. |
 | 3 | COMPLETED | `deriveMapVisibilityBudget`로 world/pressure/crisis 모드와 LOD budget을 상태에서 파생. tick 19 factual rebellion에서 affected region LandHex에 crisis contour와 controller/front 변화가 뉴스 overlay와 별도로 먼저 보임. `docs/parallel/evidence/visual-v2-phase3-rebellion-desktop.png`; `docs/parallel/evidence/visual-v2-phase3-rebellion-mobile.png` 직접 OPEN 검사. |
 | 4 | COMPLETED | `screenSpaceLabels`가 투영 좌표 기준 충돌 검사 후 우선순위로 cap하며 desktop budget 4/5, mobile 3을 적용. DOM evidence: desktop/mobile `data-map-label-policy=priority-screen-space-collision-cap`, mobile `data-map-label-count=3`, document overflow 0. `docs/parallel/evidence/visual-v2-phase4-labels-desktop.png`; `docs/parallel/evidence/visual-v2-phase4-labels-mobile.png` 직접 OPEN 검사. |
-| 5 | NOT_RUN | - |
+| 5 | COMPLETED | 지도-first theatre CSS 적용: desktop map stage가 전체 화면 중심이며 drawer는 우측 context surface로 분리, dark rounded card/gold-border 반복을 제거. mobile은 header 1 band + compact state 1 band, decision drawer에서 CTA와 navigation overlap false를 DOM geometry로 확인. `docs/parallel/evidence/visual-v2-phase5-ui-desktop.png`; `docs/parallel/evidence/visual-v2-phase5-ui-mobile.png`; `docs/parallel/evidence/visual-v2-phase5-decision-mobile.png` 직접 OPEN 검사. |
 | 6 | NOT_RUN | - |
 | 7 | NOT_RUN | - |
 | 8 | NOT_RUN | - |
