@@ -192,3 +192,44 @@ The new `water-shelf` manifest entry uses stable family/asset/kit IDs, `terrain-
 - Production runtime integration remains outside this branch. The downstream integrator must call the strict resolver, pass actual terrain Y, and mount the reusable renderer.
 - Non-capital authored settlement facts remain an integration content gap; dense/small settlement art is not displayed by role alone.
 - Procedural geometry remains the cleared project-authored fallback candidate. No external GLB/glTF was downloaded or added.
+
+## FIX3_P0_READABILITY
+
+FIX3 is a narrow follow-up for the two remaining P0 gallery-readability items. It does not change runtime integration, the resolver, Industrial geometry, or the broader primitive/blockout language.
+
+### Exact changed families and materials
+
+- `PortDockKit` / `port-dock`: added a compact `quay-apron` land-side edge while preserving the shoreline-crossing pier.
+- `WaterShelfKit` / `water-shelf`: widened the water plane, shoreline band, shoreline edge, and tidal breaks for the same gallery framing.
+- `GranaryKit` / `granary-storehouse`: moved the storehouse body and roof into the restrained cultivated/frontier palette while preserving the storehouse + capped silo profile.
+- `DistributionYardKit` / `distribution-yard`: used cultivated soil for the main warehouse and added two structural canopy posts so the loading yard reads as open flow rather than a block stack.
+- `FieldPlotKit` / `field-plot`: widened the field plane and furrow/drainage rhythm; it remains instance-friendly.
+- Added `terrain-cultivated` as a low-saturation rough material family, distinct from the neutral `terrain-earth` gallery plate. `terrain-water` received a darker muted value for clearer water-vs-land separation.
+- Port composition places `water-shelf` at a shallow positive-Z offset so the dock, quay, shoreline, and water read as a spatial sequence. Agrarian composition uses `terrain-cultivated` as its grounding material.
+
+### Port P0 fix
+
+The water shelf now spans a broad authored water body rather than a thin edge accent. Its shoreline band and raised stone edge remain separate primitives, and the existing pier still straddles the shoreline coordinate. The added quay apron makes the warehouse-side land edge explicit without adding ships, cargo actors, trade quantities, or runtime coastline facts.
+
+### Agrarian / distribution P0 fix
+
+The field surface now occupies a larger horizontal footprint with wider-spaced furrows, a long drainage strip, and a visible berm. `terrain-cultivated` separates this surface from the gallery presentation plate. The granary keeps its silo caps and uses the cultivated storehouse/timber roof contrast; the distribution yard retains its lanes, loading platform, and yard boundary while adding canopy supports. No workers, carts, cargo quantities, or implied logistics actors were added.
+
+### Authority proof
+
+No resolver code was changed. `water-shelf` remains `DECORATIVE_SUBSTRATE`; `port-dock` remains gated by an authoritative authored port POI. `granary-storehouse` and `distribution-yard` remain `RECORDED_PROJECT`, settlements remain `AUTHORED_SETTLEMENT`, and all existing institution/faction/conflict/route requirements remain strict. No WorldState, simulation, runtime map, or production integration file was modified.
+
+### Verification
+
+- Focused world-art suite: `node node_modules/vitest/vitest.mjs run src/presentation/mapVisual/worldArt.test.ts src/presentation/mapVisual/proceduralKitGeometry.test.ts src/presentation/mapVisual/ProceduralWorldArtKitRenderer.test.ts src/presentation/mapContent/regionCompositionAdapter.test.ts src/app/mapVisual/worldArtGallery.test.ts --reporter=verbose` — 5 files / 18 tests passed.
+- Added assertions for water extent/material separation, shoreline crossing, quay apron, cultivated field extent/material, drainage rhythm, canopy supports, and strict composition metadata.
+- `node node_modules/prettier/bin/prettier.cjs --check .` — passed.
+- `node node_modules/typescript/bin/tsc -b --pretty false` — passed.
+- `node node_modules/eslint/bin/eslint.js .` — passed.
+- `node node_modules/vite/bin/vite.js build` — passed; the existing large-chunk warning remains.
+- `node scripts/build-sites-worker.mjs` — passed.
+- `git diff --check` — passed before staging.
+
+### Deliberately deferred P1 items
+
+Industrial richness and the broader primitive/blockout language remain P1. This FIX3 does not attempt a wholesale primitive rewrite, Industrial kit redesign, runtime integration, screenshot-authority decision, or visual PASS declaration. 06 retains screenshot and visual disposition authority.

@@ -232,7 +232,12 @@ export const REGION_COMPOSITION_TEMPLATES: Readonly<
       "field-plot",
     ],
     objects: [
-      placement("water-shelf", [0, 0], macroMesoMicro, "DECORATIVE_SUBSTRATE"),
+      placement(
+        "water-shelf",
+        [0, 0.24],
+        macroMesoMicro,
+        "DECORATIVE_SUBSTRATE",
+      ),
       placement("port-dock", [0, 0], mesoMicro, "AUTHORED_STATIC_POI"),
       placement("dense-town", [-0.48, 0.28], mesoMicro, "AUTHORED_SETTLEMENT"),
       placement("small-settlement", [0.5, -0.3], micro, "AUTHORED_SETTLEMENT"),
@@ -291,7 +296,7 @@ export const REGION_COMPOSITION_TEMPLATES: Readonly<
       "열린 밭과 저장고, 배급 야드, 작은 취락이 넓은 생산 면을 구성함",
     terrainSignatures: ["open-field", "water-runoff", "distribution-approach"],
     density: "open",
-    groundingMaterial: "terrain-earth",
+    groundingMaterial: "terrain-cultivated",
     readingOrder: [
       "field-plot",
       "granary-storehouse",

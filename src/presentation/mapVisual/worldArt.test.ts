@@ -114,6 +114,13 @@ describe("WORLD_ART_SYSTEM", () => {
         "distribution-yard",
       ]),
     );
+    expect(
+      port.objects.find((object) => object.family === "water-shelf")?.offset,
+    ).toEqual([0, 0.24]);
+    expect(agrarian.groundingMaterial).toBe("terrain-cultivated");
+    expect(getWorldObjectVisualDefinition("field-plot")?.materialFamily).toBe(
+      "terrain-cultivated",
+    );
   });
 
   it("binds a composition to a region without owning simulation state", () => {

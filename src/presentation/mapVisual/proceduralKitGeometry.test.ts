@@ -122,6 +122,11 @@ describe("PROCEDURAL_WORLD_ART_KITS", () => {
       (primitive) => primitive.id === "pier",
     );
     expect(waterPlane?.materialFamily).toBe("terrain-water");
+    expect(waterPlane?.size[0]).toBeGreaterThanOrEqual(5);
+    expect(waterPlane?.size[2]).toBeGreaterThanOrEqual(3.3);
+    expect(MAP_MATERIAL_FAMILIES["terrain-water"].baseColor).not.toBe(
+      MAP_MATERIAL_FAMILIES["terrain-earth"].baseColor,
+    );
     expect(waterPlane?.size[0]).toBeGreaterThan(pier?.size[0] ?? 0);
     expect(shorelineEdge).toBeDefined();
     expect(pier).toBeDefined();
@@ -131,6 +136,9 @@ describe("PROCEDURAL_WORLD_ART_KITS", () => {
       expect(pierStart).toBeLessThan(shorelineEdge.position[2]);
       expect(pierEnd).toBeGreaterThan(shorelineEdge.position[2]);
     }
+    expect(portDock?.primitives.map((primitive) => primitive.id)).toContain(
+      "quay-apron",
+    );
 
     const fieldGround = field?.primitives.find(
       (primitive) => primitive.id === "field-ground",
@@ -139,7 +147,14 @@ describe("PROCEDURAL_WORLD_ART_KITS", () => {
       (primitive) => primitive.id === "furrow-a",
     );
     expect(fieldGround?.size[0]).toBeGreaterThanOrEqual(2.5);
+    expect(fieldGround?.size[0]).toBeGreaterThanOrEqual(4);
+    expect(fieldGround?.size[2]).toBeGreaterThanOrEqual(2.5);
+    expect(fieldGround?.materialFamily).toBe("terrain-cultivated");
     expect(furrow?.size[2]).toBeGreaterThanOrEqual(1.5);
+    expect(field?.silhouetteTags).toContain("cultivated-soil");
+    expect(field?.primitives.map((primitive) => primitive.id)).toContain(
+      "field-drainage",
+    );
     expect(distribution?.silhouetteTags).toEqual(
       expect.arrayContaining([
         "canopy",
@@ -148,6 +163,14 @@ describe("PROCEDURAL_WORLD_ART_KITS", () => {
         "open-yard",
       ]),
     );
+    expect(distribution?.primitives.map((primitive) => primitive.id)).toEqual(
+      expect.arrayContaining(["canopy-post-left", "canopy-post-right"]),
+    );
+    expect(
+      getProceduralWorldArtKit("granary-storehouse")?.primitives.find(
+        (primitive) => primitive.id === "storehouse",
+      )?.materialFamily,
+    ).toBe("terrain-cultivated");
     expect(fort?.primitives.map((primitive) => primitive.id)).toEqual(
       expect.arrayContaining(["south-wall-left", "south-wall-right", "gate"]),
     );

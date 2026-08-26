@@ -42,6 +42,7 @@ export const MAP_SCALE_HIERARCHY = {
 
 export type MapMaterialFamilyId =
   | "terrain-earth"
+  | "terrain-cultivated"
   | "terrain-stone"
   | "terrain-water"
   | "civic-plaster"
@@ -76,6 +77,17 @@ export const MAP_MATERIAL_FAMILIES: Readonly<
     terrainBlend: "flush",
     notes: "마른 흙과 경작지에 공통으로 쓰는 저채도 지면 계열",
   },
+  "terrain-cultivated": {
+    id: "terrain-cultivated",
+    baseColor: "#89784f",
+    shadowColor: "#4d4433",
+    accentColor: "#b6a06a",
+    roughness: 0.98,
+    metalness: 0,
+    contactShadowOpacity: 0.25,
+    terrainBlend: "flush",
+    notes: "중립 지면판과 구분되는 저채도 경작토·밭 표면 계열",
+  },
   "terrain-stone": {
     id: "terrain-stone",
     baseColor: "#777b7a",
@@ -89,9 +101,9 @@ export const MAP_MATERIAL_FAMILIES: Readonly<
   },
   "terrain-water": {
     id: "terrain-water",
-    baseColor: "#5e7d82",
-    shadowColor: "#30464a",
-    accentColor: "#91a8a1",
+    baseColor: "#466f76",
+    shadowColor: "#263d42",
+    accentColor: "#86a09e",
     roughness: 0.98,
     metalness: 0,
     contactShadowOpacity: 0.16,
@@ -494,7 +506,7 @@ export const MAP_OBJECT_ASSET_MANIFEST: readonly MapObjectVisualDefinition[] = [
     displayName: "경작지·밭",
     silhouetteCue: "넓은 수평 경작면과 반복되는 밭고랑·배수 둑",
     scaleRole: "decorative-prop",
-    materialFamily: "terrain-earth",
+    materialFamily: "terrain-cultivated",
     grounding: {
       footprint: "linear",
       contactShadow: "soft",
