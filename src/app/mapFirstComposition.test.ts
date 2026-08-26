@@ -35,6 +35,7 @@ describe("map-first product surface composition", () => {
     expect(styleSource).toContain(".world-stage");
     expect(styleSource).toContain(".contextual-drawer");
     expect(styleSource).toContain(".context-tabs");
+    expect(styleSource).toContain("position: fixed");
     expect(styleSource).toContain("@media (max-width: 760px)");
     expect(styleSource).not.toMatch(/\.game-grid\s*\{/);
   });

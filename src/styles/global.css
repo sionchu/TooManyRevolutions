@@ -1280,6 +1280,21 @@ h3 {
   .world-stage {
     height: clamp(560px, calc(100svh - 220px), 700px);
   }
+  .context-tabs {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+  }
+  .contextual-drawer {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    bottom: 4.75rem;
+    left: auto;
+    width: min(380px, calc(100vw - 2rem));
+    max-height: calc(100svh - 6.5rem);
+  }
 }
 
 @media (max-width: 760px) {
@@ -1514,6 +1529,14 @@ h3 {
   .title-asset-note {
     right: 1.2rem;
     bottom: 0.8rem;
+  }
+}
+
+@media (max-height: 850px) and (min-width: 761px) {
+  .context-tabs {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
   }
 }
 
