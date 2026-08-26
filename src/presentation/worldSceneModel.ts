@@ -698,33 +698,45 @@ function createProjects(
   projects: readonly WorldSceneProjectInput[],
   regionCenters: ReadonlyMap<string, WorldScenePoint>,
 ): readonly WorldSceneProjectLandmark[] {
+  const slotsByRegion = new Map<string, number>();
+  const offsets: readonly [number, number][] = [
+    [0.36, -0.34],
+    [-0.42, -0.18],
+    [0.38, 0.34],
+    [-0.38, 0.36],
+  ];
   return [...projects]
     .sort((first, second) => compareStableText(first.id, second.id))
     .flatMap((project) => {
       const center = regionCenters.get(project.anchorRegionId);
       return center === undefined
         ? []
-        : [
-            {
-              id: project.id,
-              name: project.name,
-              regionId: project.anchorRegionId,
-              landmarkKind: project.landmarkKind,
-              silhouette: projectSilhouette(project.landmarkKind),
-              status: project.status,
-              progress: project.progress,
-              sourceEventIds: [...project.sourceEventIds].sort(
-                compareStableText,
-              ),
-              position: [
-                center[0] + 0.36,
-                0.96,
-                center[2] - 0.34,
-              ] as WorldScenePoint,
-              objectFamily: "StateProjectVisual" as const,
-              truthClass: "DERIVED_PRESENTATION" as const,
-            },
-          ];
+        : (() => {
+            const slot = slotsByRegion.get(project.anchorRegionId) ?? 0;
+            slotsByRegion.set(project.anchorRegionId, slot + 1);
+            const [offsetX, offsetZ] = offsets[slot % offsets.length]!;
+            return [
+              {
+                id: project.id,
+                name: project.name,
+                regionId: project.anchorRegionId,
+                landmarkKind: project.landmarkKind,
+                silhouette: projectSilhouette(project.landmarkKind),
+                status: project.status,
+                progress: project.progress,
+                sourceEventIds: [...project.sourceEventIds].sort(
+                  compareStableText,
+                ),
+                position: [
+                  center[0] + offsetX,
+                  0.96,
+                  center[2] + offsetZ,
+                ] as WorldScenePoint,
+                objectFamily: "StateProjectVisual" as const,
+                truthClass: "DERIVED_PRESENTATION" as const,
+              },
+            ];
+          })();
     });
 }
 

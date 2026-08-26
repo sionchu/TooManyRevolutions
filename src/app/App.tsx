@@ -17,6 +17,7 @@ import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenari
 import { POLICY_FIXTURE_IDS } from "../sim/state/policyFixture";
 import { deriveOrderConsolidationEligibility } from "../sim/systems/orderConsolidation";
 import { ContentStudio } from "./ContentStudio";
+import { MapStudio } from "./MapStudio";
 import {
   advanceDemoRuntime,
   createDemoRuntimeState,
@@ -617,6 +618,12 @@ export function App() {
     new URLSearchParams(window.location.search).get("contentStudio") === "1"
   ) {
     return <ContentStudio />;
+  }
+  if (
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("mapStudio") === "1"
+  ) {
+    return <MapStudio />;
   }
   if (screen === "title") {
     return (

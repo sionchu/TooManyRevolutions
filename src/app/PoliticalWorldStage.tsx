@@ -8,28 +8,40 @@ import {
   type WorldSceneModel,
   type WorldScenePoint,
 } from "../presentation/worldSceneModel";
+import {
+  DEFAULT_MAP_STYLE,
+  deriveMapArchitecture,
+  deriveMapLodTier,
+  estimateMapOccupancy,
+  ideologySurfacePaletteIndex,
+  type MapArchitecture,
+  type MapLodTier,
+  type MapViewPreset,
+} from "../presentation/mapArchitecture";
+import {
+  deriveMapVisualSystem,
+  MAP_MATERIAL_SYSTEM,
+  type MapRegionComposition,
+  type MapVisualSystem,
+} from "../presentation/mapVisualSystem";
 import type { PresentationState } from "../presentation/presentationState";
 import type { RegionId } from "../sim/state/ids";
 import type { StateProjectPresentation } from "./stateProjects";
 import type { WorldVisualDelta } from "./worldVisualDelta";
 
 const COUNTRY_COLORS = ["#a9694b", "#3f7880", "#6c5c83"] as const;
-const TERRAIN_COLORS: Record<
-  WorldSceneModel["hexes"][number]["terrain"],
-  string
-> = {
-  plains: "#c5ae78",
-  coast: "#6e9ea1",
-  wetlands: "#829777",
-  forest: "#5d8168",
-  hills: "#a0805e",
-  mountains: "#73707a",
-};
 const CONTROLLER_COLORS = {
   country: "#ead8a4",
   faction: "#e0524f",
   uncontrolled: "#d2d0bd",
 } as const;
+const IDEOLOGY_SURFACE_COLORS = [
+  "#d2a45a",
+  "#8a6db1",
+  "#5b9b98",
+  "#b96f62",
+  "#748d61",
+] as const;
 
 interface CameraState {
   readonly x: number;
@@ -200,43 +212,503 @@ function TerrainDetail({
   return null;
 }
 
-function TerrainWorldSurface({ model }: { readonly model: WorldSceneModel }) {
+type PolygonPoint = readonly [x: number, z: number];
+
+function polygonPrismGeometry(
+  points: readonly PolygonPoint[],
+  height: number,
+  topScale = 0.82,
+): THREE.BufferGeometry {
+  const center = points.reduce(
+    (total, point) =>
+      [total[0] + point[0], total[1] + point[1]] as PolygonPoint,
+    [0, 0] as PolygonPoint,
+  );
+  const centerX = center[0] / points.length;
+  const centerZ = center[1] / points.length;
+  const vertices = points.flatMap(([x, z]) => [x, 0, z]);
+  vertices.push(
+    ...points.flatMap(([x, z]) => [
+      centerX + (x - centerX) * topScale,
+      height,
+      centerZ + (z - centerZ) * topScale,
+    ]),
+  );
+  const indices: number[] = [];
+  const count = points.length;
+  for (let index = 1; index < count - 1; index += 1) {
+    indices.push(0, index + 1, index);
+    indices.push(count, count + index, count + index + 1);
+  }
+  for (let index = 0; index < count; index += 1) {
+    const next = (index + 1) % count;
+    indices.push(index, next, count + next, index, count + next, count + index);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(vertices, 3),
+  );
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function pyramidGeometry(
+  points: readonly PolygonPoint[],
+  height: number,
+): THREE.BufferGeometry {
+  const center = points.reduce(
+    (total, point) =>
+      [total[0] + point[0], total[1] + point[1]] as PolygonPoint,
+    [0, 0] as PolygonPoint,
+  );
+  const centerX = center[0] / points.length;
+  const centerZ = center[1] / points.length;
+  const vertices = points.flatMap(([x, z]) => [x, 0, z]);
+  vertices.push(centerX, height, centerZ);
+  const indices: number[] = [];
+  const apex = points.length;
+  for (let index = 0; index < points.length; index += 1) {
+    const next = (index + 1) % points.length;
+    indices.push(index, next, apex);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(vertices, 3),
+  );
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function KitPrism({
+  points,
+  height,
+  topScale,
+  color,
+  opacity = 1,
+}: {
+  readonly points: readonly PolygonPoint[];
+  readonly height: number;
+  readonly topScale?: number;
+  readonly color: string;
+  readonly opacity?: number;
+}) {
+  const geometry = useMemo(
+    () => polygonPrismGeometry(points, height, topScale),
+    [height, points, topScale],
+  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return (
+    <mesh geometry={geometry}>
+      <meshStandardMaterial
+        color={color}
+        roughness={MAP_MATERIAL_SYSTEM.roughness}
+        metalness={MAP_MATERIAL_SYSTEM.metalness}
+        transparent={opacity < 1}
+        opacity={opacity}
+      />
+    </mesh>
+  );
+}
+
+function KitPyramid({
+  points,
+  height,
+  color,
+}: {
+  readonly points: readonly PolygonPoint[];
+  readonly height: number;
+  readonly color: string;
+}) {
+  const geometry = useMemo(
+    () => pyramidGeometry(points, height),
+    [height, points],
+  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return (
+    <mesh geometry={geometry}>
+      <meshStandardMaterial
+        color={color}
+        roughness={MAP_MATERIAL_SYSTEM.roughness}
+        metalness={MAP_MATERIAL_SYSTEM.metalness}
+      />
+    </mesh>
+  );
+}
+
+function ContactShadow({ scale = 1 }: { readonly scale?: number }) {
+  return (
+    <mesh
+      position={[0, 0.012, 0]}
+      rotation={[-Math.PI / 2, 0, 0]}
+      scale={[scale, scale * 0.68, 1]}
+    >
+      <circleGeometry args={[0.62, 18]} />
+      <meshBasicMaterial
+        color={MAP_MATERIAL_SYSTEM.contactShadowColor}
+        transparent
+        opacity={MAP_MATERIAL_SYSTEM.contactShadowOpacity}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
+function UrbanClusterKit({ scale = 1 }: { readonly scale?: number }) {
+  const small = useMemo(
+    () =>
+      [
+        [-0.38, -0.22],
+        [-0.1, -0.32],
+        [0.18, -0.2],
+        [0.28, 0.12],
+        [-0.06, 0.26],
+        [-0.34, 0.14],
+      ] as const,
+    [],
+  );
+  const tall = useMemo(
+    () =>
+      [
+        [-0.18, -0.2],
+        [0.08, -0.24],
+        [0.22, 0.02],
+        [0.08, 0.22],
+        [-0.18, 0.16],
+        [-0.3, -0.02],
+      ] as const,
+    [],
+  );
+  return (
+    <group scale={[scale, scale, scale]}>
+      <ContactShadow scale={0.95} />
+      <KitPrism
+        points={small}
+        height={0.22}
+        color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
+      />
+      <KitPrism
+        points={tall}
+        height={0.38}
+        topScale={0.72}
+        color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
+      />
+      <KitPyramid
+        points={tall}
+        height={0.56}
+        color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
+      />
+    </group>
+  );
+}
+
+function CapitalPalaceKit({ scale = 1 }: { readonly scale?: number }) {
+  const body = useMemo(
+    () =>
+      [
+        [-0.5, -0.34],
+        [0.5, -0.34],
+        [0.4, 0.3],
+        [0.08, 0.42],
+        [-0.4, 0.3],
+      ] as const,
+    [],
+  );
+  const roof = useMemo(
+    () =>
+      [
+        [-0.4, -0.26],
+        [0.4, -0.26],
+        [0.3, 0.25],
+        [-0.3, 0.25],
+      ] as const,
+    [],
+  );
+  return (
+    <group scale={[scale, scale, scale]}>
+      <ContactShadow scale={1.25} />
+      <KitPrism
+        points={body}
+        height={0.42}
+        color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
+      />
+      <KitPyramid
+        points={roof}
+        height={0.3}
+        color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
+      />
+      <mesh position={[0, 0.65, 0]}>
+        <octahedronGeometry args={[0.14, 0]} />
+        <meshStandardMaterial
+          color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
+          roughness={0.92}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+function AssemblyKit({ scale = 1 }: { readonly scale?: number }) {
+  const hall = useMemo(
+    () =>
+      [
+        [-0.44, -0.25],
+        [0.44, -0.25],
+        [0.34, 0.26],
+        [-0.34, 0.26],
+      ] as const,
+    [],
+  );
+  return (
+    <group scale={[scale, scale, scale]}>
+      <ContactShadow scale={1.05} />
+      <KitPrism
+        points={hall}
+        height={0.4}
+        color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
+      />
+      <KitPyramid
+        points={hall}
+        height={0.28}
+        color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
+      />
+      <mesh position={[0, 0.53, 0]}>
+        <octahedronGeometry args={[0.12, 0]} />
+        <meshStandardMaterial
+          color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
+          roughness={0.92}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+function IndustryWorksKit({ scale = 1 }: { readonly scale?: number }) {
+  const works = useMemo(
+    () =>
+      [
+        [-0.52, -0.3],
+        [0.46, -0.3],
+        [0.52, 0.16],
+        [0.18, 0.3],
+        [-0.48, 0.18],
+      ] as const,
+    [],
+  );
+  return (
+    <group scale={[scale, scale, scale]}>
+      <ContactShadow scale={1.18} />
+      <KitPrism
+        points={works}
+        height={0.34}
+        topScale={0.86}
+        color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
+      />
+      <mesh position={[-0.18, 0.55, 0]}>
+        <cylinderGeometry args={[0.08, 0.11, 0.5, 7]} />
+        <meshStandardMaterial
+          color={MAP_MATERIAL_SYSTEM.terrainShadow}
+          roughness={0.98}
+        />
+      </mesh>
+      <mesh position={[0.22, 0.46, 0.05]}>
+        <cylinderGeometry args={[0.06, 0.08, 0.32, 7]} />
+        <meshStandardMaterial
+          color={MAP_MATERIAL_SYSTEM.terrainShadow}
+          roughness={0.98}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+function FieldsKit({ scale = 1 }: { readonly scale?: number }) {
+  const field = useMemo(
+    () =>
+      [
+        [-0.58, -0.28],
+        [0.55, -0.28],
+        [0.48, 0.24],
+        [-0.52, 0.24],
+      ] as const,
+    [],
+  );
+  return (
+    <group scale={[scale, scale, scale]}>
+      <ContactShadow scale={1.28} />
+      <KitPrism points={field} height={0.035} topScale={0.98} color="#b6a261" />
+      {[-0.28, -0.08, 0.12, 0.32].map((x) => (
+        <mesh key={x} position={[x, 0.045, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[0.05, 0.8]} />
+          <meshBasicMaterial
+            color="#d6c17b"
+            transparent
+            opacity={0.62}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function FortGateKit({ scale = 1 }: { readonly scale?: number }) {
+  const wall = useMemo(
+    () =>
+      [
+        [-0.52, -0.3],
+        [0.52, -0.3],
+        [0.42, 0.3],
+        [-0.42, 0.3],
+      ] as const,
+    [],
+  );
+  return (
+    <group scale={[scale, scale, scale]}>
+      <ContactShadow scale={1.08} />
+      <KitPrism
+        points={wall}
+        height={0.22}
+        color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
+      />
+      <KitPyramid
+        points={wall}
+        height={0.48}
+        color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
+      />
+      <mesh position={[0, 0.2, -0.32]}>
+        <planeGeometry args={[0.24, 0.24]} />
+        <meshBasicMaterial
+          color="#b86d4d"
+          transparent
+          opacity={0.92}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+function CrisisBeaconKit({ scale = 1 }: { readonly scale?: number }) {
+  const beacon = useMemo(
+    () =>
+      [
+        [-0.18, -0.18],
+        [0.18, -0.18],
+        [0.22, 0.15],
+        [0, 0.27],
+        [-0.22, 0.15],
+      ] as const,
+    [],
+  );
+  return (
+    <group scale={[scale, scale, scale]}>
+      <ContactShadow scale={0.75} />
+      <KitPrism
+        points={beacon}
+        height={0.28}
+        color={MAP_MATERIAL_SYSTEM.palette["crisis-iron"]}
+      />
+      <mesh position={[0, 0.54, 0]}>
+        <octahedronGeometry args={[0.15, 0]} />
+        <meshBasicMaterial color="#f3c66c" />
+      </mesh>
+    </group>
+  );
+}
+
+function CompositionLayer({
+  compositions,
+  showMeso,
+}: {
+  readonly compositions: readonly MapRegionComposition[];
+  readonly showMeso: boolean;
+}) {
+  if (!showMeso) return null;
+  return (
+    <group
+      userData={{ mapLayer: "MapSemanticContent", composition: "authored" }}
+    >
+      {compositions.map((composition) => {
+        const roleScale = composition.dominantScale;
+        const assetSet = new Set(composition.assetIds);
+        return (
+          <group
+            key={`composition:${composition.regionId}`}
+            position={composition.anchor}
+          >
+            {assetSet.has("asset.settlement.urban-cluster") ? (
+              <group position={[-0.54, 0.03, 0.26]}>
+                <UrbanClusterKit scale={roleScale * 0.72} />
+              </group>
+            ) : null}
+            {assetSet.has("asset.capital.palace") ? (
+              <group position={[0.12, 0.05, -0.18]}>
+                <CapitalPalaceKit scale={roleScale} />
+              </group>
+            ) : null}
+            {assetSet.has("asset.institution.assembly") ? (
+              <group position={[0.5, 0.04, 0.25]}>
+                <AssemblyKit scale={roleScale * 0.82} />
+              </group>
+            ) : null}
+            {assetSet.has("asset.industry.works") ||
+            assetSet.has("asset.project.works") ? (
+              <group position={[0.18, 0.04, 0.34]}>
+                <IndustryWorksKit scale={roleScale * 0.82} />
+              </group>
+            ) : null}
+            {assetSet.has("asset.agriculture.fields") ||
+            assetSet.has("asset.project.granary") ? (
+              <group position={[0.08, 0.04, 0.38]}>
+                <FieldsKit scale={roleScale * 0.9} />
+              </group>
+            ) : null}
+            {assetSet.has("asset.frontier.fort-gate") ? (
+              <group position={[0.46, 0.05, -0.32]}>
+                <FortGateKit scale={roleScale * 0.82} />
+              </group>
+            ) : null}
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+function TerrainWorldSurface({
+  architecture,
+}: {
+  readonly architecture: MapArchitecture;
+}) {
   const geometry = useMemo(() => {
-    const positions: number[] = [];
-    const colors: number[] = [];
-    for (const hex of model.hexes) {
-      const terrainColor = new THREE.Color(TERRAIN_COLORS[hex.terrain]);
-      const ownerColor = new THREE.Color(
-        countryColor(model, hex.ownerCountryId),
-      );
-      terrainColor.lerp(ownerColor, 0.2);
-      if (hex.controller.kind === "faction") {
-        terrainColor.lerp(new THREE.Color(CONTROLLER_COLORS.faction), 0.13);
-      }
-      const y = hex.position[1] + hex.height + 0.022;
-      const center = new THREE.Vector3(hex.position[0], y, hex.position[2]);
-      const corners = pointsForHex([center.x, center.y, center.z], 1.01);
-      for (let index = 0; index < 6; index += 1) {
-        const first = corners[index]!;
-        const second = corners[index + 1]!;
-        for (const point of [center, first, second]) {
-          positions.push(point.x, point.y, point.z);
-          colors.push(terrainColor.r, terrainColor.g, terrainColor.b);
-        }
-      }
-    }
+    const {
+      vertices,
+      colors: vertexColors,
+      triangles,
+    } = architecture.sharedTerrainMesh;
     const nextGeometry = new THREE.BufferGeometry();
     nextGeometry.setAttribute(
       "position",
-      new THREE.Float32BufferAttribute(positions, 3),
+      new THREE.Float32BufferAttribute(
+        vertices.flatMap((point) => [point[0], point[1], point[2]]),
+        3,
+      ),
     );
     nextGeometry.setAttribute(
       "color",
-      new THREE.Float32BufferAttribute(colors, 3),
+      new THREE.Float32BufferAttribute(
+        vertexColors.flatMap((color) => [color[0], color[1], color[2]]),
+        3,
+      ),
     );
+    nextGeometry.setIndex(triangles.flatMap((triangle) => [...triangle]));
     nextGeometry.computeVertexNormals();
     return nextGeometry;
-  }, [model]);
+  }, [architecture.sharedTerrainMesh]);
   useEffect(
     () => () => {
       geometry.dispose();
@@ -244,7 +716,14 @@ function TerrainWorldSurface({ model }: { readonly model: WorldSceneModel }) {
     [geometry],
   );
   return (
-    <mesh geometry={geometry} userData={{ truthClass: "DECORATIVE_SUBSTRATE" }}>
+    <mesh
+      geometry={geometry}
+      userData={{
+        truthClass: "DECORATIVE_SUBSTRATE",
+        mapLayer: "MapGeographyDefinition",
+        sharedVertexCount: architecture.sharedTerrainMesh.sharedVertexCount,
+      }}
+    >
       <meshStandardMaterial vertexColors roughness={0.98} metalness={0} />
     </mesh>
   );
@@ -253,7 +732,7 @@ function TerrainWorldSurface({ model }: { readonly model: WorldSceneModel }) {
 function TerrainBackdrop({
   bounds,
 }: {
-  readonly bounds: WorldSceneModel["bounds"];
+  readonly bounds: MapArchitecture["geography"]["worldBounds"];
 }) {
   return (
     <mesh
@@ -266,25 +745,203 @@ function TerrainBackdrop({
     >
       <planeGeometry
         args={[
-          bounds.maxX - bounds.minX + 4.5,
-          bounds.maxZ - bounds.minZ + 4.5,
+          bounds.maxX - bounds.minX + 1.2,
+          bounds.maxZ - bounds.minZ + 1.2,
         ]}
       />
-      <meshStandardMaterial color="#565a4d" roughness={1} />
+      <meshStandardMaterial color="#4f584b" roughness={1} />
     </mesh>
+  );
+}
+
+function MapPathLayer({
+  architecture,
+  lodTier,
+}: {
+  readonly architecture: MapArchitecture;
+  readonly lodTier: MapLodTier;
+}) {
+  const paths = [
+    ...architecture.geography.coastlinePaths,
+    ...(lodTier === "far" ? [] : architecture.geography.ridgePaths),
+    ...(lodTier === "far" ? [] : architecture.geography.roadPaths),
+  ];
+  return (
+    <group userData={{ mapLayer: "MapGeographyDefinition" }}>
+      {paths.map((path) => (
+        <SceneLine
+          key={path.id}
+          points={path.points.map((point) => new THREE.Vector3(...point))}
+          color={
+            path.kind === "coastline"
+              ? "#c5e4d8"
+              : path.kind === "ridge"
+                ? "#b2a081"
+                : "#d6b579"
+          }
+          opacity={path.kind === "road" ? 0.22 : 0.38}
+          width={path.kind === "road" ? 1 : 1.2}
+          dashed={path.kind === "road"}
+        />
+      ))}
+    </group>
+  );
+}
+
+function IdeologySurfaceLayer({
+  model,
+  architecture,
+}: {
+  readonly model: WorldSceneModel;
+  readonly architecture: MapArchitecture;
+}) {
+  const hexesById = useMemo(
+    () =>
+      new Map<string, WorldSceneModel["hexes"][number]>(
+        model.hexes.map((hex) => [hex.id, hex]),
+      ),
+    [model.hexes],
+  );
+  const footprint = (landHexIds: readonly string[]) => {
+    const hexes = landHexIds.flatMap((id) => {
+      const hex = hexesById.get(id);
+      return hex === undefined ? [] : [hex];
+    });
+    if (hexes.length === 0) return null;
+    const minX = Math.min(...hexes.map((hex) => hex.position[0]));
+    const maxX = Math.max(...hexes.map((hex) => hex.position[0]));
+    const minZ = Math.min(...hexes.map((hex) => hex.position[2]));
+    const maxZ = Math.max(...hexes.map((hex) => hex.position[2]));
+    return {
+      x: (minX + maxX) / 2,
+      z: (minZ + maxZ) / 2,
+      width: Math.max(1.25, maxX - minX + 1.65),
+      depth: Math.max(1, maxZ - minZ + 1.35),
+      y: Math.max(...hexes.map((hex) => hex.position[1] + hex.height)) + 0.045,
+    };
+  };
+  return (
+    <group
+      userData={{
+        mapLayer: "MapPoliticalProjection",
+        truthClass: "AUTHORITATIVE_PROJECTION",
+      }}
+    >
+      {architecture.political.ideologySurfaces.flatMap((surface) => {
+        const area = footprint(surface.landHexIds);
+        if (area === null) return [];
+        return [
+          <mesh
+            key={surface.id}
+            position={[area.x, area.y, area.z]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            scale={[area.width, area.depth, 1]}
+          >
+            <circleGeometry args={[0.5, 32]} />
+            <meshBasicMaterial
+              color={
+                IDEOLOGY_SURFACE_COLORS[
+                  ideologySurfacePaletteIndex(surface.ideologyId)
+                ]
+              }
+              transparent
+              opacity={
+                DEFAULT_MAP_STYLE.ideologySurfaceOpacity *
+                (0.45 + surface.support * 0.35)
+              }
+              depthWrite={false}
+            />
+          </mesh>,
+        ];
+      })}
+      {architecture.political.factionTerritories.flatMap((territory) => {
+        const area = footprint(territory.landHexIds);
+        if (area === null) return [];
+        return [
+          <mesh
+            key={`faction-surface:${territory.factionId}`}
+            position={[area.x, area.y + 0.006, area.z]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            scale={[area.width, area.depth, 1]}
+          >
+            <circleGeometry args={[0.5, 32]} />
+            <meshBasicMaterial
+              color={CONTROLLER_COLORS.faction}
+              transparent
+              opacity={0.12}
+              depthWrite={false}
+            />
+          </mesh>,
+        ];
+      })}
+    </group>
+  );
+}
+
+function BoundaryLayer({
+  architecture,
+}: {
+  readonly architecture: MapArchitecture;
+}) {
+  const renderSegments = (
+    segments: readonly MapArchitecture["political"]["physicalControllerBoundarySegments"][number][],
+    color: string,
+    width: number,
+    opacity: number,
+  ) =>
+    segments.map((segment) => (
+      <SceneLine
+        key={segment.id}
+        points={[
+          new THREE.Vector3(...segment.from),
+          new THREE.Vector3(...segment.to),
+        ]}
+        color={color}
+        opacity={opacity}
+        width={width}
+      />
+    ));
+  return (
+    <group
+      userData={{
+        mapLayer: "MapPoliticalProjection",
+        ownerBoundaryCount:
+          architecture.political.legalOwnerBoundarySegments.length,
+        controllerBoundaryCount:
+          architecture.political.physicalControllerBoundarySegments.length,
+        frontBoundaryCount: architecture.political.frontBoundarySegments.length,
+      }}
+    >
+      {renderSegments(
+        architecture.political.legalOwnerBoundarySegments,
+        DEFAULT_MAP_STYLE.ownerBoundaryColor,
+        DEFAULT_MAP_STYLE.ownerBoundaryWidth,
+        0.52,
+      )}
+      {renderSegments(
+        architecture.political.physicalControllerBoundarySegments,
+        DEFAULT_MAP_STYLE.controllerBoundaryColor,
+        DEFAULT_MAP_STYLE.controllerBoundaryWidth,
+        0.84,
+      )}
+      {renderSegments(
+        architecture.political.frontBoundarySegments,
+        DEFAULT_MAP_STYLE.frontBoundaryColor,
+        DEFAULT_MAP_STYLE.frontBoundaryWidth,
+        0.96,
+      )}
+    </group>
   );
 }
 
 function WorldTile({
   hex,
-  highlighted,
   selected,
   showContextGrid,
   onSelectRegion,
   onSelectHex,
 }: {
   readonly hex: WorldSceneModel["hexes"][number];
-  readonly highlighted: boolean;
   readonly selected: boolean;
   readonly showContextGrid: boolean;
   readonly onSelectRegion: (regionId: RegionId) => void;
@@ -307,16 +964,6 @@ function WorldTile({
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
       <TerrainDetail terrain={hex.terrain} height={hex.height} />
-      {highlighted ? (
-        <mesh
-          position={[0, top + 0.02, 0]}
-          rotation={[Math.PI / 2, 0, 0]}
-          scale={1.08}
-        >
-          <torusGeometry args={[0.72, 0.045, 6, 6]} />
-          <meshBasicMaterial color="#f9dfa1" transparent opacity={0.8} />
-        </mesh>
-      ) : null}
       {showContextGrid ? (
         <SceneLine
           points={pointsForHex([0, top + 0.035, 0], 0.98)}
@@ -451,36 +1098,20 @@ function Settlement({
   readonly settlement: WorldSceneModel["settlements"][number];
 }) {
   return (
-    <group position={settlement.position}>
-      <mesh position={[0, 0.08, 0]}>
-        <cylinderGeometry args={[0.42, 0.48, 0.12, 8]} />
-        <meshStandardMaterial color="#8c7454" roughness={1} />
-      </mesh>
-      <mesh>
-        <cylinderGeometry args={[0.27, 0.34, 0.18, 8]} />
-        <meshStandardMaterial color="#e4ce99" roughness={0.85} />
-      </mesh>
-      <mesh position={[0, 0.28, 0]}>
-        <coneGeometry args={[0.28, 0.42, 6]} />
-        <meshStandardMaterial color="#633a34" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, 0.52, 0]}>
-        <boxGeometry args={[0.07, 0.26, 0.07]} />
-        <meshStandardMaterial color="#f1ddaa" />
-      </mesh>
-      <mesh position={[-0.28, 0.2, 0]}>
-        <boxGeometry args={[0.055, 0.25, 0.055]} />
-        <meshStandardMaterial color="#e4ce99" />
-      </mesh>
-      <mesh position={[0.28, 0.2, 0]}>
-        <boxGeometry args={[0.055, 0.25, 0.055]} />
-        <meshStandardMaterial color="#e4ce99" />
-      </mesh>
+    <group
+      position={settlement.position}
+      userData={{ assetId: "asset.capital.palace" }}
+    >
+      <CapitalPalaceKit scale={0.94} />
     </group>
   );
 }
 
-function PoiObject({ poi }: { readonly poi: WorldSceneModel["pois"][number] }) {
+function LegacyPoiObject({
+  poi,
+}: {
+  readonly poi: WorldSceneModel["pois"][number];
+}) {
   if (poi.kind === "port") {
     return (
       <group position={poi.position}>
@@ -592,7 +1223,167 @@ function PoiObject({ poi }: { readonly poi: WorldSceneModel["pois"][number] }) {
   );
 }
 
-function InstitutionLandmark({
+function PoiObject({ poi }: { readonly poi: WorldSceneModel["pois"][number] }) {
+  const port = useMemo(
+    () =>
+      [
+        [-0.62, -0.16],
+        [0.62, -0.16],
+        [0.48, 0.16],
+        [-0.48, 0.16],
+      ] as const,
+    [],
+  );
+  const mine = useMemo(
+    () =>
+      [
+        [-0.42, -0.3],
+        [0.38, -0.3],
+        [0.48, 0.12],
+        [0.1, 0.3],
+        [-0.44, 0.16],
+      ] as const,
+    [],
+  );
+  const fort = useMemo(
+    () =>
+      [
+        [-0.46, -0.3],
+        [0.46, -0.3],
+        [0.38, 0.3],
+        [-0.38, 0.3],
+      ] as const,
+    [],
+  );
+  const granary = useMemo(
+    () =>
+      [
+        [-0.32, -0.22],
+        [0.32, -0.22],
+        [0.32, 0.22],
+        [-0.32, 0.22],
+      ] as const,
+    [],
+  );
+  const assembly = useMemo(
+    () =>
+      [
+        [-0.5, -0.24],
+        [0.5, -0.24],
+        [0.34, 0.3],
+        [-0.34, 0.3],
+      ] as const,
+    [],
+  );
+  return (
+    <group
+      position={poi.position}
+      userData={{ assetId: `asset.poi.${poi.kind}` }}
+    >
+      <ContactShadow scale={0.84} />
+      {poi.kind === "port" ? (
+        <>
+          <KitPrism
+            points={port}
+            height={0.12}
+            color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
+          />
+          <mesh position={[0.3, 0.36, 0]}>
+            <cylinderGeometry args={[0.035, 0.05, 0.6, 7]} />
+            <meshStandardMaterial
+              color={MAP_MATERIAL_SYSTEM.terrainShadow}
+              roughness={0.98}
+            />
+          </mesh>
+          <mesh position={[0.38, 0.52, 0]} rotation={[0, 0, -0.2]}>
+            <planeGeometry args={[0.28, 0.2]} />
+            <meshStandardMaterial
+              color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
+              side={THREE.DoubleSide}
+              roughness={0.92}
+            />
+          </mesh>
+        </>
+      ) : poi.kind === "mine" ? (
+        <>
+          <KitPrism
+            points={mine}
+            height={0.28}
+            color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
+          />
+          <mesh position={[-0.18, 0.56, 0]}>
+            <cylinderGeometry args={[0.065, 0.09, 0.5, 7]} />
+            <meshStandardMaterial
+              color={MAP_MATERIAL_SYSTEM.terrainShadow}
+              roughness={0.98}
+            />
+          </mesh>
+          <mesh position={[0.2, 0.46, 0.04]}>
+            <cylinderGeometry args={[0.05, 0.075, 0.32, 7]} />
+            <meshStandardMaterial
+              color={MAP_MATERIAL_SYSTEM.terrainShadow}
+              roughness={0.98}
+            />
+          </mesh>
+        </>
+      ) : poi.kind === "fort" ? (
+        <>
+          <KitPrism
+            points={fort}
+            height={0.24}
+            color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
+          />
+          <KitPyramid
+            points={fort}
+            height={0.52}
+            color={MAP_MATERIAL_SYSTEM.palette["stone-slate"]}
+          />
+          <mesh position={[0, 0.25, -0.32]}>
+            <planeGeometry args={[0.2, 0.24]} />
+            <meshBasicMaterial
+              color="#b86d4d"
+              transparent
+              opacity={0.92}
+              depthWrite={false}
+            />
+          </mesh>
+        </>
+      ) : poi.kind === "granary" ? (
+        <>
+          <KitPrism
+            points={granary}
+            height={0.32}
+            color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
+          />
+          <KitPyramid
+            points={granary}
+            height={0.54}
+            color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
+          />
+          <mesh position={[0, 0.36, 0.24]}>
+            <planeGeometry args={[0.14, 0.22]} />
+            <meshBasicMaterial color="#d7bf79" depthWrite={false} />
+          </mesh>
+        </>
+      ) : (
+        <>
+          <KitPrism
+            points={assembly}
+            height={0.38}
+            color={MAP_MATERIAL_SYSTEM.palette["civic-cream"]}
+          />
+          <KitPyramid
+            points={assembly}
+            height={0.68}
+            color={MAP_MATERIAL_SYSTEM.palette["earth-ochre"]}
+          />
+        </>
+      )}
+    </group>
+  );
+}
+
+function LegacyInstitutionLandmark({
   landmark,
 }: {
   readonly landmark: WorldSceneModel["institutions"][number];
@@ -645,6 +1436,30 @@ function InstitutionLandmark({
   );
 }
 
+function InstitutionLandmark({
+  landmark,
+}: {
+  readonly landmark: WorldSceneModel["institutions"][number];
+}) {
+  const capital = landmark.kind === "capital-seat";
+  return (
+    <group
+      position={landmark.position}
+      userData={{
+        assetId: capital
+          ? "asset.capital.palace"
+          : "asset.institution.assembly",
+      }}
+    >
+      {capital ? (
+        <CapitalPalaceKit scale={0.78} />
+      ) : (
+        <AssemblyKit scale={0.72} />
+      )}
+    </group>
+  );
+}
+
 function ProjectScaffold() {
   return (
     <group>
@@ -671,7 +1486,7 @@ function ProjectScaffold() {
   );
 }
 
-function ProjectLandmark({
+function LegacyProjectLandmark({
   project,
 }: {
   readonly project: WorldSceneModel["projects"][number];
@@ -770,6 +1585,71 @@ function ProjectLandmark({
   );
 }
 
+function ConstructionFrameKit({ scale = 1 }: { readonly scale?: number }) {
+  const beam = useMemo(
+    () =>
+      [
+        [-0.07, -0.07],
+        [0.07, -0.07],
+        [0.07, 0.07],
+        [-0.07, 0.07],
+      ] as const,
+    [],
+  );
+  return (
+    <group scale={[scale, scale, scale]}>
+      {[
+        [-0.36, 0.34, -0.24],
+        [0.36, 0.34, -0.24],
+        [-0.36, 0.34, 0.24],
+        [0.36, 0.34, 0.24],
+      ].map(([x, y, z]) => (
+        <group key={`${x}:${z}`} position={[x, y, z]}>
+          <KitPrism points={beam} height={0.68} color="#d98755" />
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function ProjectLandmark({
+  project,
+}: {
+  readonly project: WorldSceneModel["projects"][number];
+}) {
+  const baseScale = project.landmarkKind === "food" ? 0.84 : 0.8;
+  return (
+    <group
+      position={project.position}
+      userData={{ assetId: `asset.project.${project.landmarkKind}` }}
+    >
+      {project.status === "not-started" ? (
+        <>
+          <ContactShadow scale={0.7} />
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.24, 0.28, 12]} />
+            <meshBasicMaterial
+              color="#9b9b89"
+              transparent
+              opacity={0.56}
+              depthWrite={false}
+            />
+          </mesh>
+        </>
+      ) : project.landmarkKind === "food" ? (
+        <FieldsKit scale={baseScale} />
+      ) : project.landmarkKind === "civic" ? (
+        <AssemblyKit scale={baseScale} />
+      ) : (
+        <IndustryWorksKit scale={baseScale} />
+      )}
+      {project.status === "implementing" ? (
+        <ConstructionFrameKit scale={0.7} />
+      ) : null}
+    </group>
+  );
+}
+
 function FactionBanner({ position }: { readonly position: WorldScenePoint }) {
   return (
     <group position={[position[0], position[1] + 0.1, position[2]]}>
@@ -789,7 +1669,7 @@ function FactionBanner({ position }: { readonly position: WorldScenePoint }) {
   );
 }
 
-function ConflictActivity({
+function LegacyConflictActivity({
   conflict,
 }: {
   readonly conflict: WorldSceneModel["conflicts"][number];
@@ -846,8 +1726,37 @@ function ConflictActivity({
   );
 }
 
+function ConflictActivity({
+  conflict,
+}: {
+  readonly conflict: WorldSceneModel["conflicts"][number];
+}) {
+  return (
+    <group
+      position={conflict.position}
+      userData={{ assetId: "asset.activity.crisis-beacon" }}
+    >
+      <CrisisBeaconKit
+        scale={conflict.visualKind === "rebellion-camp" ? 1.12 : 0.96}
+      />
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0.04, 0]}>
+        <ringGeometry args={[0.42, 0.46, 18]} />
+        <meshBasicMaterial
+          color="#f0524d"
+          transparent
+          opacity={0.32}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
 function WorldScene({
   model,
+  architecture,
+  visualSystem,
+  lodTier,
   cameraState,
   highlightedRegionIds,
   selectedHexId,
@@ -855,6 +1764,9 @@ function WorldScene({
   onSelectHex,
 }: {
   readonly model: WorldSceneModel;
+  readonly architecture: MapArchitecture;
+  readonly visualSystem: MapVisualSystem;
+  readonly lodTier: MapLodTier;
   readonly cameraState: CameraState;
   readonly highlightedRegionIds: ReadonlySet<string>;
   readonly selectedHexId: string | null;
@@ -863,13 +1775,25 @@ function WorldScene({
 }) {
   const { camera, size } = useThree();
   const fitZoom = Math.min(
-    size.width / Math.max(model.bounds.maxX - model.bounds.minX + 3, 1),
-    size.height / Math.max(model.bounds.maxZ - model.bounds.minZ + 4, 1),
+    size.width /
+      Math.max(
+        architecture.geography.worldBounds.maxX -
+          architecture.geography.worldBounds.minX +
+          1.2,
+        1,
+      ),
+    size.height /
+      Math.max(
+        architecture.geography.worldBounds.maxZ -
+          architecture.geography.worldBounds.minZ +
+          1.2,
+        1,
+      ),
   );
   useEffect(() => {
     camera.position.set(cameraState.x, 10, cameraState.z + 14);
     camera.lookAt(cameraState.x, 0, cameraState.z);
-    camera.zoom = Math.max(12, fitZoom * cameraState.zoom * 1.45);
+    camera.zoom = Math.max(12, fitZoom * cameraState.zoom * 1.28);
     camera.updateProjectionMatrix();
   }, [camera, cameraState, fitZoom]);
 
@@ -877,172 +1801,165 @@ function WorldScene({
     () => new Map(model.regions.map((region) => [region.regionId, region])),
     [model.regions],
   );
-  const frontHexIds = useMemo(
-    () =>
-      new Set(
-        model.fronts.flatMap((front) => [
-          front.firstLandHexId,
-          front.secondLandHexId,
-        ]),
-      ),
-    [model.fronts],
-  );
+  const showDetailedObjects = lodTier !== "far";
+  const showMinorObjects = lodTier === "near";
   return (
     <>
-      <ambientLight intensity={1.55} />
-      <directionalLight position={[-5, 12, 7]} intensity={2.4} />
+      <color attach="background" args={[visualSystem.material.fogColor]} />
+      <fog
+        attach="fog"
+        args={[
+          visualSystem.material.fogColor,
+          visualSystem.material.fogNear,
+          visualSystem.material.fogFar,
+        ]}
+      />
+      <hemisphereLight args={["#e7dec4", "#465144", 0.48]} />
+      <ambientLight intensity={visualSystem.material.ambientFill} />
+      <directionalLight
+        castShadow
+        position={[-5, 12, 7]}
+        intensity={visualSystem.material.keyLight}
+        color="#f1d9ad"
+      />
       <directionalLight
         position={[7, 7, -5]}
-        intensity={0.65}
+        intensity={0.42}
         color="#e6c79b"
       />
       <group>
-        <TerrainBackdrop bounds={model.bounds} />
-        <TerrainWorldSurface model={model} />
+        <TerrainBackdrop bounds={architecture.geography.worldBounds} />
+        <TerrainWorldSurface architecture={architecture} />
+        <CompositionLayer
+          compositions={visualSystem.compositions}
+          showMeso={showDetailedObjects}
+        />
+        <MapPathLayer architecture={architecture} lodTier={lodTier} />
+        <IdeologySurfaceLayer model={model} architecture={architecture} />
+        <BoundaryLayer architecture={architecture} />
         {model.hexes.map((hex) => (
           <WorldTile
             key={hex.id}
             hex={hex}
-            highlighted={highlightedRegionIds.has(hex.regionId)}
             selected={selectedHexId === hex.id}
-            showContextGrid={
-              selectedHexId === hex.id ||
-              hex.controller.kind === "faction" ||
-              frontHexIds.has(hex.id)
-            }
+            showContextGrid={selectedHexId === hex.id}
             onSelectRegion={onSelectRegion}
             onSelectHex={onSelectHex}
           />
         ))}
-        {model.routes.map((route) => (
-          <group key={route.id}>
-            <SceneLine
-              points={[
-                new THREE.Vector3(...route.start),
-                new THREE.Vector3(...route.end),
-              ]}
-              color={
-                route.active ? routeLineColor(route.visualKind) : "#8a7557"
-              }
-              opacity={route.active ? 0.9 : 0.2}
-              width={route.active ? 2 : 1}
-              dashed={route.visualKind === "migration-direction"}
-            />
-            <RouteChannelGlyph
-              start={route.start}
-              end={route.end}
-              visualKind={route.visualKind}
-            />
-            {route.active ? (
-              <RoutePulse
+        {model.routes
+          .filter((route) => lodTier !== "far" || route.active)
+          .map((route) => (
+            <group key={route.id}>
+              <SceneLine
+                points={[
+                  new THREE.Vector3(...route.start),
+                  new THREE.Vector3(...route.end),
+                ]}
+                color={
+                  route.active ? routeLineColor(route.visualKind) : "#8a7557"
+                }
+                opacity={
+                  (route.active ? 0.9 : 0.2) *
+                  DEFAULT_MAP_STYLE.routeOpacity[lodTier]
+                }
+                width={route.active ? 2 : 1}
+                dashed={route.visualKind === "migration-direction"}
+              />
+              <RouteChannelGlyph
                 start={route.start}
                 end={route.end}
                 visualKind={route.visualKind}
               />
-            ) : null}
-          </group>
-        ))}
-        {model.fronts.map((front) => (
-          <SceneLine
-            key={front.id}
-            points={[
-              new THREE.Vector3(...front.start),
-              new THREE.Vector3(...front.end),
-            ]}
-            color="#e5524d"
-            opacity={0.95}
-            width={2}
-          />
-        ))}
+              {route.active ? (
+                <RoutePulse
+                  start={route.start}
+                  end={route.end}
+                  visualKind={route.visualKind}
+                />
+              ) : null}
+            </group>
+          ))}
         {model.settlements.map((settlement) => (
           <Settlement key={settlement.id} settlement={settlement} />
         ))}
-        {model.pois.map((poi) => (
-          <PoiObject key={poi.id} poi={poi} />
-        ))}
-        {model.institutions.map((landmark) => (
-          <InstitutionLandmark key={landmark.id} landmark={landmark} />
-        ))}
-        {model.projects.map((project) => (
-          <ProjectLandmark key={project.id} project={project} />
-        ))}
-        {model.influences.map((influence) => (
-          <mesh
-            key={influence.id}
-            position={influence.position}
-            rotation={[Math.PI / 2, 0, 0]}
-          >
-            <torusGeometry
-              args={[0.42 + influence.support * 0.24, 0.035, 6, 18]}
-            />
-            <meshBasicMaterial
-              color="#d7a74f"
-              transparent
-              opacity={0.3 + influence.support * 0.4}
-            />
-          </mesh>
-        ))}
-        {model.regions.map((region) => {
-          const pressure = Math.max(region.unrest, region.scarcity);
-          return (
-            <mesh
-              key={`pressure:${region.id}`}
-              position={[region.position[0], 0.5, region.position[2]]}
-              rotation={[Math.PI / 2, 0, 0]}
-            >
-              <torusGeometry args={[0.56 + pressure * 0.2, 0.025, 6, 18]} />
-              <meshBasicMaterial
-                color="#b74b43"
-                transparent
-                opacity={0.14 + pressure * 0.42}
-              />
-            </mesh>
-          );
-        })}
-        {model.hexes
-          .filter((hex) => hex.controller.kind === "faction")
-          .map((hex) => (
-            <FactionBanner
-              key={`faction-banner:${hex.id}`}
-              position={[hex.position[0], hex.height, hex.position[2]]}
-            />
-          ))}
-        {model.factionPresence.map((presence) => (
-          <group key={presence.id} position={presence.position}>
-            <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[0.3, 0.045, 6, 14]} />
-              <meshBasicMaterial color="#e45f55" />
-            </mesh>
-          </group>
-        ))}
+        {showDetailedObjects
+          ? model.pois.map((poi) => <PoiObject key={poi.id} poi={poi} />)
+          : null}
+        {showDetailedObjects
+          ? model.institutions.map((landmark) => (
+              <InstitutionLandmark key={landmark.id} landmark={landmark} />
+            ))
+          : null}
+        {showDetailedObjects
+          ? model.projects.map((project) => (
+              <ProjectLandmark key={project.id} project={project} />
+            ))
+          : null}
+        {showMinorObjects
+          ? model.hexes
+              .filter((hex) => hex.controller.kind === "faction")
+              .map((hex) => (
+                <FactionBanner
+                  key={`faction-banner:${hex.id}`}
+                  position={[hex.position[0], hex.height, hex.position[2]]}
+                />
+              ))
+          : null}
+        {showMinorObjects && model.factionPresence.length > 0
+          ? model.factionPresence.map((presence) => (
+              <group key={presence.id} position={presence.position}>
+                <mesh>
+                  <boxGeometry args={[0.22, 0.16, 0.22]} />
+                  <meshBasicMaterial color="#e45f55" />
+                </mesh>
+              </group>
+            ))
+          : null}
         {model.conflicts.map((conflict) => (
           <ConflictActivity key={conflict.id} conflict={conflict} />
         ))}
-        {model.regions
-          .filter((region) => highlightedRegionIds.has(region.regionId))
-          .map((region) => (
+        {visualSystem.labels.map((label) => {
+          const region = model.regions.find(
+            (candidate) => candidate.id === label.id,
+          );
+          const country = model.countries.find(
+            (candidate) => candidate.id === label.id,
+          );
+          const color =
+            label.kind === "crisis"
+              ? "#f1b27c"
+              : label.kind === "country" && country !== undefined
+                ? countryColor(model, country.countryId)
+                : label.kind === "region" &&
+                    region !== undefined &&
+                    highlightedRegionIds.has(region.regionId)
+                  ? "#f0d49b"
+                  : label.kind === "capital"
+                    ? "#ead49b"
+                    : "#7f332f";
+          return (
             <SpriteLabel
-              key={region.id}
-              label={region.name}
-              position={[region.position[0], 0.88, region.position[2]]}
-              color="#7f332f"
-              scale={1.9}
+              key={label.id}
+              label={label.text}
+              position={label.position}
+              color={color}
+              scale={label.scale * 1.35 * DEFAULT_MAP_STYLE.labelScale[lodTier]}
             />
-          ))}
-        {model.countries.map((country) => (
-          <SpriteLabel
-            key={country.id}
-            label={country.name}
-            position={[country.position[0], 1.7, country.position[2]]}
-            color={countryColor(model, country.countryId)}
-            scale={3.1}
-          />
-        ))}
+          );
+        })}
       </group>
       <group userData={{ regions: regionsById.size }} />
     </>
   );
 }
+
+// Kept as a reference during this targeted art migration; production JSX uses
+// the authored procedural kit components above.
+void LegacyPoiObject;
+void LegacyInstitutionLandmark;
+void LegacyProjectLandmark;
+void LegacyConflictActivity;
 
 function controllerLabel(
   kind: WorldSceneModel["hexes"][number]["controller"]["kind"],
@@ -1093,6 +2010,27 @@ function institutionKindLabel(
   return kind === "capital-seat" ? "수도 권력 중심" : "의회당";
 }
 
+function defaultMapPreset(presets: readonly MapViewPreset[]): MapViewPreset {
+  const mobile =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(max-width: 760px)").matches;
+  const requestedId = mobile ? "mobile.player-theater" : "desktop.global";
+  return (
+    presets.find((preset) => preset.id === requestedId) ??
+    presets[0] ?? {
+      id: "desktop.global",
+      label: "데스크톱 세계",
+      x: 0,
+      z: 0,
+      zoom: 1,
+      minZoom: 0.8,
+      maxZoom: 2.2,
+      truthClass: "DERIVED_PRESENTATION",
+    }
+  );
+}
+
 export function PoliticalWorldStage({
   presentation,
   selectedRegionId,
@@ -1128,7 +2066,24 @@ export function PoliticalWorldStage({
       ),
     [presentation, projects],
   );
-  const [camera, setCamera] = useState<CameraState>({ x: 0, z: 0, zoom: 1 });
+  const architecture = useMemo(() => deriveMapArchitecture(model), [model]);
+  const viewPresets = architecture.viewPresets;
+  const initialPreset = useMemo(
+    () => defaultMapPreset(viewPresets),
+    [viewPresets],
+  );
+  const presetById = useMemo(
+    () => new Map(viewPresets.map((preset) => [preset.id, preset])),
+    [viewPresets],
+  );
+  const [activePresetId, setActivePresetId] = useState<MapViewPreset["id"]>(
+    initialPreset.id,
+  );
+  const [camera, setCamera] = useState<CameraState>(() => ({
+    x: initialPreset.x,
+    z: initialPreset.z,
+    zoom: initialPreset.zoom,
+  }));
   const [selectedHexId, setSelectedHexId] = useState<string | null>(null);
   const pointerRef = useRef<{ id: number; x: number; y: number } | null>(null);
   const highlightedRegionIds = useMemo(
@@ -1144,31 +2099,18 @@ export function PoliticalWorldStage({
     () => new Map(model.regions.map((region) => [region.regionId, region])),
     [model.regions],
   );
+  const activeFocusPreset =
+    focusRegionId === null
+      ? (presetById.get(activePresetId) ?? initialPreset)
+      : (presetById.get(`region.focus.${focusRegionId}`) ?? initialPreset);
   useEffect(() => {
-    const target =
-      focusRegionId === null
-        ? {
-            x: (model.bounds.minX + model.bounds.maxX) / 2,
-            z: (model.bounds.minZ + model.bounds.maxZ) / 2,
-            zoom: 1,
-          }
-        : (() => {
-            const region = regionById.get(focusRegionId);
-            return region === undefined
-              ? {
-                  x: (model.bounds.minX + model.bounds.maxX) / 2,
-                  z: (model.bounds.minZ + model.bounds.maxZ) / 2,
-                  zoom: 1,
-                }
-              : { x: region.position[0], z: region.position[2], zoom: 1.45 };
-          })();
+    const target = activeFocusPreset;
     setCamera((current) => ({
-      ...target,
       x: Number(target.x.toFixed(3)),
       z: Number(target.z.toFixed(3)),
       zoom: current.zoom === target.zoom ? current.zoom : target.zoom,
     }));
-  }, [focusRegionId, model.bounds, regionById]);
+  }, [activeFocusPreset]);
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     pointerRef.current = {
       id: event.pointerId,
@@ -1211,6 +2153,29 @@ export function PoliticalWorldStage({
   const debugLayers =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("designDebug") === "1";
+  const desktopOccupancy = estimateMapOccupancy(
+    model,
+    presetById.get("desktop.global") ?? initialPreset,
+  );
+  const mobileOccupancy = estimateMapOccupancy(
+    model,
+    presetById.get("mobile.player-theater") ?? initialPreset,
+  );
+  const lodTier = deriveMapLodTier(camera.zoom);
+  const labelsHidden =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("mapLabels") === "0";
+  const visualSystem = useMemo(
+    () => deriveMapVisualSystem(model, architecture, lodTier),
+    [architecture, lodTier, model],
+  );
+  const renderedVisualSystem = labelsHidden
+    ? { ...visualSystem, labels: [] as const }
+    : visualSystem;
+  const focusPresetId =
+    focusRegionId === null
+      ? activePresetId
+      : (`region.focus.${focusRegionId}` as MapViewPreset["id"]);
 
   return (
     <div className="atlas-frame world-scene-frame" data-map-renderer="r3f">
@@ -1219,7 +2184,23 @@ export function PoliticalWorldStage({
           className="world-scene-viewport"
           data-world-scene-tick={model.tick}
           data-camera-focus={focusRegionId ?? "world"}
+          data-map-preset={focusPresetId}
           data-camera-zoom={camera.zoom.toFixed(2)}
+          data-map-lod={lodTier}
+          data-map-visual-scale={visualSystem.visualScale}
+          data-map-label-count={renderedVisualSystem.labels.length}
+          data-map-label-policy="priority-collision-lod"
+          data-map-composition-count={visualSystem.compositions.length}
+          data-map-asset-kit={visualSystem.assets.length}
+          data-land-hex-count={model.hexes.length}
+          data-world-content-occupancy-width={desktopOccupancy.width.toFixed(3)}
+          data-world-content-occupancy-height={desktopOccupancy.height.toFixed(
+            3,
+          )}
+          data-mobile-content-occupancy-width={mobileOccupancy.width.toFixed(3)}
+          data-mobile-content-occupancy-height={mobileOccupancy.height.toFixed(
+            3,
+          )}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -1249,6 +2230,9 @@ export function PoliticalWorldStage({
           >
             <WorldScene
               model={model}
+              architecture={architecture}
+              visualSystem={renderedVisualSystem}
+              lodTier={lodTier}
               cameraState={camera}
               highlightedRegionIds={highlightedRegionIds}
               selectedHexId={selectedHexId}
@@ -1304,15 +2288,22 @@ export function PoliticalWorldStage({
             </button>
             <button
               type="button"
+              data-map-focus="player-theater"
+              onClick={() => {
+                onClearFocus();
+                setActivePresetId("mobile.player-theater");
+                setSelectedHexId(null);
+              }}
+            >
+              내 극장
+            </button>
+            <button
+              type="button"
               data-map-focus="world"
               onClick={() => {
                 onClearFocus();
+                setActivePresetId("full-world");
                 setSelectedHexId(null);
-                setCamera({
-                  x: (model.bounds.minX + model.bounds.maxX) / 2,
-                  z: (model.bounds.minZ + model.bounds.maxZ) / 2,
-                  zoom: 1,
-                });
               }}
             >
               전체 보기

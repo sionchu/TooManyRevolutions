@@ -1965,6 +1965,273 @@ h3 {
   }
 }
 
+/* MAP_WORLD_ARCHITECTURE_AND_AUTHORING: local Map Studio foundation. */
+.map-studio-shell {
+  min-height: 100svh;
+  padding: 1.1rem clamp(0.8rem, 3vw, 2.8rem) 2.4rem;
+  color: #4d3b2a;
+  background:
+    radial-gradient(
+      circle at 18% 10%,
+      rgb(244 220 166 / 42%),
+      transparent 30rem
+    ),
+    #eee4d2;
+}
+.map-studio-header,
+.map-studio-toolbar,
+.map-studio-mode-tabs,
+.map-studio-layout {
+  width: min(1500px, 100%);
+  margin-right: auto;
+  margin-left: auto;
+}
+.map-studio-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+.map-studio-header h1 {
+  margin: 0.2rem 0 0;
+  font-family: "Noto Serif KR", Georgia, serif;
+  font-size: clamp(1.35rem, 2vw, 2.1rem);
+}
+.map-studio-header p {
+  max-width: 58rem;
+  margin: 0.45rem 0 0;
+  color: #725d45;
+  font-size: 0.78rem;
+}
+.map-studio-mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+  margin-bottom: 0.55rem;
+}
+.map-studio-mode-tabs button,
+.map-studio-inspector button {
+  border: 1px solid #bba782;
+  padding: 0.42rem 0.56rem;
+  color: #60482f;
+  background: #f8f0e3;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.map-studio-mode-tabs button.active,
+.map-studio-inspector button.active,
+.map-studio-mode-tabs button:hover,
+.map-studio-inspector button:hover {
+  border-color: #8b5c3b;
+  color: #fff9ec;
+  background: #8b5c3b;
+}
+.map-studio-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin-bottom: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #cdbb9b;
+  background: rgb(251 246 235 / 84%);
+  color: #755f47;
+  font-size: 0.67rem;
+}
+.map-studio-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 800;
+}
+.map-studio-toolbar select {
+  border: 1px solid #bba782;
+  padding: 0.28rem 0.35rem;
+  color: #60482f;
+  background: #fffaf1;
+  font-size: 0.68rem;
+}
+.map-studio-toolbar [data-map-studio-patch-status] {
+  margin-left: auto;
+  color: #936d42;
+}
+.map-studio-layout {
+  display: grid;
+  grid-template-columns: minmax(15rem, 23rem) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: stretch;
+}
+.map-studio-inspector {
+  min-height: 44rem;
+  padding: 0.75rem;
+  border: 1px solid #c4ae88;
+  background: rgb(255 250 241 / 92%);
+  box-shadow: 0 8px 22px rgb(67 47 29 / 10%);
+  font-size: 0.7rem;
+}
+.map-studio-inspector h2 {
+  margin: 0 0 0.3rem;
+  font-family: "Noto Serif KR", Georgia, serif;
+  font-size: 1rem;
+}
+.map-studio-inspector p {
+  margin: 0 0 0.65rem;
+  color: #78634c;
+  line-height: 1.55;
+}
+.map-studio-inspector dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.18rem 0.65rem;
+  margin: 0 0 0.65rem;
+}
+.map-studio-inspector dt {
+  color: #876e50;
+}
+.map-studio-inspector dd {
+  margin: 0;
+  color: #4f3726;
+  font-weight: 900;
+}
+.map-studio-record-list {
+  display: grid;
+  gap: 0.2rem;
+  max-height: 26rem;
+  overflow: auto;
+  margin: 0.5rem 0;
+  padding: 0.25rem;
+  border: 1px solid #d8c6a8;
+  background: #f8f0e2;
+}
+.map-studio-record-list button {
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-studio-inspector ul {
+  margin: 0.4rem 0 0.75rem;
+  padding-left: 1.05rem;
+  color: #6b5540;
+  line-height: 1.65;
+}
+.map-studio-preset-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.12rem 0.4rem;
+  margin: 0.35rem 0;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #e1d2bb;
+}
+.map-studio-preset-row span {
+  color: #9a7a52;
+  font-size: 0.58rem;
+}
+.map-studio-preset-row em {
+  grid-column: 1 / -1;
+  color: #3f754a;
+  font-style: normal;
+  font-weight: 900;
+}
+.map-studio-inspector textarea {
+  width: 100%;
+  margin-top: 0.55rem;
+  border: 1px solid #c8b594;
+  padding: 0.45rem;
+  color: #513d2c;
+  background: #fffaf1;
+  font:
+    0.62rem/1.45 ui-monospace,
+    SFMono-Regular,
+    Consolas,
+    monospace;
+  resize: vertical;
+}
+.map-studio-patch-actions {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+}
+.map-studio-issue {
+  margin: 0.25rem 0;
+  padding: 0.3rem 0.4rem;
+  border-left: 3px solid #b6a27f;
+  color: #6b5540;
+  font-size: 0.62rem;
+}
+.map-studio-issue.warning {
+  border-left-color: #c88b3f;
+}
+.map-studio-issue.error {
+  border-left-color: #ae4941;
+  color: #893c36;
+}
+.map-studio-preview {
+  min-width: 0;
+  min-height: 44rem;
+  padding: 0.45rem;
+  border: 1px solid #b9a37d;
+  background: #3b3d36;
+  box-shadow: 0 8px 22px rgb(67 47 29 / 12%);
+}
+.map-studio-preview-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.25rem 0.35rem 0.45rem;
+  color: #eadfc7;
+  font-size: 0.6rem;
+}
+.map-studio-preview .world-scene-frame {
+  height: calc(100% - 1.65rem);
+}
+
+@media (max-width: 760px) {
+  .metric-strip > .metric:nth-child(4),
+  .metric-strip > .metric:nth-child(5),
+  .metric-strip > .metric-details {
+    display: none;
+  }
+  .metric-strip {
+    gap: 0.22rem;
+  }
+  .metric {
+    flex: 1 1 calc(33.333% - 0.22rem);
+  }
+  .map-fact-strip {
+    display: none;
+  }
+  .world-stage {
+    height: clamp(500px, 64svh, 620px);
+    min-height: 500px;
+  }
+  .map-studio-shell {
+    padding: 0.75rem 0.45rem 1.3rem;
+  }
+  .map-studio-header {
+    flex-direction: column;
+  }
+  .map-studio-layout {
+    grid-template-columns: 1fr;
+  }
+  .map-studio-inspector,
+  .map-studio-preview {
+    min-height: 0;
+  }
+  .map-studio-preview {
+    min-height: 34rem;
+  }
+  .map-studio-preview .world-scene-frame {
+    min-height: 32rem;
+  }
+  .map-studio-toolbar [data-map-studio-patch-status] {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
 /* GameBuilders P0 factual feedback, roadmap, project and authoring surfaces. */
 .world-map-surface {
   border-color: #9f8b6d;
