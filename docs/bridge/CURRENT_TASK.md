@@ -12,6 +12,10 @@ GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT
 GAME_VISUAL_UX_RENDER_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_VISUAL_UX_RENDER_ADDENDUM.md
 GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM.md
 PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM.md
+GDD_AMENDMENT: docs/GDD_GAME_LOOP_WORLD_FEEL_ADDENDUM_2026-08-26.md
+DECISION_RECORD: docs/DECISION_GAMEBUILDERS_P0_GAME_LOOP_RENDERER_CONTENT_STUDIO_2026-08-26.md
+QA_ADDENDUM: docs/QA_GAMEBUILDERS_P0_GAME_LOOP_WORLD_FEEL_2026-08-26.md
+BACKLOG_ADDENDUM: docs/BACKLOG_GAMEBUILDERS_P0_GAME_LOOP_WORLD_FEEL_2026-08-26.md
 RESULT_PATH: docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md
 
 ## Accepted predecessor
@@ -37,9 +41,24 @@ Hands-on review of the in-progress P0 Site shows four linked blockers:
 
 The next work must repair those blockers before more decorative static art is accepted.
 
+## Mandatory preflight — documentation alignment
+
+Before new gameplay/UI implementation, read the four alignment documents referenced above and fold their durable requirements into the canonical relevant sections of:
+
+```text
+docs/GDD.md
+docs/DECISIONS.md
+docs/BACKLOG.md
+docs/QA_PLAYTEST.md
+```
+
+Update `docs/ARCHITECTURE.md` only where renderer/content/presentation authority boundaries need durable clarification.
+
+Do not delete historical decisions or weaken existing simulation-authority contracts. The amendment/addendum files remain historical evidence after canonical integration.
+
 ## Mandatory execution order
 
-Read and execute all seven documents. Later addenda strengthen earlier ones; they do not authorize bypassing simulation truth.
+Read and execute all seven task/addendum documents. Later addenda strengthen earlier ones; they do not authorize bypassing simulation truth.
 
 1. `GAMEBUILDERS_PRODUCT_SURFACE_P0.md`
 2. `GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_FIRST_ADDENDUM.md`
@@ -52,7 +71,8 @@ Read and execute all seven documents. Later addenda strengthen earlier ones; the
 Priority inside the remaining sprint:
 
 ```text
-Gameplay Reality repair
+documentation alignment checkpoint
+-> Gameplay Reality repair
 -> audit/relax routine auto-pause so flow is observation + selective intervention rather than modal paperwork
 -> factual changes visible on map
 -> ChronicleDigest / event hierarchy so low-level changes do not become log spam
@@ -209,4 +229,4 @@ Normal gameplay and Content Studio must use different UI grammar. Dense forms/ta
 - no unvetted copyleft code import;
 - no successor task self-authorization.
 
-Continue on `gamebuilders-product-surface-p0`, commit/push safe checkpoints, redeploy the actual corrected build to Sites, and stop only after the result reports all applicable gameplay-reality, auto-pause audit, ChronicleDigest, renderer, visual-UX, progression/project, Content Studio, responsive, and Sites statuses.
+Continue on `gamebuilders-product-surface-p0`, commit/push safe checkpoints, redeploy the actual corrected build to Sites, and stop only after the result reports documentation alignment, gameplay-reality, auto-pause audit, ChronicleDigest, renderer, visual-UX, progression/project, Content Studio, responsive, and Sites statuses.
