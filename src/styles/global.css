@@ -2218,7 +2218,7 @@ h3 {
 /* Keep the persistent game silhouette map-first rather than dashboard-first. */
 .metric-strip {
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 0.35rem;
   border: 0;
