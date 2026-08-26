@@ -2,76 +2,76 @@
 
 ## Objective
 
-Complete the authorized `GAMEBUILDERS_PRODUCT_SURFACE_P0` task, including the
-mandatory documentation alignment and all seven P0 addenda. Keep the world map
-as the continuous playfield, expose real simulation changes through compact
-game-native UI, deploy the playable Site, and stop without starting Gate1F, V02,
-F05 follow-up work, or a successor task.
+Complete the authorized `GAMEBUILDERS_PRODUCT_SURFACE_P0` world-stage rework
+while preserving TMR simulation authority. Keep the map as the continuous
+playfield, expose real state changes through compact game-native UI, complete
+the renderer evidence, deploy the playable Site, and stop before Gate 1F,
+V02, F05 follow-up work, or a successor task.
 
-## Current checkpoint
+## Completed checkpoint
 
-The implementation, verification pass, public Site deployment, responsive QA,
-long-horizon QA, result document, and handoff are complete. The final code
-checkpoint was pushed as:
+The implementation checkpoint was pushed as:
 
 ```text
-40f8f08dda1a382c5c0a51c5f3c77fd7cf1ed386
+31180d977e75e4646332678c36812abc30a3a7fd
+feat: rework P0 world stage with R3F
 ```
 
-The final result/HANDOFF evidence update has now been committed and pushed on
-`gamebuilders-product-surface-p0`.
+The public Sites version 20 was deployed from that exact code commit and
+passed hands-on title, briefing, map, decision, policy, intervention,
+Chronicle, governance, responsive, and long-horizon QA.
+
+The result/state documentation follow-up is the current local change to be
+committed and pushed after final verification.
 
 ## Delivered scope
 
-- documentation alignment committed before implementation;
-- system ActionProposal carry loop and existing ideology diffusion hook;
-- authored neighboring Countries, real LandHex controller visualization,
-  ideology/routes/pressure layers, persistent active Conflict presentation;
-- significant EventStore feed and ChronicleDigest with source EventIds;
-- real Policy and intervention actions, Institutional Roadmap, consolidation
-  blockers, and compact contextual decision UX;
-- three map-linked State Projects projected from existing intervention lifecycles;
-- factual WorldVisualDelta feedback, camera zoom/focus/reset, and crisis overlay;
-- stable-ID Content Registry and dev-only Content Studio;
-- production SVG renderer retained after bounded Pixi v8 decision;
-- Player-Observable Dynamics Audit through Day 1080 and public no-action QA
-  through Day 1500;
-- Sites version 19 deployed from exact code commit `40f8f08…`.
+- real R3F and PixiJS v8 benchmark builds from one frozen snapshot;
+- evidence-based production choice of one R3F renderer;
+- renderer-neutral `WorldSceneModel` with deterministic projections;
+- 2.5D hex world stage with authored countries, capitals, settlements,
+  routes, controllers, ideology/pressure, conflict, and project landmarks;
+- actual Institutional Roadmap node graph with edges and fit/pan/zoom;
+- qualitative default HUD with exact values on demand and no raw debug IDs;
+- preserved ActionProposal, ideology, LandHex, Conflict, EventStore,
+  policy/intervention, Chronicle, consolidation, and V8 boundaries;
+- responsive mobile world-first surface with no horizontal overflow;
+- public Site deployment and actual UI long-horizon run through Day 1080 and
+  beyond Day 1000.
 
 ## Verification evidence
 
-- format, typecheck, lint, and build passed; final build transformed 117 modules;
-- focused P0/audit suite passed: 10 files / 15 tests;
-- T018, T021, T024, and V01 inspections passed;
-- `git diff --check` passed;
-- full `pnpm test` passed 79 files / 593 assertions but exited 1 because of
-  four Vitest worker `onTaskUpdate` unhandled timeouts after assertion success;
-- final public Site reached Day 0/30/90/180/360/720/1080/1500 and showed actual
-  controller migration, ideology marks, active conflicts, policy/intervention
-  feedback, Chronicle source records, and consolidation blockers;
-- final viewport measurements: 1440×900 map 1367.4×695 and 390×844 map
-  343×624, with no horizontal overflow.
+- format, typecheck, lint, build, and `git diff --check` passed;
+- focused world-stage/gameplay suite passed: 6 files / 16 tests;
+- full suite collected 80 files / 598 passing assertions, then exited 1 from
+  four Vitest worker `onTaskUpdate` progress-RPC timeouts; no assertion failed;
+- T018, T021, T022, T023, T024, V01, and historical F05_FIX13 inspections
+  passed; F05 inspection was baseline-only and remains NOT_READY;
+- public actual UI run observed the conflict transition from none to rebellion
+  to rebellion plus coup, faction controller migration, six routes, real
+  policy/intervention feedback, Chronicle source records, and factual
+  consolidation blockers;
+- 1440×900 map measured 1367×695 and 390×844 map measured 343×624, with no
+  horizontal overflow.
 
 ## Decisions and boundaries
 
-- The map is the primary gameplay surface; contextual information is disclosed
-  through drawers/sheets.
-- Presentation reads authoritative WorldState/EventStore-derived projections;
-  no fake event, front, army, project completion, or second clock was added.
-- `SerializedSimulationSnapshotV8` remains unchanged. No persistence V9 or
-  derived read-model persistence was introduced.
-- State Projects are projections of existing intervention duration/completion,
-  not a construction economy, timer, cooldown, countdown, or mana system.
-- Production renderer is the existing SVG path. Pixi v8 remains a documented
-  candidate with an exact dependency/build/mobile blocker.
+- R3F is the single production world-stage renderer; Pixi is benchmark-only.
+- `WorldState`/`EventStore` remain authoritative. The renderer is read-only
+  and has no second clock.
+- State Projects are projections of existing intervention lifecycles, not a
+  construction economy, generic timer, cooldown, countdown, or mana system.
+- `SerializedSimulationSnapshotV8` remains unchanged.
+- `P0_PRODUCT_PASS` is not declared by this handoff.
 - `GATE1F: NOT_READY`, `V02: NOT_STARTED`, and `F05_SUCCESSOR_WORK: NOT_STARTED`.
 
 ## Result
 
-See `docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md` for the
-complete implementation, verification, browser QA, and Sites deployment record.
+See [docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md](docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md)
+for the complete markers, benchmark evidence, implementation record,
+verification, public QA, and Sites deployment details.
 
 ## Next action
 
-No further action is authorized in this task. Stop after the documentation
-commit/push. Do not start the next task, Gate1F, V02, or F05 follow-up work.
+Commit and push this documentation-only handoff update, then stop. Do not
+start F05_FIX18 or any successor task, Gate 1F, or V02.

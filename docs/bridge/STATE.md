@@ -11,7 +11,7 @@ PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
 
 ```text
 F04: CLOSED / PASS
-F05_FIX1..F05_FIX23: accepted core progression
+F05_FIX1..F05_FIX24: accepted core progression
 GAMEBUILDERS_DEMO_SPRINT_01: TECHNICAL_PASS / ACCEPTED_AS_VERTICAL_SLICE
 ```
 
@@ -24,94 +24,47 @@ WORK_BRANCH: gamebuilders-product-surface-p0
 REVIEWED_IMPLEMENTATION_HEAD: 267dd27a3cfae939e97d4c535a559f46f571a9a7
 P0_TECHNICAL_PROGRESS: RETAIN
 P0_PRODUCT_PASS: NO
-P0_WORLD_STAGE_REWORK: REQUIRED
+P0_WORLD_STAGE_REWORK: COMPLETE / AWAITING PRODUCT REVIEW
 ```
 
-Review:
-- `docs/P0_WORLD_STAGE_ENGINE_REFERENCE_REVIEW_2026-08-26.md`
-- `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_WORLD_STAGE_ENGINE_REFERENCE_REWORK_ADDENDUM.md`
-
-## Why product acceptance was rejected
-
-The deployed implementation proves real simulation change, but hands-on review and source inspection show:
-
-- current world renderer is still flat React/SVG polygons/lines/circles/text;
-- existing GDD calls for a strategic miniature world with orthographic/near-orthographic 30–45° camera and world objects;
-- roadmap is a vertical card/list surface with textual edges, not an actual node graph;
-- normal player UI leaks raw/debug terms such as `fixture.*`, `PREREQUISITE_NOT_MET` and raw rule values;
-- State Projects are mechanically grounded but visually remain cards plus tiny glyph markers;
-- default UI remains too quantified/explanatory relative to the GDD world-first/detail-on-demand contract;
-- external references were recorded as broad principles but not enforced through component-level screenshot/hands-on acceptance;
-- prior Pixi record was not a real installed/runtime renderer spike.
-
-## Preserved completed work
-
-Do not reimplement from scratch without regression evidence:
-
-- ActionProposal carry;
-- ideology diffusion runtime;
-- LandHex controller truth;
-- active Conflict presentation;
-- real Policy/Intervention action paths;
-- ChronicleDigest kernel;
-- Content Registry / Content Studio;
-- state-project lifecycle derivation;
-- WorldVisualDelta derivation;
-- V8 persistence/replay boundary.
-
-## Required rework sequence
+## Current rework evidence
 
 ```text
-reference traceability matrix
--> real engine benchmark
-   Three.js/R3F
-   vs Phaser4 or PixiJS8
--> evidence-based production renderer decision
--> renderer-neutral WorldSceneModel
--> 2.5D/isometric world stage
--> real spatial Roadmap node graph
--> in-world State Project landmarks
--> numeric/TMI/debug leakage cleanup
--> mobile world-first QC
--> Sites redeploy
+REFERENCE_TRACEABILITY_MATRIX: PASS
+THREE_R3F_SPIKE: PASS
+SECOND_RENDERER_SPIKE: PASS
+WORLD_RENDERER_DECISION: THREE_R3F
+WORLD_RENDERER_DECISION_EVIDENCE: PRESENT
+WORLD_SCENE_MODEL: YES
+2_5D_OR_ISOMETRIC_WORLD_STAGE: YES
+HEX_TERRAIN_READABLE: YES
+SETTLEMENT_POI_WORLD_OBJECTS: YES
+ROUTE_ACTIVITY_VISIBLE: YES
+REBELLION_CONFLICT_SPATIAL_ACTIVITY_VISIBLE: YES
+STATE_PROJECTS_READ_AS_WORLD_OBJECTS: YES
+INSTITUTIONAL_ROADMAP_IS_NODE_GRAPH: YES
+RAW_INTERNAL_IDS_ON_PLAYER_SURFACE: NO
+DEFAULT_EXACT_NUMBER_TMI_DOMINATES: NO
+MOBILE_WORLD_FIRST_VISUAL_QA: PASS
+SITES_REDEPLOYED: YES
 ```
 
-## Architecture invariant
+The implementation and deployed source checkpoint is
+`31180d977e75e4646332678c36812abc30a3a7fd`. The public Site version 20 was
+tested from that exact production code commit. The result document contains
+the benchmark measurements, long-horizon checkpoints, verification status,
+and deployment hashes.
 
-```text
-TMR TypeScript simulation/action/time = authoritative
-renderer = presentation consumer
-no second authoritative clock
-no direct renderer mutation of WorldState
-```
+## Preserved authority and boundaries
 
-## Current required markers
+- existing TypeScript simulation/action/time and EventStore remain
+  authoritative;
+- presentation uses `WorldSceneModel -> PoliticalWorldStage` and does not
+  write WorldState or create a second clock;
+- `SerializedSimulationSnapshotV8` remains the persistence boundary;
+- no simulation rewrite, invented army/front/cargo fact, generic political
+  currency, persistence V9, Gate 1F PASS, V02, or successor self-authorization.
 
-```text
-REFERENCE_TRACEABILITY_MATRIX: REQUIRED
-THREE_R3F_SPIKE: REQUIRED
-SECOND_RENDERER_SPIKE: REQUIRED
-WORLD_RENDERER_DECISION: REQUIRED
-WORLD_SCENE_MODEL: REQUIRED
-2_5D_OR_ISOMETRIC_WORLD_STAGE: REQUIRED
-HEX_TERRAIN_READABLE: REQUIRED
-SETTLEMENT_POI_WORLD_OBJECTS: REQUIRED
-ROUTE_ACTIVITY_VISIBLE: REQUIRED
-REBELLION_CONFLICT_SPATIAL_ACTIVITY_VISIBLE: REQUIRED
-STATE_PROJECTS_READ_AS_WORLD_OBJECTS: REQUIRED
-INSTITUTIONAL_ROADMAP_IS_NODE_GRAPH: REQUIRED
-RAW_INTERNAL_IDS_ON_PLAYER_SURFACE: MUST_BE_NO
-DEFAULT_EXACT_NUMBER_TMI_DOMINATES: MUST_BE_NO
-MOBILE_WORLD_FIRST_VISUAL_QA: REQUIRED
-```
-
-## Deferred / forbidden
-
-- no simulation rewrite;
-- no invented army/front/logistics facts;
-- no generic research/political mana;
-- no scripted focus-tree authority;
-- no persistence V9 without separate authorization;
-- Gate1F remains NOT_READY;
-- V02 remains NOT_STARTED;
-- no successor self-authorization.
+The full test runner collected 80 files / 598 passing assertions but exited 1
+after four Vitest worker `onTaskUpdate` timeouts. This remains recorded as
+`ASSERTIONS_PASS / RUNNER_EXIT_FAIL`, not as a hidden pass.
