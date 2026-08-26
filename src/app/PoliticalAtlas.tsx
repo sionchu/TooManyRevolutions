@@ -224,7 +224,7 @@ export function PoliticalAtlas({
       <div className="map-wrap">
         <svg
           className="hex-map political-atlas"
-          viewBox="0 0 800 480"
+          viewBox="190 70 570 300"
           role="img"
           aria-label="아르켄 왕국과 벨로리아·카르센 접경국의 정치 지도"
         >
