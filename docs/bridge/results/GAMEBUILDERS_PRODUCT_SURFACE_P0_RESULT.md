@@ -23,8 +23,8 @@ PLAYER_POLICY_ACTIONS: YES
 CONSOLIDATION_OBJECTIVE_BLOCKERS_VISIBLE: YES
 PLAYER_OBSERVABLE_DYNAMICS_AUDIT: PASS
 DAY_1000_LOOKS_IDENTICAL_TO_DAY_0: NO
-MOBILE_MAP_FIRST_VIEWPORT: PENDING_FINAL_DEPLOYMENT_QA
-SITES_REDEPLOYED: PENDING_FINAL_COMMIT
+MOBILE_MAP_FIRST_VIEWPORT: PASS
+SITES_REDEPLOYED: YES
 GATE1F: NOT_READY
 V02: NOT_STARTED
 F05_FIX18: NOT_STARTED
@@ -169,11 +169,56 @@ The long horizon file was split into per-trajectory tests so each assertion
 case completes within the runner's heartbeat window, while the full batch still
 retains the known Vitest worker limitation in other long inspections.
 
-## Deployment evidence
+## Deployed Site and hands-on QA
 
-The existing Sites project is reused. The final version, source commit, archive
-hash, deployment status, and deployed desktop/mobile QA are appended here after
-the final code commit is pushed. No replacement Site project is created.
+The existing Sites project was reused and the exact pushed source commit was
+deployed:
+
+| Item | Evidence |
+| --- | --- |
+| Public URL | https://too-many-revolutions-gamebuilders.leeje92.chatgpt.site |
+| Sites version | 15 (`appgprj_6a8dd05a84688191b356030d05e3e198~appgver_5e3f2457e33c8191a3c3230ab8d487ee`) |
+| Source commit | `e9ac0de93c0e1e29427f7b86bf763f08bfbaccff` |
+| Deployment | succeeded (`appgdep_6a8e48befe74819181402f045409d601`) |
+| Archive content hash | `sha256:31c68bd90cbea6e7b1778e799f3eed328748e72d84461c87e17123bbb0a8e1e1` |
+
+The deployed public URL was opened and exercised through title → briefing →
+main map. A real policy action (`왕의 거부권 폐지`) advanced the run to Day 1,
+changed the current institution read to `공화정`, changed the treasury, and
+appeared in the EventStore record. A real intervention was then submitted and
+produced the visible `행동 제출 완료` feedback and a record entry.
+
+No-action deployed trajectory evidence:
+
+| Day | Active conflicts | Player-controlled LandHexes | Faction-controlled map marks |
+| ---: | ---: | ---: | ---: |
+| 0 | 0 | 12 | 0 |
+| 30 | 1 | 12 | 0 |
+| 90 | 1 | 4 | 16 |
+| 180 | 1 | 0 | 24 |
+| 360 | 2 | 0 | 24 |
+| 720 | 2 | 0 | 24 |
+| 1080 | 2 | 0 | 24 |
+| 1500 | 2 | 0 | 24 |
+
+At Day 1500 the deployed crisis presentation visibly reported `반란 진행 중`
+and `2 활성 충돌 · 반란 · 쿠데타`. The EventStore drawer contained ten
+significant ideology-support entries rather than routine tick rows. The
+Agenda drawer showed `새 질서 정착`, `막힌 조건`, and the actual first blocker
+`안정 지역`.
+
+Responsive public QA also passed:
+
+- 1440×900 desktop: client/scroll width 1425/1425, map 1367.4×630,
+  approximately 66.5% of viewport area, desktop manual jumps visible and
+  mobile disclosure hidden.
+- 390×844 mobile: client/scroll width 375/375, map 343px wide, desktop jumps
+  hidden, mobile disclosure closed by default, +1/+7/+30 controls available
+  after disclosure, and no horizontal overflow.
+
+The deployed no-action run therefore differs materially from Day 0 through
+controller migration, active conflict presentation, ideology/event feed, and
+objective blockers without using a fake timer or fabricated event.
 
 ## Boundary
 

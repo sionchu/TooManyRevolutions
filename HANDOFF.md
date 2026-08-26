@@ -36,11 +36,10 @@ Player-Observable Dynamics Audit. Persistence remains SerializedSnapshotV8.
 
 ## Current checkpoint
 
-Local implementation and verification are complete. The working tree contains
-the runtime/presentation changes, focused tests, scenario authoring, and final
-result documentation. The next authorized action is to commit and push this
-checkpoint, package the exact pushed source, redeploy the existing Site, and
-run deployed desktop/mobile QA through Day 1080 and beyond Day 1000.
+Local implementation, verification, commit/push, Site redeployment, and public
+desktop/mobile QA are complete. The final deployed source is commit
+`e9ac0de93c0e1e29427f7b86bf763f08bfbaccff`, Site version 15, at
+https://too-many-revolutions-gamebuilders.leeje92.chatgpt.site.
 
 ## Verification evidence
 
@@ -58,6 +57,13 @@ run deployed desktop/mobile QA through Day 1080 and beyond Day 1000.
 - F05, F05_FIX9, F05_FIX14 diagnostics: PASS as diagnostics; F05 remains
   NOT_READY and F05_FIX15 is not authorized
 - `git diff --check`: PASS
+- Sites version 15 deployment: succeeded from the exact pushed source commit
+- Public no-action QA: Day 0/30/90/180/360/720/1080 and Day 1500 completed;
+  active conflicts, LandHex controller marks, EventStore ideology entries, and
+  consolidation blocker were visible
+- Public desktop QA: 1440×900, map share 66.5%, no horizontal overflow
+- Public mobile QA: 390×844, map width 343px, no horizontal overflow, manual
+  jumps behind the mobile disclosure
 
 ## Decisions and boundaries
 
@@ -88,7 +94,5 @@ the earlier P0 art/reference/shot-list documents.
 
 ## Next concrete action
 
-Commit and push the current checkpoint, package/deploy the exact pushed source
-through the existing Sites project, perform public desktop/mobile hands-on QA
-at Day 0/30/90/180/360/720/1080 and >1000 days, append the deployment and QA
-evidence, commit/push the final result update, and stop.
+Commit and push the final result/HANDOFF evidence update, then stop. No
+successor task is authorized.
