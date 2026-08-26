@@ -4330,7 +4330,11 @@ body,
   color: var(--tmr-paper);
   background: var(--tmr-water-deep);
   background-image:
-    radial-gradient(circle at 78% 36%, rgb(127 107 70 / 14%), transparent 34rem),
+    radial-gradient(
+      circle at 78% 36%,
+      rgb(127 107 70 / 14%),
+      transparent 34rem
+    ),
     linear-gradient(135deg, rgb(255 255 255 / 2%), transparent 42%);
 }
 

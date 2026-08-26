@@ -60,11 +60,13 @@ describe("map-first product surface composition", () => {
     expect(roadmapSource).toContain("제도 연결 읽기");
   });
 
-  it("renders geography from connected runtime surfaces without global blobs", () => {
-    expect(worldStageSource).toContain("runtimeGeometry.worldSurfaces.map");
-    expect(worldStageSource).toContain("runtimeGeometry.terrainSurfaces.map");
-    expect(worldStageSource).toContain(
-      'geometryMode: "connected-component-surfaces"',
+  it("renders geography from the shared relief terrain mesh without global blobs", () => {
+    expect(worldStageSource).toContain("TerrainMeshSurface");
+    expect(worldStageSource).toContain("terrainMeshGeometry");
+    expect(worldStageSource).toContain('geometryMode: "shared-terrain-mesh"');
+    expect(worldStageSource).not.toContain("runtimeGeometry.worldSurfaces.map");
+    expect(worldStageSource).not.toContain(
+      "runtimeGeometry.terrainSurfaces.map",
     );
     expect(worldStageSource).not.toContain("geographyConvexHull");
     expect(worldStageSource).not.toContain("pointsByTerrain");

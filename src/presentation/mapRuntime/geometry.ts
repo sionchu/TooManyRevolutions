@@ -117,7 +117,11 @@ function deterministicWorldRelief(x: number, z: number): number {
   return broad + cross + fine;
 }
 
-function reliefHeight(samples: readonly TerrainVertexSample[], x: number, z: number): number {
+function reliefHeight(
+  samples: readonly TerrainVertexSample[],
+  x: number,
+  z: number,
+): number {
   if (samples.length === 0) return deterministicWorldRelief(x, z);
   const average =
     samples.reduce((total, sample) => total + sample.height, 0) /
@@ -131,7 +135,10 @@ function reliefHeight(samples: readonly TerrainVertexSample[], x: number, z: num
       (sample) => sample.terrain === "coast" || sample.terrain === "wetlands",
     ).length / samples.length;
   const reliefScale = 0.72 + highlandShare * 0.8 - lowlandShare * 0.25;
-  return Math.max(0.035, average + deterministicWorldRelief(x, z) * reliefScale);
+  return Math.max(
+    0.035,
+    average + deterministicWorldRelief(x, z) * reliefScale,
+  );
 }
 
 function averageTerrainColor(
@@ -599,7 +606,11 @@ function createContinuousTerrainMesh(
     const existing = vertexIndexes.get(key);
     if (existing !== undefined) return existing;
     const index = vertices.length;
-    const height = reliefHeight(accumulator.samples, accumulator.x, accumulator.z);
+    const height = reliefHeight(
+      accumulator.samples,
+      accumulator.x,
+      accumulator.z,
+    );
     vertices.push([accumulator.x, height, accumulator.z]);
     colors.push(averageTerrainColor(accumulator.samples));
     vertexIndexes.set(key, index);

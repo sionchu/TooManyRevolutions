@@ -1,9 +1,10 @@
 import { useLoader } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
-import { Box3, Color, Material, Mesh } from "three";
+import { Box3, Color, Mesh } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 import type { WorldAssetManifestEntry } from "../../presentation/modelAssets/worldAssetManifest";
+import type { Material } from "three";
 
 const TERRAIN_WARMTH = new Color("#b59a6b");
 
