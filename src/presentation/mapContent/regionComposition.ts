@@ -6,14 +6,76 @@ import {
   type MapObjectFamily,
   type MapScaleRole,
 } from "../mapVisual/worldArt";
+import type { WorldSceneModel } from "../worldSceneModel";
 
 export type RegionCompositionRole =
   "capital" | "industrial" | "port" | "frontier" | "agrarian-distribution";
 
 export type CompositionObjectRequirement =
-  "always" | "recorded-project" | "recorded-faction" | "recorded-conflict";
+  | "DECORATIVE_SUBSTRATE"
+  | "AUTHORED_STATIC_POI"
+  | "AUTHORED_SETTLEMENT"
+  | "RECORDED_INSTITUTION"
+  | "RECORDED_PROJECT"
+  | "RECORDED_FACTION"
+  | "RECORDED_CONFLICT"
+  | "RECORDED_ROUTE";
 
 export type CompositionVisibility = "macro" | "meso" | "micro";
+
+export type RegionCompositionSettlementEvidence = Pick<
+  WorldSceneModel["settlements"][number],
+  "id" | "regionId" | "kind" | "truthClass"
+>;
+
+export type RegionCompositionPoiEvidence = Pick<
+  WorldSceneModel["pois"][number],
+  "id" | "regionId" | "kind" | "truthClass"
+>;
+
+export type RegionCompositionInstitutionEvidence = Pick<
+  WorldSceneModel["institutions"][number],
+  "id" | "regionId" | "kind" | "truthClass"
+>;
+
+export type RegionCompositionProjectEvidence = Pick<
+  WorldSceneModel["projects"][number],
+  | "id"
+  | "regionId"
+  | "landmarkKind"
+  | "status"
+  | "sourceEventIds"
+  | "truthClass"
+>;
+
+export type RegionCompositionFactionEvidence = Pick<
+  WorldSceneModel["factionPresence"][number],
+  "id" | "factionId" | "regionId" | "truthClass"
+>;
+
+export type RegionCompositionConflictEvidence = Pick<
+  WorldSceneModel["conflicts"][number],
+  "id" | "conflictId" | "regionIds" | "truthClass"
+>;
+
+export type RegionCompositionRouteEvidence = Pick<
+  WorldSceneModel["routes"][number],
+  "id" | "sourceRegionId" | "targetRegionId" | "active" | "truthClass"
+>;
+
+/**
+ * The adapter receives only the presentation facts needed to authorize art.
+ * It never receives or mutates WorldState.
+ */
+export interface RegionCompositionEvidence {
+  readonly settlements: readonly RegionCompositionSettlementEvidence[];
+  readonly pois: readonly RegionCompositionPoiEvidence[];
+  readonly institutions: readonly RegionCompositionInstitutionEvidence[];
+  readonly projects: readonly RegionCompositionProjectEvidence[];
+  readonly factionPresence: readonly RegionCompositionFactionEvidence[];
+  readonly conflicts: readonly RegionCompositionConflictEvidence[];
+  readonly routes: readonly RegionCompositionRouteEvidence[];
+}
 
 export interface RegionCompositionObjectPlacement {
   readonly assetId: MapObjectAssetId;
@@ -42,13 +104,13 @@ export interface RegionCompositionRequest {
   readonly regionId: string;
   readonly role: RegionCompositionRole;
   readonly anchor: readonly [x: number, z: number];
-  readonly evidenceIds?: readonly string[];
+  readonly evidence: RegionCompositionEvidence;
 }
 
 export interface RegionCompositionDefinition extends RegionCompositionTemplate {
   readonly regionId: string;
   readonly anchor: readonly [x: number, z: number];
-  readonly evidenceIds: readonly string[];
+  readonly evidence: RegionCompositionEvidence;
   readonly binding: "renderer-neutral-presentation-template";
 }
 
@@ -56,7 +118,7 @@ function placement(
   family: MapObjectFamily,
   offset: readonly [x: number, z: number],
   visibleAt: readonly CompositionVisibility[],
-  requirement: CompositionObjectRequirement = "always",
+  requirement: CompositionObjectRequirement,
 ): RegionCompositionObjectPlacement {
   const visual = getWorldObjectVisualDefinition(family);
   if (visual === undefined) {
@@ -100,10 +162,20 @@ export const REGION_COMPOSITION_TEMPLATES: Readonly<
       "forest-cluster",
     ],
     objects: [
-      placement("palace", [0, 0], macroMesoMicro),
-      placement("assembly-parliament", [-0.62, 0.2], mesoMicro),
-      placement("dense-town", [0.55, 0.28], mesoMicro),
-      placement("forest-cluster", [0.4, -0.58], mesoMicro),
+      placement("palace", [0, 0], macroMesoMicro, "AUTHORED_SETTLEMENT"),
+      placement(
+        "assembly-parliament",
+        [-0.62, 0.2],
+        mesoMicro,
+        "RECORDED_INSTITUTION",
+      ),
+      placement("dense-town", [0.55, 0.28], mesoMicro, "AUTHORED_SETTLEMENT"),
+      placement(
+        "forest-cluster",
+        [0.4, -0.58],
+        mesoMicro,
+        "DECORATIVE_SUBSTRATE",
+      ),
     ],
     source: "TMR-authored-region-template",
   },
@@ -124,11 +196,21 @@ export const REGION_COMPOSITION_TEMPLATES: Readonly<
       "road-corridor",
     ],
     objects: [
-      placement("factory-iron-works", [0, 0], mesoMicro),
-      placement("mine", [-0.6, -0.24], micro),
-      placement("dense-town", [0.5, 0.28], mesoMicro),
-      placement("mountain-cluster", [0.52, -0.56], macroMesoMicro),
-      placement("road-corridor", [0.02, 0.58], macroMesoMicro),
+      placement("factory-iron-works", [0, 0], mesoMicro, "RECORDED_PROJECT"),
+      placement("mine", [-0.6, -0.24], micro, "AUTHORED_STATIC_POI"),
+      placement("dense-town", [0.5, 0.28], mesoMicro, "AUTHORED_SETTLEMENT"),
+      placement(
+        "mountain-cluster",
+        [0.52, -0.56],
+        macroMesoMicro,
+        "DECORATIVE_SUBSTRATE",
+      ),
+      placement(
+        "road-corridor",
+        [0.02, 0.58],
+        macroMesoMicro,
+        "RECORDED_ROUTE",
+      ),
     ],
     source: "TMR-authored-region-template",
   },
@@ -149,11 +231,16 @@ export const REGION_COMPOSITION_TEMPLATES: Readonly<
       "field-plot",
     ],
     objects: [
-      placement("port-dock", [0, 0], mesoMicro),
-      placement("dense-town", [-0.48, 0.28], mesoMicro),
-      placement("small-settlement", [0.5, -0.3], micro),
-      placement("road-corridor", [-0.04, 0.58], macroMesoMicro),
-      placement("field-plot", [0.52, 0.48], mesoMicro),
+      placement("port-dock", [0, 0], mesoMicro, "AUTHORED_STATIC_POI"),
+      placement("dense-town", [-0.48, 0.28], mesoMicro, "AUTHORED_SETTLEMENT"),
+      placement("small-settlement", [0.5, -0.3], micro, "AUTHORED_SETTLEMENT"),
+      placement(
+        "road-corridor",
+        [-0.04, 0.58],
+        macroMesoMicro,
+        "RECORDED_ROUTE",
+      ),
+      placement("field-plot", [0.52, 0.48], mesoMicro, "DECORATIVE_SUBSTRATE"),
     ],
     source: "TMR-authored-region-template",
   },
@@ -175,12 +262,22 @@ export const REGION_COMPOSITION_TEMPLATES: Readonly<
       "faction-banner",
     ],
     objects: [
-      placement("fort", [0, 0], mesoMicro),
-      placement("checkpoint-gate", [0.58, 0.08], mesoMicro),
-      placement("small-settlement", [-0.48, 0.3], micro),
-      placement("mountain-cluster", [0.3, -0.58], macroMesoMicro),
-      placement("barricade", [0.7, -0.32], micro, "recorded-conflict"),
-      placement("faction-banner", [-0.2, 0.56], micro, "recorded-faction"),
+      placement("fort", [0, 0], mesoMicro, "AUTHORED_STATIC_POI"),
+      placement(
+        "checkpoint-gate",
+        [0.58, 0.08],
+        mesoMicro,
+        "AUTHORED_STATIC_POI",
+      ),
+      placement("small-settlement", [-0.48, 0.3], micro, "AUTHORED_SETTLEMENT"),
+      placement(
+        "mountain-cluster",
+        [0.3, -0.58],
+        macroMesoMicro,
+        "DECORATIVE_SUBSTRATE",
+      ),
+      placement("barricade", [0.7, -0.32], micro, "RECORDED_CONFLICT"),
+      placement("faction-banner", [-0.2, 0.56], micro, "RECORDED_FACTION"),
     ],
     source: "TMR-authored-region-template",
   },
@@ -201,11 +298,26 @@ export const REGION_COMPOSITION_TEMPLATES: Readonly<
       "road-corridor",
     ],
     objects: [
-      placement("field-plot", [0, 0], mesoMicro),
-      placement("granary-storehouse", [0.48, -0.08], mesoMicro),
-      placement("distribution-yard", [-0.5, 0.26], mesoMicro),
-      placement("small-settlement", [0.3, 0.48], micro),
-      placement("road-corridor", [0.02, -0.58], macroMesoMicro),
+      placement("field-plot", [0, 0], mesoMicro, "DECORATIVE_SUBSTRATE"),
+      placement(
+        "granary-storehouse",
+        [0.48, -0.08],
+        mesoMicro,
+        "RECORDED_PROJECT",
+      ),
+      placement(
+        "distribution-yard",
+        [-0.5, 0.26],
+        mesoMicro,
+        "RECORDED_PROJECT",
+      ),
+      placement("small-settlement", [0.3, 0.48], micro, "AUTHORED_SETTLEMENT"),
+      placement(
+        "road-corridor",
+        [0.02, -0.58],
+        macroMesoMicro,
+        "RECORDED_ROUTE",
+      ),
     ],
     source: "TMR-authored-region-template",
   },
@@ -230,8 +342,72 @@ export function getRegionComposition(
     ...template,
     regionId: input.regionId,
     anchor: input.anchor,
-    evidenceIds: [...(input.evidenceIds ?? [])],
+    evidence: input.evidence,
     binding: "renderer-neutral-presentation-template",
+  };
+}
+
+export function regionCompositionEvidenceFromWorldSceneModel(
+  model: WorldSceneModel,
+): RegionCompositionEvidence {
+  return {
+    settlements: model.settlements.map(
+      ({ id, regionId, kind, truthClass }) => ({
+        id,
+        regionId,
+        kind,
+        truthClass,
+      }),
+    ),
+    pois: model.pois.map(({ id, regionId, kind, truthClass }) => ({
+      id,
+      regionId,
+      kind,
+      truthClass,
+    })),
+    institutions: model.institutions.map(
+      ({ id, regionId, kind, truthClass }) => ({
+        id,
+        regionId,
+        kind,
+        truthClass,
+      }),
+    ),
+    projects: model.projects.map(
+      ({ id, regionId, landmarkKind, status, sourceEventIds, truthClass }) => ({
+        id,
+        regionId,
+        landmarkKind,
+        status,
+        sourceEventIds: [...sourceEventIds],
+        truthClass,
+      }),
+    ),
+    factionPresence: model.factionPresence.map(
+      ({ id, factionId, regionId, truthClass }) => ({
+        id,
+        factionId,
+        regionId,
+        truthClass,
+      }),
+    ),
+    conflicts: model.conflicts.map(
+      ({ id, conflictId, regionIds, truthClass }) => ({
+        id,
+        conflictId,
+        regionIds: [...regionIds],
+        truthClass,
+      }),
+    ),
+    routes: model.routes.map(
+      ({ id, sourceRegionId, targetRegionId, active, truthClass }) => ({
+        id,
+        sourceRegionId,
+        targetRegionId,
+        active,
+        truthClass,
+      }),
+    ),
   };
 }
 
