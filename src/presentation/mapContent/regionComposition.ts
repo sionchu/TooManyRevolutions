@@ -1,0 +1,240 @@
+import {
+  getWorldObjectVisualDefinition,
+  MAP_SCALE_HIERARCHY,
+  type MapMaterialFamilyId,
+  type MapObjectAssetId,
+  type MapObjectFamily,
+  type MapScaleRole,
+} from "../mapVisual/worldArt";
+
+export type RegionCompositionRole =
+  "capital" | "industrial" | "port" | "frontier" | "agrarian-distribution";
+
+export type CompositionObjectRequirement =
+  "always" | "recorded-project" | "recorded-faction" | "recorded-conflict";
+
+export type CompositionVisibility = "macro" | "meso" | "micro";
+
+export interface RegionCompositionObjectPlacement {
+  readonly assetId: MapObjectAssetId;
+  readonly family: MapObjectFamily;
+  readonly scaleRole: MapScaleRole;
+  readonly scaleRank: number;
+  readonly offset: readonly [x: number, z: number];
+  readonly visibleAt: readonly CompositionVisibility[];
+  readonly requirement: CompositionObjectRequirement;
+}
+
+export interface RegionCompositionTemplate {
+  readonly compositionId: string;
+  readonly role: RegionCompositionRole;
+  readonly displayName: string;
+  readonly silhouetteCue: string;
+  readonly terrainSignatures: readonly string[];
+  readonly density: "clustered" | "linear" | "open" | "fortified";
+  readonly groundingMaterial: MapMaterialFamilyId;
+  readonly readingOrder: readonly MapObjectFamily[];
+  readonly objects: readonly RegionCompositionObjectPlacement[];
+  readonly source: "TMR-authored-region-template";
+}
+
+export interface RegionCompositionRequest {
+  readonly regionId: string;
+  readonly role: RegionCompositionRole;
+  readonly anchor: readonly [x: number, z: number];
+  readonly evidenceIds?: readonly string[];
+}
+
+export interface RegionCompositionDefinition extends RegionCompositionTemplate {
+  readonly regionId: string;
+  readonly anchor: readonly [x: number, z: number];
+  readonly evidenceIds: readonly string[];
+  readonly binding: "renderer-neutral-presentation-template";
+}
+
+function placement(
+  family: MapObjectFamily,
+  offset: readonly [x: number, z: number],
+  visibleAt: readonly CompositionVisibility[],
+  requirement: CompositionObjectRequirement = "always",
+): RegionCompositionObjectPlacement {
+  const visual = getWorldObjectVisualDefinition(family);
+  if (visual === undefined) {
+    throw new Error(`Missing world-art manifest entry for ${family}.`);
+  }
+  return {
+    assetId: visual.assetId,
+    family,
+    scaleRole: visual.scaleRole,
+    scaleRank: MAP_SCALE_HIERARCHY[visual.scaleRole].rank,
+    offset,
+    visibleAt,
+    requirement,
+  };
+}
+
+const macroMesoMicro: readonly CompositionVisibility[] = [
+  "macro",
+  "meso",
+  "micro",
+];
+const mesoMicro: readonly CompositionVisibility[] = ["meso", "micro"];
+const micro: readonly CompositionVisibility[] = ["micro"];
+
+export const REGION_COMPOSITION_TEMPLATES: Readonly<
+  Record<RegionCompositionRole, RegionCompositionTemplate>
+> = {
+  capital: {
+    compositionId: "tmr.map.composition.capital",
+    role: "capital",
+    displayName: "수도·시민 권력 중심",
+    silhouetteCue:
+      "높은 궁전 축, 낮은 공회당, 조밀한 시가지가 한 공공 테라스에 모임",
+    terrainSignatures: ["civic-terrace", "managed-grove", "broad-approach"],
+    density: "clustered",
+    groundingMaterial: "civic-plaster",
+    readingOrder: [
+      "palace",
+      "assembly-parliament",
+      "dense-town",
+      "forest-cluster",
+    ],
+    objects: [
+      placement("palace", [0, 0], macroMesoMicro),
+      placement("assembly-parliament", [-0.62, 0.2], mesoMicro),
+      placement("dense-town", [0.55, 0.28], mesoMicro),
+      placement("forest-cluster", [0.4, -0.58], mesoMicro),
+    ],
+    source: "TMR-authored-region-template",
+  },
+  industrial: {
+    compositionId: "tmr.map.composition.industrial",
+    role: "industrial",
+    displayName: "산업·철산 생산 중심",
+    silhouetteCue:
+      "넓은 작업동과 연통, 원료 산지, 도시 노동권이 하나의 생산 축을 이룸",
+    terrainSignatures: ["ore-ridge", "works-yard", "haul-approach"],
+    density: "linear",
+    groundingMaterial: "industrial-iron",
+    readingOrder: [
+      "factory-iron-works",
+      "mine",
+      "dense-town",
+      "mountain-cluster",
+      "road-corridor",
+    ],
+    objects: [
+      placement("factory-iron-works", [0, 0], mesoMicro),
+      placement("mine", [-0.6, -0.24], micro),
+      placement("dense-town", [0.5, 0.28], mesoMicro),
+      placement("mountain-cluster", [0.52, -0.56], macroMesoMicro),
+      placement("road-corridor", [0.02, 0.58], macroMesoMicro),
+    ],
+    source: "TMR-authored-region-template",
+  },
+  port: {
+    compositionId: "tmr.map.composition.port",
+    role: "port",
+    displayName: "항구·교역 관문",
+    silhouetteCue:
+      "수면을 향한 선형 부두, 돛대, 배후 상업 도시가 한 해안 접점으로 읽힘",
+    terrainSignatures: ["coastal-shelf", "tidal-edge", "trade-approach"],
+    density: "linear",
+    groundingMaterial: "terrain-earth",
+    readingOrder: [
+      "port-dock",
+      "dense-town",
+      "small-settlement",
+      "road-corridor",
+      "field-plot",
+    ],
+    objects: [
+      placement("port-dock", [0, 0], mesoMicro),
+      placement("dense-town", [-0.48, 0.28], mesoMicro),
+      placement("small-settlement", [0.5, -0.3], micro),
+      placement("road-corridor", [-0.04, 0.58], macroMesoMicro),
+      placement("field-plot", [0.52, 0.48], mesoMicro),
+    ],
+    source: "TMR-authored-region-template",
+  },
+  frontier: {
+    compositionId: "tmr.map.composition.frontier",
+    role: "frontier",
+    displayName: "변경·국경 방어선",
+    silhouetteCue:
+      "성벽 요새와 통과구, 작은 취락이 능선과 봉쇄 동선에 걸쳐 있음",
+    terrainSignatures: ["watch-ridge", "border-approach", "rough-ground"],
+    density: "fortified",
+    groundingMaterial: "frontier-timber",
+    readingOrder: [
+      "fort",
+      "checkpoint-gate",
+      "small-settlement",
+      "mountain-cluster",
+      "barricade",
+      "faction-banner",
+    ],
+    objects: [
+      placement("fort", [0, 0], mesoMicro),
+      placement("checkpoint-gate", [0.58, 0.08], mesoMicro),
+      placement("small-settlement", [-0.48, 0.3], micro),
+      placement("mountain-cluster", [0.3, -0.58], macroMesoMicro),
+      placement("barricade", [0.7, -0.32], micro, "recorded-conflict"),
+      placement("faction-banner", [-0.2, 0.56], micro, "recorded-faction"),
+    ],
+    source: "TMR-authored-region-template",
+  },
+  "agrarian-distribution": {
+    compositionId: "tmr.map.composition.agrarian-distribution",
+    role: "agrarian-distribution",
+    displayName: "곡창·배급 생활권",
+    silhouetteCue:
+      "열린 밭과 저장고, 배급 야드, 작은 취락이 넓은 생산 면을 구성함",
+    terrainSignatures: ["open-field", "water-runoff", "distribution-approach"],
+    density: "open",
+    groundingMaterial: "terrain-earth",
+    readingOrder: [
+      "field-plot",
+      "granary-storehouse",
+      "distribution-yard",
+      "small-settlement",
+      "road-corridor",
+    ],
+    objects: [
+      placement("field-plot", [0, 0], mesoMicro),
+      placement("granary-storehouse", [0.48, -0.08], mesoMicro),
+      placement("distribution-yard", [-0.5, 0.26], mesoMicro),
+      placement("small-settlement", [0.3, 0.48], micro),
+      placement("road-corridor", [0.02, -0.58], macroMesoMicro),
+    ],
+    source: "TMR-authored-region-template",
+  },
+} as const;
+
+export function getRegionComposition(
+  role: RegionCompositionRole,
+): RegionCompositionTemplate;
+export function getRegionComposition(
+  request: RegionCompositionRequest,
+): RegionCompositionDefinition;
+export function getRegionComposition(
+  input: RegionCompositionRole | RegionCompositionRequest,
+): RegionCompositionTemplate | RegionCompositionDefinition {
+  const role = typeof input === "string" ? input : input.role;
+  const template = REGION_COMPOSITION_TEMPLATES[role];
+  if (template === undefined) {
+    throw new Error(`Unknown region composition role: ${role}.`);
+  }
+  if (typeof input === "string") return template;
+  return {
+    ...template,
+    regionId: input.regionId,
+    anchor: input.anchor,
+    evidenceIds: [...(input.evidenceIds ?? [])],
+    binding: "renderer-neutral-presentation-template",
+  };
+}
+
+export function regionCompositionRoles(): readonly RegionCompositionRole[] {
+  return ["capital", "industrial", "port", "frontier", "agrarian-distribution"];
+}
