@@ -380,6 +380,8 @@ export interface Gate1FDiagnosisV2Options {
   readonly contextIds?: readonly string[];
   /** Defaults to true for the full matrix and false for a context subset. */
   readonly compareExistingBaseline?: boolean;
+  /** Developer-only scenario override for bounded R1 counterfactuals. */
+  readonly scenario?: ScenarioDefinition;
 }
 
 export interface Gate1FBranchMeasurement {
@@ -1869,10 +1871,10 @@ function repairCandidates(): readonly Gate1FRepairCandidate[] {
 }
 
 export function runGate1FDiagnosisV2(
-  seed = F05_DEFAULT_SEED,
+  seed: number = F05_DEFAULT_SEED,
   options: Gate1FDiagnosisV2Options = {},
 ): Gate1FDiagnosisV2Result {
-  const scenario = createF04DValidationScenario();
+  const scenario = options.scenario ?? createF04DValidationScenario();
   const selectedContexts =
     options.contextIds === undefined
       ? F05_CONTEXTS

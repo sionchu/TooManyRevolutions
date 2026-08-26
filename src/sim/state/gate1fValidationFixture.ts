@@ -41,6 +41,17 @@ export const F04D_VALIDATION_INTERVENTION_IDS = {
   coerciveRestriction: asInterventionId("gate1f.f04d.coercive-restriction"),
 } as const;
 
+/** Smallest bounded candidate that reached the existing recovery consumer. */
+export const F04D_R1_SELECTED_POLITICAL_ACCOMMODATION_ORGANIZATION_DELTA = -0.5;
+
+export interface F04DValidationScenarioOptions {
+  /**
+   * Optional R1 counterfactual only. The default is the selected repair; a
+   * null or zero value is used by the diagnostic to reproduce the baseline.
+   */
+  readonly politicalAccommodationOrganizationDelta?: number | null;
+}
+
 function createGate1FValidationInterventionCatalog(
   baseScenario: ScenarioDefinition,
 ): Readonly<Record<string, InterventionDefinition>> {
@@ -184,7 +195,9 @@ export function createGate1FValidationScenario(): ScenarioDefinition {
  * authoritative consumers while authoring only the four response definitions
  * required for the institution/action counterfactual.
  */
-export function createF04DValidationScenario(): ScenarioDefinition {
+export function createF04DValidationScenario(
+  options: F04DValidationScenarioOptions = {},
+): ScenarioDefinition {
   const baseScenario = createGate1FValidationScenario();
   const playerCountry = baseScenario.initialCountries[0];
   const capital = baseScenario.initialRegions[0];
@@ -215,6 +228,28 @@ export function createF04DValidationScenario(): ScenarioDefinition {
       },
     ],
   };
+  const politicalAccommodationOrganizationDelta =
+    options.politicalAccommodationOrganizationDelta === undefined
+      ? F04D_R1_SELECTED_POLITICAL_ACCOMMODATION_ORGANIZATION_DELTA
+      : options.politicalAccommodationOrganizationDelta;
+  const politicalAccommodationEffects: InterventionDefinition["completionEffects"] =
+    [
+      {
+        kind: "factionGrievanceDelta",
+        factionId: POLITICAL_CRISIS_FIXTURE_FACTION_IDS.rebellion,
+        delta: -0.25,
+      },
+      ...(politicalAccommodationOrganizationDelta === null ||
+      politicalAccommodationOrganizationDelta === 0
+        ? []
+        : [
+            {
+              kind: "factionOrganizationDelta" as const,
+              factionId: POLITICAL_CRISIS_FIXTURE_FACTION_IDS.rebellion,
+              delta: politicalAccommodationOrganizationDelta,
+            },
+          ]),
+    ];
   const politicalAccommodation: InterventionDefinition = {
     id: F04D_VALIDATION_INTERVENTION_IDS.politicalAccommodation,
     name: "공업 노동자회 제한적 정치 타협",
@@ -226,13 +261,7 @@ export function createF04DValidationScenario(): ScenarioDefinition {
       { kind: "ruleEquals", rule: "legislatureRequired", value: true },
     ],
     requireCompletionEffectChange: true,
-    completionEffects: [
-      {
-        kind: "factionGrievanceDelta",
-        factionId: POLITICAL_CRISIS_FIXTURE_FACTION_IDS.rebellion,
-        delta: -0.25,
-      },
-    ],
+    completionEffects: politicalAccommodationEffects,
   };
   const oppositionLegalization: InterventionDefinition = {
     id: F04D_VALIDATION_INTERVENTION_IDS.oppositionLegalization,

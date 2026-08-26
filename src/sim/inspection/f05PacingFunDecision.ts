@@ -1251,7 +1251,7 @@ function silenceRange(values: readonly number[]): F05SilenceRange {
 }
 
 export function runF05PacingFunDecision(
-  seed = F05_DEFAULT_SEED,
+  seed: number = F05_DEFAULT_SEED,
   options: F05PacingFunOptions = {},
 ): F05PacingFunResult {
   const factionActorLoop = options.factionActorLoop ?? "on";

@@ -15,6 +15,7 @@ import {
 } from "../state/action";
 import {
   createF04DValidationScenario,
+  F04D_R1_SELECTED_POLITICAL_ACCOMMODATION_ORGANIZATION_DELTA,
   F04D_VALIDATION_INTERVENTION_IDS,
 } from "../state/gate1fValidationFixture";
 import { POLITICAL_CRISIS_FIXTURE_FACTION_IDS } from "../state/politicalCrisisFixture";
@@ -142,7 +143,7 @@ describe("F04D institution-mediated response actions", () => {
     );
   });
 
-  it("completes political accommodation without deleting organization or opening competition", () => {
+  it("completes political accommodation with bounded organization relief", () => {
     const initial = createRecord();
     const { completed } = complete(
       F04D_VALIDATION_INTERVENTION_IDS.politicalAccommodation,
@@ -151,9 +152,15 @@ describe("F04D institution-mediated response actions", () => {
     expect(completed.world.factions[rebellionFactionId]!.grievance).toBeCloseTo(
       initial.world.factions[rebellionFactionId]!.grievance - 0.25,
     );
-    expect(completed.world.factions[rebellionFactionId]!.organization).toBe(
-      initial.world.factions[rebellionFactionId]!.organization,
+    expect(
+      completed.world.factions[rebellionFactionId]!.organization,
+    ).toBeCloseTo(
+      initial.world.factions[rebellionFactionId]!.organization +
+        F04D_R1_SELECTED_POLITICAL_ACCOMMODATION_ORGANIZATION_DELTA,
     );
+    expect(
+      completed.world.factions[rebellionFactionId]!.organization,
+    ).toBeGreaterThan(0);
     expect(
       completed.world.policies[countryId]!.institutionalRules
         .politicalCompetition,

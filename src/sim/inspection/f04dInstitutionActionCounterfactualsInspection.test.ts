@@ -4,6 +4,7 @@ import {
   F04D_STRATEGY_IDS,
   runF04DInspection,
 } from "./f04dInstitutionActionCounterfactuals";
+import { F04D_R1_SELECTED_POLITICAL_ACCOMMODATION_ORGANIZATION_DELTA } from "../state/gate1fValidationFixture";
 
 describe("F04D institution/action counterfactual inspection", () => {
   it("proves legal action gating and meaningful downstream political branching", () => {
@@ -53,8 +54,12 @@ describe("F04D institution/action counterfactual inspection", () => {
     expect(accommodation.rebellionAtCompletion?.grievance).toBeLessThan(
       accommodation.rebellionStart.grievance,
     );
-    expect(accommodation.rebellionAtCompletion?.organization).toBe(
-      accommodation.rebellionStart.organization,
+    expect(accommodation.rebellionAtCompletion?.organization).toBeCloseTo(
+      accommodation.rebellionStart.organization +
+        F04D_R1_SELECTED_POLITICAL_ACCOMMODATION_ORGANIZATION_DELTA,
+    );
+    expect(accommodation.rebellionAtCompletion?.organization).toBeGreaterThan(
+      0,
     );
     expect(accommodation.finalPoliticalCompetition).toBe("restricted");
     expect(accommodation.crisisEvents[0]).toContain("@300");
