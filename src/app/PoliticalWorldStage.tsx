@@ -213,229 +213,88 @@ function RuntimeSurfaceMesh({
   );
 }
 
-function crossGeographyPoints(
-  first: WorldScenePoint,
-  second: WorldScenePoint,
-  third: WorldScenePoint,
+const CONNECTED_GEOGRAPHY_COLOR = "#718666";
+const TERRAIN_SURFACE_COLORS: Readonly<
+  Record<WorldSceneModel["hexes"][number]["terrain"], string>
+> = {
+  plains: "#718666",
+  coast: "#5f8584",
+  wetlands: "#6f8b73",
+  forest: "#587561",
+  hills: "#81775e",
+  mountains: "#686d6b",
+};
+
+function terrainSurfaceOpacity(
+  terrain: WorldSceneModel["hexes"][number]["terrain"] | undefined,
+  lodTier: MapLodTier,
 ): number {
-  return (
-    (second[0] - first[0]) * (third[2] - first[2]) -
-    (second[2] - first[2]) * (third[0] - first[0])
-  );
+  if (terrain === "coast") return lodTier === "near" ? 0.12 : 0.06;
+  if (terrain === "mountains") return lodTier === "near" ? 0.08 : 0.04;
+  if (terrain === "plains" || terrain === undefined) return 0;
+  return lodTier === "near" ? 0.07 : 0.035;
 }
 
-function geographyConvexHull(
+function smoothComponentBoundary(
   points: readonly WorldScenePoint[],
 ): readonly WorldScenePoint[] {
-  const unique = [
-    ...new Map(
-      points.map((point) => [
-        `${point[0].toFixed(3)},${point[2].toFixed(3)}`,
-        point,
-      ]),
-    ).values(),
-  ].sort((first, second) => first[0] - second[0] || first[2] - second[2]);
-  if (unique.length <= 3) return unique;
-  const lower: WorldScenePoint[] = [];
-  for (const point of unique) {
-    while (
-      lower.length >= 2 &&
-      crossGeographyPoints(
-        lower[lower.length - 2]!,
-        lower[lower.length - 1]!,
-        point,
-      ) <= 0
-    ) {
-      lower.pop();
-    }
-    lower.push(point);
+  let boundary = [...points];
+  for (let iteration = 0; iteration < 3; iteration += 1) {
+    boundary = boundary.flatMap((current, index) => {
+      const next = boundary[(index + 1) % boundary.length]!;
+      return [
+        [
+          current[0] * 0.75 + next[0] * 0.25,
+          current[1] * 0.75 + next[1] * 0.25,
+          current[2] * 0.75 + next[2] * 0.25,
+        ],
+        [
+          current[0] * 0.25 + next[0] * 0.75,
+          current[1] * 0.25 + next[1] * 0.75,
+          current[2] * 0.25 + next[2] * 0.75,
+        ],
+      ] as const;
+    });
   }
-  const upper: WorldScenePoint[] = [];
-  for (const point of [...unique].reverse()) {
-    while (
-      upper.length >= 2 &&
-      crossGeographyPoints(
-        upper[upper.length - 2]!,
-        upper[upper.length - 1]!,
-        point,
-      ) <= 0
-    ) {
-      upper.pop();
-    }
-    upper.push(point);
-  }
-  return [...lower.slice(0, -1), ...upper.slice(0, -1)];
+  return boundary;
 }
 
-function continuousGeographyGeometry(
-  points: readonly WorldScenePoint[],
+function softenedComponentGeometry(
+  polygon: MapRuntimePolygon,
 ): THREE.BufferGeometry {
-  const hull = geographyConvexHull(points);
-  const roundedPoints: WorldScenePoint[] = [];
-  for (let index = 0; index < hull.length; index += 1) {
-    const current = hull[index]!;
-    const next = hull[(index + 1) % hull.length]!;
-    roundedPoints.push(
-      [
-        current[0] * 0.82 + next[0] * 0.18,
-        current[1] * 0.82 + next[1] * 0.18,
-        current[2] * 0.82 + next[2] * 0.18,
-      ],
-      [
-        current[0] * 0.18 + next[0] * 0.82,
-        current[1] * 0.18 + next[1] * 0.82,
-        current[2] * 0.18 + next[2] * 0.82,
-      ],
-    );
-  }
-  const center: WorldScenePoint = [
-    roundedPoints.reduce((total, point) => total + point[0], 0) /
-      roundedPoints.length,
-    roundedPoints.reduce((total, point) => total + point[1], 0) /
-      roundedPoints.length,
-    roundedPoints.reduce((total, point) => total + point[2], 0) /
-      roundedPoints.length,
-  ];
-  const minX = Math.min(...roundedPoints.map((point) => point[0]));
-  const maxX = Math.max(...roundedPoints.map((point) => point[0]));
-  const minZ = Math.min(...roundedPoints.map((point) => point[2]));
-  const maxZ = Math.max(...roundedPoints.map((point) => point[2]));
-  const rangeX = Math.max(maxX - minX, 1);
-  const rangeZ = Math.max(maxZ - minZ, 1);
-  const colorForPoint = (
-    point: WorldScenePoint,
-  ): readonly [number, number, number] => {
-    const x = (point[0] - minX) / rangeX;
-    const z = (point[2] - minZ) / rangeZ;
-    const relief = 0.04 * Math.sin(x * 8.2 + z * 3.1);
-    return [
-      0.39 + 0.1 * (1 - z) + relief,
-      0.47 + 0.1 * (1 - z) + relief * 0.7,
-      0.35 + 0.08 * (1 - z) + relief * 0.4,
-    ];
-  };
-  const geographyVertices = [center, ...roundedPoints];
-  const vertexColors = geographyVertices.flatMap((point) =>
-    colorForPoint(point),
-  );
-  const triangles = roundedPoints.map((_, index) => [
-    0,
-    index + 1,
-    ((index + 1) % roundedPoints.length) + 1,
-  ]);
+  const contour = smoothComponentBoundary(polygon.points);
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute(
     "position",
     new THREE.Float32BufferAttribute(
-      geographyVertices.flatMap((point) => [point[0], point[1], point[2]]),
+      contour.flatMap((point) => [point[0], point[1], point[2]]),
       3,
     ),
   );
-  geometry.setAttribute(
-    "color",
-    new THREE.Float32BufferAttribute(vertexColors, 3),
+  const triangles = THREE.ShapeUtils.triangulateShape(
+    contour.map((point) => new THREE.Vector2(point[0], point[2])),
+    [],
   );
   geometry.setIndex(triangles.flatMap((triangle) => [...triangle]));
   geometry.computeVertexNormals();
   return geometry;
 }
 
-function RoundedGeographySurface({
-  points,
-}: {
-  readonly points: readonly WorldScenePoint[];
-}) {
-  const geometry = useMemo(() => continuousGeographyGeometry(points), [points]);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  return (
-    <mesh geometry={geometry} renderOrder={0}>
-      <meshBasicMaterial
-        color="#718666"
-        side={THREE.DoubleSide}
-        transparent
-        opacity={0.92}
-        depthWrite={false}
-      />
-    </mesh>
-  );
-}
-
-function organicTerrainGeometry(
-  points: readonly WorldScenePoint[],
-  seed: string,
-): THREE.BufferGeometry {
-  const minX = Math.min(...points.map((point) => point[0]));
-  const maxX = Math.max(...points.map((point) => point[0]));
-  const minZ = Math.min(...points.map((point) => point[2]));
-  const maxZ = Math.max(...points.map((point) => point[2]));
-  const centerX = (minX + maxX) / 2;
-  const centerZ = (minZ + maxZ) / 2;
-  const centerY =
-    points.reduce((total, point) => total + point[1], 0) / points.length +
-    0.015;
-  const radiusX = Math.max((maxX - minX) / 2 + 0.08, 0.65);
-  const radiusZ = Math.max((maxZ - minZ) / 2 + 0.08, 0.55);
-  const seedValue = [...seed].reduce(
-    (total, character) => total + character.charCodeAt(0),
-    0,
-  );
-  const segments = 32;
-  const vertices: number[] = [centerX, centerY, centerZ];
-  for (let index = 0; index < segments; index += 1) {
-    const angle = (Math.PI * 2 * index) / segments;
-    const wobble =
-      1 +
-      0.08 * Math.sin(angle * 3 + seedValue * 0.07) +
-      0.04 * Math.cos(angle * 5 - seedValue * 0.03);
-    vertices.push(
-      centerX + Math.cos(angle) * radiusX * wobble,
-      centerY + 0.008 * Math.sin(angle * 2 + seedValue),
-      centerZ + Math.sin(angle) * radiusZ * wobble,
-    );
-  }
-  const indices: number[] = [];
-  for (let index = 0; index < segments; index += 1) {
-    indices.push(0, index + 1, ((index + 1) % segments) + 1);
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(vertices, 3),
-  );
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
-function TerrainKindZone({
-  terrain,
-  points,
+function ConnectedGeographySurface({
+  polygon,
+  color,
   opacity,
+  renderOrder,
 }: {
-  readonly terrain: string;
-  readonly points: readonly WorldScenePoint[];
+  readonly polygon: MapRuntimePolygon;
+  readonly color: string;
   readonly opacity: number;
+  readonly renderOrder: number;
 }) {
-  if (points.length === 0 || terrain === "plains") return null;
-  const geometry = useMemo(
-    () => organicTerrainGeometry(points, terrain),
-    [points, terrain],
-  );
+  const geometry = useMemo(() => softenedComponentGeometry(polygon), [polygon]);
   useEffect(() => () => geometry.dispose(), [geometry]);
-  const color =
-    terrain === "coast"
-      ? "#5d8e91"
-      : terrain === "forest"
-        ? "#4f765f"
-        : terrain === "wetlands"
-          ? "#6c8e76"
-          : terrain === "hills"
-            ? "#8d805e"
-            : terrain === "mountains"
-              ? "#6d7271"
-              : "#a6a778";
   return (
-    <mesh geometry={geometry} renderOrder={2}>
+    <mesh geometry={geometry} renderOrder={renderOrder}>
       <meshBasicMaterial
         color={color}
         side={THREE.DoubleSide}
@@ -838,50 +697,45 @@ function TerrainWorldSurface({
   readonly runtimeGeometry: MapRuntimeGeometry;
   readonly lodTier: MapLodTier;
 }) {
-  const terrainZones = useMemo(() => {
-    const pointsByTerrain = new Map<string, WorldScenePoint[]>();
-    for (const polygon of runtimeGeometry.terrainSurfaces) {
-      if (polygon.terrain === undefined) continue;
-      const points = pointsByTerrain.get(polygon.terrain) ?? [];
-      points.push(...polygon.points);
-      pointsByTerrain.set(polygon.terrain, points);
-    }
-    return [...pointsByTerrain.entries()].sort(([first], [second]) =>
-      first < second ? -1 : first > second ? 1 : 0,
-    );
-  }, [runtimeGeometry.terrainSurfaces]);
   return (
     <group
       userData={{
         truthClass: "DECORATIVE_SUBSTRATE",
         mapLayer: "MapGeographyDefinition",
-        geometryMode: "continuous-connected-surfaces",
+        geometryMode: "connected-component-surfaces",
         sharedVertexCount: runtimeGeometry.terrainMesh.sharedVertexCount,
         polygonCount: runtimeGeometry.terrainMesh.polygonCount,
-        connectedSurfaceCount: runtimeGeometry.worldSurfaces.length,
+        connectedWorldSurfaceCount: runtimeGeometry.worldSurfaces.length,
+        connectedTerrainSurfaceCount: runtimeGeometry.terrainSurfaces.length,
+        boundaryTreatment: "soft-translucent-no-outline",
         terrainKinds: runtimeGeometry.terrainMesh.terrainKinds.join(","),
         terrainHeightRange: `${runtimeGeometry.terrainMesh.minHeight.toFixed(3)}:${runtimeGeometry.terrainMesh.maxHeight.toFixed(3)}`,
       }}
     >
-      <RoundedGeographySurface points={runtimeGeometry.terrainMesh.vertices} />
-      {terrainZones.map(([terrain, points]) => (
-        <TerrainKindZone
-          key={`terrain-zone:${terrain}`}
-          terrain={terrain}
-          points={points}
-          opacity={
-            terrain === "coast"
-              ? lodTier === "near"
-                ? 0.42
-                : 0.3
-              : terrain === "wetlands"
-                ? 0.24
-                : lodTier === "near"
-                  ? 0.22
-                  : 0.16
-          }
+      {runtimeGeometry.worldSurfaces.map((polygon) => (
+        <ConnectedGeographySurface
+          key={`world-surface:${polygon.id}`}
+          polygon={polygon}
+          color={CONNECTED_GEOGRAPHY_COLOR}
+          opacity={0.72}
+          renderOrder={0}
         />
       ))}
+      {runtimeGeometry.terrainSurfaces.map((polygon) => {
+        const opacity = terrainSurfaceOpacity(polygon.terrain, lodTier);
+        return opacity === 0 ? null : (
+          <ConnectedGeographySurface
+            key={`terrain-surface:${polygon.id}`}
+            polygon={polygon}
+            color={
+              TERRAIN_SURFACE_COLORS[polygon.terrain ?? "plains"] ??
+              CONNECTED_GEOGRAPHY_COLOR
+            }
+            opacity={opacity}
+            renderOrder={1}
+          />
+        );
+      })}
     </group>
   );
 }
@@ -1924,7 +1778,13 @@ export function PoliticalWorldStage({
           }
           data-map-icon-system="tmr-semantic-registry"
           data-land-hex-count={model.hexes.length}
-          data-map-runtime-geometry="continuous-surface"
+          data-map-runtime-geometry="connected-component-surfaces"
+          data-map-connected-world-surface-count={
+            runtimeGeometry.worldSurfaces.length
+          }
+          data-map-connected-terrain-surface-count={
+            runtimeGeometry.terrainSurfaces.length
+          }
           data-map-default-terrain-detail="hidden"
           data-map-directional-treatment={
             lodTier === "near" ? "visible" : "hidden"

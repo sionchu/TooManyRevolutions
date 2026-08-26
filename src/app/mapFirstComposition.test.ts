@@ -60,6 +60,18 @@ describe("map-first product surface composition", () => {
     expect(roadmapSource).toContain("제도 연결 읽기");
   });
 
+  it("renders geography from connected runtime surfaces without global blobs", () => {
+    expect(worldStageSource).toContain("runtimeGeometry.worldSurfaces.map");
+    expect(worldStageSource).toContain("runtimeGeometry.terrainSurfaces.map");
+    expect(worldStageSource).toContain(
+      'geometryMode: "connected-component-surfaces"',
+    );
+    expect(worldStageSource).not.toContain("geographyConvexHull");
+    expect(worldStageSource).not.toContain("pointsByTerrain");
+    expect(worldStageSource).not.toContain("organicTerrainGeometry");
+    expect(worldStageSource).not.toContain("TerrainDetail");
+  });
+
   it("uses the contextual selector as the only immediate product decision authority", () => {
     expect(appSource).toContain("deriveContextualDecisionSurface");
     expect(appSource).toContain("decisionSurface.primaryShortlist");
