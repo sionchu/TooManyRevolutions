@@ -37,7 +37,7 @@
 | 7 | COMPLETED | mobile Day 0 및 Decision 화면을 390x844에서 직접 OPEN 검사. `docs/parallel/evidence/visual-v2-phase7-mobile-day0.png`, `docs/parallel/evidence/visual-v2-phase7-mobile-decision.png`; persistent HUD bands 2개(56px/64px), label count 3, body overflow 0, Decision CTA와 metric/navigation overlap false. |
 | 8 | COMPLETED | title/opening remains on the V2 dark editorial palette; final label texture/readability pass, screen-edge rejection, mobile theatre framing, and desktop playback hit-target correction completed. `pnpm exec prettier --check` PASS, `pnpm lint` PASS, `pnpm typecheck` PASS, `pnpm build` PASS (176 modules; Vite emitted only the existing large-chunk warning), `git diff --check` PASS. |
 | 9 | COMPLETED | all eight required final screenshots were captured from the final local source and directly OPEN inspected: desktop Day 0 / rebellion / decisions / institutions / chronicle and mobile map / decisions / rebellion. The browser hard-bar review found 0 visible HARD FAILs. |
-| 10 | IN_PROGRESS | local source is pushed to `presentation-visual-v2`; existing Site is public and final saved-version deployment is being closed against the exact pushed source/archive pair. |
+| 10 | COMPLETED | final source is pushed to `presentation-visual-v2` and the existing public Site. The exact source/archive pair was saved and deployed successfully; anonymous HTTP returned 200 and the production browser smoke completed through factual rebellion with automatic 1x response. |
 
 ## Final screenshot critique
 
@@ -68,7 +68,9 @@ Final local visual hard-bar count: **0**.
 ## Final release
 
 - final hard fail count: 0
-- build/smoke gate: local build PASS; local browser smoke PASS; production HTTP/browser smoke pending final source publish
+- build/smoke gate: local build PASS; local browser smoke PASS; production HTTP/browser smoke PASS
 - production URL: `https://too-many-revolutions.leeje92.chatgpt.site`
 - production access: public (existing Site retained; no new Site created)
-- production deployment: IN_PROGRESS
+- production deployment: PUBLISHED
+- anonymous production response: HTTP 200
+- production browser smoke: title → new game → briefing skip → 3x playback → tick-19 factual rebellion → automatic 1x while playing; actual map crisis and `활성 충돌 · 반란` visible
