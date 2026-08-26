@@ -2051,3 +2051,46 @@ of scope.
 Medium. The presentation selectors, registries and Content Studio can be
 replaced independently, while reversing the map composition after deployment
 would require another visual QA and Sites review.
+
+## ADR-047 — P0 real world-stage renderer and spatial roadmap
+
+**Date:** 2026-08-26
+**Status:** Accepted for the authorized P0 world-stage rework
+
+### Problem
+
+The first P0 deployment had meaningful state projections but still presented a
+flat SVG atlas, a list-like policy roadmap, and small glyphs that did not read
+as a persistent miniature world. The rework requires a real renderer proof and
+a spatial surface without moving authority into presentation code.
+
+### Decision
+
+- Benchmark Three.js + React Three Fiber and PixiJS v8 against the same frozen
+  `WorldSceneModel` snapshot at desktop and mobile sizes.
+- Select R3F for production because its orthographic scene provides actual
+  depth, lighting, terrain height, settlement/project landmarks, and route
+  movement inside the existing React surface.
+- Keep `WorldState`/`EventStore` → `PresentationState` → `WorldSceneModel` as
+  the only data path. Camera focus, zoom, drag, and transient emphasis remain
+  presentation-local.
+- Use an actual positioned policy node graph with prerequisite arrows and
+  incompatibility links. Status is derived from current `PolicyState`; there is
+  no research currency, focus schedule, or hidden progression timer.
+- Keep Pixi benchmark code isolated under `src/benchmark/` and preserve the
+  `PoliticalAtlas` import as a compatibility alias to the one R3F production
+  implementation.
+
+### Consequences
+
+The production map now has real 2.5D objects and a mobile touch camera, while
+the DOM retains on-demand facts and named labels for accessibility. The bundle
+is larger than the Pixi comparison, so the benchmark and responsive QA are
+part of the P0 evidence. No simulation, outcome, conflict writer, or V9
+persistence work is introduced.
+
+### Reversal cost
+
+Medium. The renderer-neutral model and compatibility alias keep a future
+renderer replacement bounded; the reference traceability matrix and deployed
+visual QA would need to be repeated for another selection.

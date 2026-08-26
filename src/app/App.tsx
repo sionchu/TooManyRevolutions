@@ -494,20 +494,24 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
           <div className="map-fact-strip" aria-label="현재 세계 사실">
             <span>
               <b>
-                {playerControlledLandHexCount}/{legalPlayerLandHexCount}
+                {playerControlledLandHexCount === legalPlayerLandHexCount
+                  ? "정렬"
+                  : "이탈"}
               </b>{" "}
-              내 물리 통제 / 법적 소유
+              물리 통제와 법적 소유
             </span>
             <span>
-              <b>{activeConflicts.length}</b> 활성 충돌 ·{" "}
-              {activeConflicts.length === 0
-                ? "없음"
-                : activeConflicts
-                    .map((conflict) => conflictKindLabel(conflict.kind))
-                    .join(" · ")}
+              활성 충돌 ·{" "}
+              <b>
+                {activeConflicts.length === 0
+                  ? "없음"
+                  : activeConflicts
+                      .map((conflict) => conflictKindLabel(conflict.kind))
+                      .join(" · ")}
+              </b>
             </span>
             <span>
-              수도 <b>{capitalControlled ? "통제" : "상실"}</b>
+              수도 <b>{capitalControlled ? "통제 중" : "통제 이탈"}</b>
             </span>
             <span>
               세력 움직임{" "}
@@ -544,6 +548,19 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
               )}
             </div>
           )}
+          <details className="map-fact-details">
+            <summary>지도 사실 수치</summary>
+            <div>
+              <span>
+                물리 통제 {playerControlledLandHexCount} · 법적 소유{" "}
+                {legalPlayerLandHexCount}
+              </span>
+              <span>
+                활성 충돌 {activeConflicts.length} · 세력 행동{" "}
+                {factionActionCount} · 외국 행동 {foreignActionCount}
+              </span>
+            </div>
+          </details>
         </div>
 
         <ContextualDock

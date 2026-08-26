@@ -77,7 +77,8 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
       }),
     );
     expect(mapMarkup).toContain('data-controller-kind="faction"');
-    expect(mapMarkup).toContain("controller-faction");
+    expect(mapMarkup).toContain("atlas-controller-overlay");
+    expect(mapMarkup).toContain('data-map-renderer="r3f"');
   });
 
   it("filters routine ticks while retaining policy and material state changes", () => {

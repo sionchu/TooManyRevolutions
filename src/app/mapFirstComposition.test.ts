@@ -14,6 +14,14 @@ const styleSource = readFileSync(
   resolve(process.cwd(), "src/styles/global.css"),
   "utf8",
 );
+const worldStageSource = readFileSync(
+  resolve(process.cwd(), "src/app/PoliticalWorldStage.tsx"),
+  "utf8",
+);
+const roadmapSource = readFileSync(
+  resolve(process.cwd(), "src/app/InstitutionalRoadmapPanel.tsx"),
+  "utf8",
+);
 
 describe("map-first product surface composition", () => {
   it("keeps the political atlas as the persistent main playfield", () => {
@@ -38,5 +46,17 @@ describe("map-first product surface composition", () => {
     expect(styleSource).toContain("position: fixed");
     expect(styleSource).toContain("@media (max-width: 760px)");
     expect(styleSource).not.toMatch(/\.game-grid\s*\{/);
+  });
+
+  it("uses one production R3F scene and a positioned institutional graph", () => {
+    expect(worldStageSource).toContain("@react-three/fiber");
+    expect(worldStageSource).toContain('data-map-renderer="r3f"');
+    expect(worldStageSource).toContain("deriveWorldSceneModel");
+    expect(worldStageSource).toContain("<Canvas");
+    expect(worldStageSource).not.toContain("<svg");
+    expect(worldStageSource).not.toContain("data-controller-id");
+    expect(roadmapSource).toContain("roadmap-edge-layer");
+    expect(roadmapSource).toContain("graphPositions");
+    expect(roadmapSource).toContain("제도 연결 읽기");
   });
 });

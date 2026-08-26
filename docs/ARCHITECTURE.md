@@ -1833,9 +1833,10 @@ ScenarioDefinition + WorldState + committed EventStore evidence
   victory/defeat를 계산하거나 직접 변경하지 않는다.
 - `src/sim/`은 React 또는 rendering module을 import하지 않는다.
 - V01은 `src/presentation/presentationState.ts`의
-  `derivePresentationState(scenario, world)`로 이 경계를 구현한다. 실제 map
-  renderer와 Three.js/R3F dependency는 여전히 Gate 1V/V02 이후 범위이며,
-  V01 module은 React, R3F, Three.js를 import하지 않는다.
+  `derivePresentationState(scenario, world)`로 이 경계를 구현한다. P0 world-stage
+  는 그 결과를 `src/presentation/worldSceneModel.ts`에서 renderer-neutral 위치와
+  truth class로 확장한 뒤 `PoliticalWorldStage`의 R3F scene으로 소비한다.
+  V01 module 자체는 계속 React, R3F, Three.js를 import하지 않는다.
 
 최소 channel authority는 다음과 같다.
 
@@ -1889,6 +1890,28 @@ V01 determinism 계약이다.
 `src/sim/`은 계속 presentation module을 import하지 않는다. 향후 React/R3F는
 이 read model을 소비할 뿐 authoritative control, influence, organization,
 contact eligibility, front, victory/defeat를 재계산하지 않는다.
+
+### P0 world-stage renderer boundary
+
+P0의 실제 renderer benchmark는 동일한 frozen `WorldSceneModel`을 Three.js +
+React Three Fiber와 PixiJS v8에 각각 공급했다. 두 spike 모두 desktop/mobile
+build, touch camera, factual projection, on-demand DOM labels를 통과했으며,
+production 선택은 R3F로 닫혔다. R3F의 orthographic camera는 현재 map
+projection의 2.5D depth, raised terrain, settlement/project landmark, route
+pulse를 담당한다. Pixi spike는 `src/benchmark/`에 격리되어 production authority가
+될 수 없다.
+
+```text
+WorldState + EventStore
+  -> derivePresentationState
+  -> deriveWorldSceneModel
+  -> PoliticalWorldStage / R3F
+```
+
+카메라 pan/zoom/focus와 짧은 강조 효과는 renderer-local presentation state다.
+R3F animation loop는 route pulse를 보간할 뿐 simulation tick을 진행하지 않는다.
+실제 지역·정착지·Conflict·front·프로젝트 객체는 각각 현재 projection 또는
+기존 commitment/event evidence가 있을 때만 생성된다.
 
 Examples of WorldSignal:
 - protest crowd density
@@ -2601,7 +2624,7 @@ existing authoritative simulation. The ownership contract is:
 WorldState / EventStore / ActionRecord / simulation time
   -> pure presentation selectors and factual delta projections
   -> React DOM drawers, Roadmap, Chronicle and Content Studio
-  -> one production world renderer (bounded PixiJS spike or SVG fallback)
+  -> one production world renderer (Three.js + React Three Fiber)
 ```
 
 The renderer consumes `PresentationState`, current authoritative conflict and

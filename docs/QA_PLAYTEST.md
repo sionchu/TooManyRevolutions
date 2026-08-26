@@ -1291,3 +1291,31 @@ SITES_REDEPLOYED_FROM_REVIEWED_COMMIT: YES / NO
 GATE1F: NOT_READY
 V02: NOT_STARTED
 ```
+
+## P0 world-stage rework acceptance
+
+The product rework is accepted only when the following evidence is recorded
+against the same reviewed source commit:
+
+- the real R3F and PixiJS v8 spikes both build and render the same frozen
+  `WorldSceneModel`; the decision and measurements live in
+  `docs/GAMEBUILDERS_P0_RENDERER_SPIKE.md`;
+- the production map is a 2.5D R3F scene with readable hex substrate, distinct
+  Country/legal-owner/controller/ideology channels, authored capitals,
+  existing routes, active Conflict/front evidence, and existing project
+  landmarks;
+- the Institutional Roadmap is a positioned graph of actual policy
+  prerequisite/incompatibility edges with named nodes and no visible internal
+  IDs or rule enums;
+- Day 0, 30, 90, 180, 360, 720, 1080 and a 1000-day-plus checkpoint are
+  exercised through the actual UI. Map state and significant-event feedback are
+  checked before opening Chronicle or detail drawers;
+- mobile 390×844 and desktop 1440×900 passes show no horizontal overflow,
+  retain the world as the primary surface, and support drag/zoom/focus plus
+  contextual sheet/drawer navigation;
+- the final Site deployment is built from and saved against the exact pushed
+  source commit. A failed browser or deployment step is reported as blocked,
+  not as a product pass.
+
+This rework does not authorize Gate 1F, V02, F05 successor work, a new
+simulation writer, or a persistence version beyond V8.

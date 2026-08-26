@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-benchmark/
 coverage/
 docs/
 AGENTS.md

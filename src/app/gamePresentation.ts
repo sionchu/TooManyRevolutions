@@ -39,6 +39,7 @@ export const RULE_VALUE_LABELS: Readonly<Record<string, string>> = {
   universal: "보통 선거",
   feudal: "봉건",
   private: "사유",
+  privateAllowed: "사유 허용",
   communal: "공동",
   state: "국유",
   illegal: "불법",
