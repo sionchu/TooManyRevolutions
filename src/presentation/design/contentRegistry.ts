@@ -12,6 +12,9 @@ export type ContentCategory =
   | "policy"
   | "intervention"
   | "project"
+  | "country"
+  | "faction"
+  | "region"
   | "entity"
   | "outcome";
 
@@ -141,6 +144,113 @@ const BASE_CONTENT_RECORDS: readonly ContentRecord[] = [
   ),
 ];
 
+const STATIC_CONTENT_RECORDS: readonly ContentRecord[] = [
+  record({
+    id: "tmr.copy.event.rebellion-started",
+    category: "event",
+    screen: "main",
+    entityType: "event",
+    entityId: "REBELLION_STARTED",
+    branchOrVariantId: "event-rebellion",
+    conditionLabel: "활성 반란",
+    text: "반란 발생",
+    maxRecommendedLength: 44,
+    notes: "실제 EventStore event type의 player-facing 제목",
+    tags: ["event", "crisis", "variant"],
+  }),
+  record({
+    id: "tmr.copy.event.coup-started",
+    category: "event",
+    screen: "main",
+    entityType: "event",
+    entityId: "COUP_ATTEMPT_STARTED",
+    branchOrVariantId: "event-coup",
+    conditionLabel: "활성 쿠데타",
+    text: "쿠데타 시도 발생",
+    maxRecommendedLength: 44,
+    notes: "실제 EventStore event type의 player-facing 제목",
+    tags: ["event", "crisis", "variant"],
+  }),
+  record({
+    id: "tmr.copy.agenda.pressure",
+    category: "agenda",
+    screen: "main",
+    entityType: "agenda",
+    entityId: "current-pressure",
+    branchOrVariantId: "agenda-current-pressure",
+    conditionLabel: "현재 압력이 감지될 때",
+    text: "현재 압력",
+    maxRecommendedLength: 32,
+    notes: "현재 상태에서 파생된 Agenda 표면의 공통 문구",
+    tags: ["agenda", "hud", "variant"],
+  }),
+  record({
+    id: "tmr.copy.agenda.consolidation",
+    category: "agenda",
+    screen: "main",
+    entityType: "agenda",
+    entityId: "order-consolidation",
+    branchOrVariantId: "agenda-consolidation",
+    conditionLabel: "국가 정착 목표",
+    text: "새 질서 정착",
+    maxRecommendedLength: 32,
+    notes: "실제 Order Consolidation eligibility의 목표 표면",
+    tags: ["agenda", "objective", "variant"],
+  }),
+  record({
+    id: "tmr.copy.project.granary-network.name",
+    category: "project",
+    screen: "main",
+    entityType: "project",
+    entityId: "tmr.project.arken.granary-network",
+    branchOrVariantId: "project-granary-network",
+    conditionLabel: "식량 공급 개입 사업",
+    text: "왕실 배급망",
+    maxRecommendedLength: 44,
+    notes: "기존 식량 공급 개입 lifecycle을 투영하는 landmark 표기",
+    tags: ["project", "landmark", "variant"],
+  }),
+  record({
+    id: "tmr.copy.project.industrial-council.name",
+    category: "project",
+    screen: "main",
+    entityType: "project",
+    entityId: "tmr.project.arken.industrial-council",
+    branchOrVariantId: "project-industrial-council",
+    conditionLabel: "정치 타협 개입 사업",
+    text: "산업 협의회",
+    maxRecommendedLength: 44,
+    notes: "기존 정치 타협 개입 lifecycle을 투영하는 landmark 표기",
+    tags: ["project", "landmark", "variant"],
+  }),
+  record({
+    id: "tmr.copy.project.constitutional-assembly.name",
+    category: "project",
+    screen: "main",
+    entityType: "project",
+    entityId: "tmr.project.arken.constitutional-assembly",
+    branchOrVariantId: "project-constitutional-assembly",
+    conditionLabel: "야권 합법화 개입 사업",
+    text: "헌정 회의소",
+    maxRecommendedLength: 44,
+    notes: "기존 야권 합법화 개입 lifecycle을 투영하는 landmark 표기",
+    tags: ["project", "landmark", "variant"],
+  }),
+  record({
+    id: "tmr.copy.outcome.state-continuity",
+    category: "outcome",
+    screen: "main",
+    entityType: "outcome",
+    entityId: "state-continuity",
+    branchOrVariantId: "outcome-continuity",
+    conditionLabel: "국가 연속성 지표",
+    text: "국가 존속",
+    maxRecommendedLength: 32,
+    notes: "정권 교체와 분리된 국가 연속성 표시",
+    tags: ["outcome", "hud", "variant"],
+  }),
+];
+
 function entityRecord(
   category: "policy" | "intervention",
   definition: PolicyDefinition | InterventionDefinition,
@@ -164,6 +274,53 @@ function entityRecord(
 export function buildContentRegistry(
   scenario: ScenarioDefinition,
 ): readonly ContentRecord[] {
+  const worldEntityRecords = [
+    ...scenario.initialCountries.map((country) =>
+      record({
+        id: `tmr.copy.country.${country.id}.name`,
+        category: "country",
+        screen: "main",
+        entityType: "country",
+        entityId: country.id,
+        branchOrVariantId: `country-${country.id}`,
+        conditionLabel: "실제 국가 표기",
+        text: country.name,
+        maxRecommendedLength: 44,
+        notes: "authored ScenarioDefinition Country source",
+        tags: ["country", "map", "variant"],
+      }),
+    ),
+    ...scenario.initialFactions.map((faction) =>
+      record({
+        id: `tmr.copy.faction.${faction.id}.name`,
+        category: "faction",
+        screen: "main",
+        entityType: "faction",
+        entityId: faction.id,
+        branchOrVariantId: `faction-${faction.id}`,
+        conditionLabel: "실제 조직 표기",
+        text: faction.name,
+        maxRecommendedLength: 44,
+        notes: "authored ScenarioDefinition Faction source",
+        tags: ["faction", "agenda", "variant"],
+      }),
+    ),
+    ...scenario.initialRegions.map((region) =>
+      record({
+        id: `tmr.copy.region.${region.id}.name`,
+        category: "region",
+        screen: "main",
+        entityType: "region",
+        entityId: region.id,
+        branchOrVariantId: `region-${region.id}`,
+        conditionLabel: "실제 지도 지역 표기",
+        text: region.name,
+        maxRecommendedLength: 44,
+        notes: "authored ScenarioDefinition Region source",
+        tags: ["region", "map", "variant"],
+      }),
+    ),
+  ];
   const entityRecords = [
     ...Object.values(scenario.policyCatalog).map((definition) =>
       entityRecord("policy", definition),
@@ -172,7 +329,12 @@ export function buildContentRegistry(
       entityRecord("intervention", definition),
     ),
   ].sort((first, second) => first.id.localeCompare(second.id));
-  return [...BASE_CONTENT_RECORDS, ...entityRecords];
+  return [
+    ...BASE_CONTENT_RECORDS,
+    ...STATIC_CONTENT_RECORDS,
+    ...worldEntityRecords,
+    ...entityRecords,
+  ];
 }
 
 export function assertContentRegistry(records: readonly ContentRecord[]): void {

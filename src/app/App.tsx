@@ -511,20 +511,12 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
               수도 <b>{capitalControlled ? "통제" : "상실"}</b>
             </span>
             <span>
-              세력 행동{" "}
-              <b>
-                {factionActionCount > 0
-                  ? `${factionActionCount}건`
-                  : "현재 없음"}
-              </b>
+              세력 움직임{" "}
+              <b>{factionActionCount > 0 ? "관측됨" : "현재 없음"}</b>
             </span>
             <span>
-              외국 행동{" "}
-              <b>
-                {foreignActionCount > 0
-                  ? `${foreignActionCount}건`
-                  : "현재 없음"}
-              </b>
+              외국 접촉{" "}
+              <b>{foreignActionCount > 0 ? "변화 관측됨" : "현재 없음"}</b>
             </span>
           </div>
           {leadAgenda === null ? null : (

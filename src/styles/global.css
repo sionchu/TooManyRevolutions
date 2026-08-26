@@ -2215,7 +2215,83 @@ h3 {
   font-weight: 800;
 }
 
+/* Keep the persistent game silhouette map-first rather than dashboard-first. */
+.metric-strip {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.metric {
+  display: flex;
+  min-width: 5.8rem;
+  flex: 0 1 auto;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.42rem;
+  padding: 0.42rem 0.6rem;
+  border: 1px solid rgb(200 185 158 / 82%);
+  background: rgb(251 246 235 / 78%);
+}
+.metric span {
+  font-size: 0.59rem;
+  white-space: nowrap;
+}
+.metric strong {
+  font-size: 0.92rem;
+}
+.time-controls {
+  min-width: min(30rem, 100%);
+  flex: 1 1 24rem;
+  border: 1px solid rgb(200 185 158 / 82%);
+  background: rgb(251 246 235 / 78%);
+  box-shadow: 0 6px 16px rgb(67 47 29 / 7%);
+}
+.world-stage {
+  height: clamp(560px, calc(100svh - 205px), 860px);
+}
+.world-map-surface {
+  border: 0;
+  background: #c9b99c;
+  box-shadow: none;
+}
+
 @media (max-width: 760px) {
+  .metric-strip {
+    gap: 0.28rem;
+  }
+  .metric {
+    min-width: 0;
+    flex: 1 1 calc(20% - 0.28rem);
+    flex-direction: column;
+    align-items: center;
+    gap: 0.08rem;
+    padding: 0.34rem 0.18rem;
+    text-align: center;
+  }
+  .metric span {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 0.52rem;
+    text-overflow: ellipsis;
+  }
+  .metric strong {
+    font-size: 0.82rem;
+  }
+  .time-controls {
+    min-width: 0;
+    flex-basis: 100%;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0.2rem 0;
+  }
+  .world-stage {
+    height: clamp(580px, calc(100svh - 220px), 700px);
+  }
   .map-camera-controls {
     right: 0.55rem;
     bottom: 3.85rem;

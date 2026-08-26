@@ -47,6 +47,12 @@ function categoryLabel(category: ContentRecord["category"]): string {
       return "개입";
     case "project":
       return "사업";
+    case "country":
+      return "국가";
+    case "faction":
+      return "세력";
+    case "region":
+      return "지역";
     case "entity":
       return "개체";
     case "outcome":

@@ -20,6 +20,17 @@ describe("stable content registry", () => {
     expect(
       records.some((record) => record.branchOrVariantId !== "default"),
     ).toBe(true);
+    for (const category of [
+      "event",
+      "agenda",
+      "project",
+      "country",
+      "faction",
+      "region",
+      "outcome",
+    ] as const) {
+      expect(records.some((record) => record.category === category)).toBe(true);
+    }
     const first = records[0]!;
     const patch = parseContentPatch(
       JSON.stringify({
