@@ -107,10 +107,11 @@ cb12d94  fix: keep metric rail compact
   Country, Faction, Region, event, policy, intervention, project, and outcome
   records. The dev-only `ContentStudio` supports search/filter, branch/variant
   selection, baseline editing, diff display, and JSON patch export/import.
-- The final local Content Studio pass exercised the `헌정 회의소` record, edited
-  its baseline copy, displayed the diff, exported one patch, and reported
-  `1개 변경 patch를 만들었습니다.`. The production Site does not expose this
-  dev-only authoring surface.
+- The local Content Studio pass exercised the `헌정 회의소` record, edited its
+  baseline copy, displayed the diff, exported one patch, and reported
+  `1개 변경 patch를 만들었습니다.`. The final presentation-only overlay
+  touched `App.tsx` and `global.css`, not the registry or Studio path. The
+  production Site does not expose this dev-only authoring surface.
 
 ### Visual and renderer decision
 

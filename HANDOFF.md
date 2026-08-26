@@ -18,7 +18,7 @@ checkpoint was pushed as:
 40f8f08dda1a382c5c0a51c5f3c77fd7cf1ed386
 ```
 
-The final result/HANDOFF evidence update is the next documentation commit on
+The final result/HANDOFF evidence update has now been committed and pushed on
 `gamebuilders-product-surface-p0`.
 
 ## Delivered scope
