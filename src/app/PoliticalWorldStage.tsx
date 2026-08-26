@@ -408,10 +408,16 @@ function KitPrism({
   );
 }
 
-function ContactShadow({ scale = 1 }: { readonly scale?: number }) {
+function ContactShadow({
+  scale = 1,
+  y = 0.012,
+}: {
+  readonly scale?: number;
+  readonly y?: number;
+}) {
   return (
     <mesh
-      position={[0, 0.012, 0]}
+      position={[0, y, 0]}
       rotation={[-Math.PI / 2, 0, 0]}
       scale={[scale, scale * 0.68, 1]}
     >
@@ -423,6 +429,33 @@ function ContactShadow({ scale = 1 }: { readonly scale?: number }) {
         depthWrite={false}
       />
     </mesh>
+  );
+}
+
+function GroundedHeroTerrace({
+  role,
+  scale,
+}: {
+  readonly role: StrategicHeroRole;
+  readonly scale: number;
+}) {
+  const color =
+    role === "industrial"
+      ? MAP_MATERIAL_SYSTEM.palette["earth-ochre"]
+      : MAP_MATERIAL_SYSTEM.palette["stone-slate"];
+  return (
+    <group scale={[scale, 1, scale]} userData={{ groundedPlace: true, role }}>
+      <mesh position={[0, 0.03, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[0.68, 0.76, 0.06, 8]} />
+        <meshStandardMaterial
+          color={color}
+          roughness={0.96}
+          metalness={0}
+          flatShading
+        />
+      </mesh>
+      <ContactShadow scale={0.88} y={0.066} />
+    </group>
   );
 }
 
@@ -589,6 +622,16 @@ function IntegratedRegionArtLayer({
           proceduralFallback: false,
         }}
       >
+        <GroundedHeroTerrace
+          role={hero.role}
+          scale={
+            hero.role === "capital"
+              ? 1.12
+              : hero.role === "industrial"
+                ? 0.96
+                : 0.9
+          }
+        />
         <ContactShadow
           scale={
             hero.role === "capital"
