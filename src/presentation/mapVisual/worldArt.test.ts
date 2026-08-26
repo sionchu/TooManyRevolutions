@@ -31,6 +31,7 @@ const EXPECTED_OBJECT_FAMILIES: readonly MapObjectFamily[] = [
   "dense-town",
   "small-settlement",
   "port-dock",
+  "water-shelf",
   "mine",
   "factory-iron-works",
   "fort",

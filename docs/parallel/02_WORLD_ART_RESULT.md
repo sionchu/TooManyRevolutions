@@ -145,3 +145,50 @@ The downstream runtime integration may need to change these files, outside this 
 - `src/presentation/mapArchitecture.ts` — connect existing map architecture metadata to the new region-composition contract if that adapter remains the integration point.
 
 This result does not authorize those changes, a merge, deployment, Gate decision, V02 work, or persistence V9 work.
+
+## FIX2_VISUAL_IDENTITY
+
+FIX2 keeps the current strict authority resolver and changes only the authored procedural world-art contract plus its standalone gallery coverage. The 06 QA blocker-to-fix mapping is:
+
+| QA finding | Authored fix |
+|---|---|
+| Port had no waterside identity | Added the new `water-shelf` decorative family with a broad water plane, shoreline band/edge, and tidal edge breaks. `port-dock` now has a deeper pier that crosses the shoreline edge and a stronger quay edge/post relationship. |
+| Agrarian/distribution read as a pale civic cluster | Expanded `FieldPlotKit` horizontally with durable furrows, berm, and drainage. `GranaryKit` now has a broader storehouse, two capped silos, and a larger yard. `DistributionYardKit` now emphasizes canopy, loading platform, parallel lanes, and an open-yard boundary; the prior cargo-like `crate-stack` was removed. |
+| Frontier fort/gate did not immediately read as a chokepoint | `FortKit` now splits the south wall around an explicit open gate void with a raised timber lintel. `CheckpointGateKit` uses a timber booth roof and stone threshold to separate the gate grammar from industrial chimney language. The existing mountain/ridge substrate remains decorative. |
+| Industrial was dominated by a box and three chimneys | `FactoryIronWorksKit` now has a larger works yard, ore bay, haul axis, furnace relation, and varied lower chimney heights. It remains a 10-primitive practical kit with no actors, vehicles, cargo activity, or production quantities. |
+| Capital hierarchy was only partial | `PalaceKit` now has a broader terrace, public plaza, civic approach, and a centered roof axis without an extreme height increase. The industrial chimney heights were reduced while the manifest hierarchy remains `signature-capital > major-project > poi > settlement > decorative-prop`. |
+
+### Changed Kits and families
+
+- Changed `PalaceKit` (`palace`): 8 primitives; terrace/public-axis emphasis.
+- Changed `PortDockKit` (`port-dock`): 8 primitives; shoreline-crossing pier and quay edge.
+- Added `WaterShelfKit` (`water-shelf`): 5 instance-friendly decorative substrate primitives.
+- Changed `FactoryIronWorksKit` (`factory-iron-works`): 10 primitives; works yard, ore bay, haul axis, furnace, and varied chimneys.
+- Changed `FortKit` (`fort`): 10 primitives; wall perimeter with explicit gate void/lintel.
+- Changed `CheckpointGateKit` (`checkpoint-gate`): 8 primitives; timber guard roof and threshold.
+- Changed `GranaryKit` (`granary-storehouse`): 9 primitives; storehouse, capped silo profile, and yard.
+- Changed `DistributionYardKit` (`distribution-yard`): 7 primitives; canopy, loading platform, lanes, and open yard.
+- Changed `FieldPlotKit` (`field-plot`): 6 instance-friendly primitives; wide field plane, furrows, berm, and drainage.
+
+The new `water-shelf` manifest entry uses stable family/asset/kit IDs, `terrain-water`, low-saturation rough material settings, coastal grounding, LOD visibility, TMR-authored provenance, and the same GLB replacement seam as the existing families. `WorldArtGallery` exercises it automatically through the updated port composition snapshot; its labels-off test asserts the water shelf and gated port pair.
+
+### Authority proof
+
+`water-shelf` is explicitly `DECORATIVE_SUBSTRATE`. The resolver contract was not loosened: empty port evidence resolves only `water-shelf` and the existing decorative `field-plot`; `port-dock` still requires an authoritative authored port POI. Project art remains `RECORDED_PROJECT`, assembly remains `RECORDED_INSTITUTION`, settlement kits remain `AUTHORED_SETTLEMENT`, banners remain `RECORDED_FACTION`, barricades remain `RECORDED_CONFLICT`, and roads remain `RECORDED_ROUTE`. No runtime/simulation file, WorldState mutation, route fact, activity actor, cargo quantity, or project-completion fact was added.
+
+### Verification
+
+- Focused world-art suite: `node node_modules/vitest/vitest.mjs run src/presentation/mapVisual/worldArt.test.ts src/presentation/mapVisual/proceduralKitGeometry.test.ts src/presentation/mapVisual/ProceduralWorldArtKitRenderer.test.ts src/presentation/mapContent/regionCompositionAdapter.test.ts src/app/mapVisual/worldArtGallery.test.ts --reporter=verbose` — 5 files / 18 tests passed.
+- `node node_modules/prettier/bin/prettier.cjs --check .` — passed.
+- `node node_modules/typescript/bin/tsc -b --pretty false` — passed.
+- `node node_modules/eslint/bin/eslint.js .` — passed.
+- `node node_modules/vite/bin/vite.js build` — passed; the existing large-chunk warning remains.
+- `node scripts/build-sites-worker.mjs` — passed.
+- `git diff --check` — passed before staging.
+
+### Preview and remaining limitations
+
+- A browser screenshot was not produced. The gallery is a standalone authoring component and is intentionally not mounted into the protected production runtime; 06 visual re-review remains the authority for blocker disposition.
+- Production runtime integration remains outside this branch. The downstream integrator must call the strict resolver, pass actual terrain Y, and mount the reusable renderer.
+- Non-capital authored settlement facts remain an integration content gap; dense/small settlement art is not displayed by role alone.
+- Procedural geometry remains the cleared project-authored fallback candidate. No external GLB/glTF was downloaded or added.

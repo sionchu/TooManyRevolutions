@@ -131,7 +131,7 @@ describe("REGION_COMPOSITION_ADAPTER", () => {
   it("keeps semantic structures hidden when their evidence is absent", () => {
     expect(families("capital")).toEqual(["forest-cluster"]);
     expect(families("industrial")).toEqual(["mountain-cluster"]);
-    expect(families("port")).toEqual(["field-plot"]);
+    expect(families("port")).toEqual(["water-shelf", "field-plot"]);
     expect(families("frontier")).toEqual(["mountain-cluster"]);
     expect(families("agrarian-distribution")).toEqual(["field-plot"]);
   });
@@ -176,6 +176,7 @@ describe("REGION_COMPOSITION_ADAPTER", () => {
   });
 
   it("allows authored mine, port, and fort POIs without inventing them", () => {
+    expect(families("port")).toContain("water-shelf");
     expect(
       families("industrial", evidence({ pois: [poi("poi:mine", "mine")] })),
     ).toContain("mine");

@@ -43,6 +43,7 @@ export const MAP_SCALE_HIERARCHY = {
 export type MapMaterialFamilyId =
   | "terrain-earth"
   | "terrain-stone"
+  | "terrain-water"
   | "civic-plaster"
   | "industrial-iron"
   | "frontier-timber"
@@ -85,6 +86,17 @@ export const MAP_MATERIAL_FAMILIES: Readonly<
     contactShadowOpacity: 0.34,
     terrainBlend: "raised",
     notes: "산악·요새·광산의 무광 석재 계열",
+  },
+  "terrain-water": {
+    id: "terrain-water",
+    baseColor: "#5e7d82",
+    shadowColor: "#30464a",
+    accentColor: "#91a8a1",
+    roughness: 0.98,
+    metalness: 0,
+    contactShadowOpacity: 0.16,
+    terrainBlend: "coastal",
+    notes: "항구 수면과 물가를 구분하는 저채도 청록 지형 계열",
   },
   "civic-plaster": {
     id: "civic-plaster",
@@ -149,6 +161,7 @@ export type MapObjectFamily =
   | "dense-town"
   | "small-settlement"
   | "port-dock"
+  | "water-shelf"
   | "mine"
   | "factory-iron-works"
   | "fort"
@@ -253,7 +266,8 @@ export const MAP_OBJECT_ASSET_MANIFEST: readonly MapObjectVisualDefinition[] = [
   defineAsset("palace", {
     category: "civic-landmark",
     displayName: "왕궁·수도 궁전",
-    silhouetteCue: "높은 중앙 지붕과 좌우의 civic tower가 있는 대표 수직축",
+    silhouetteCue:
+      "넓은 공공 테라스 위에 중앙 지붕과 좌우 civic tower가 선 대표 축",
     scaleRole: "signature-capital",
     materialFamily: "civic-plaster",
     grounding: {
@@ -309,7 +323,7 @@ export const MAP_OBJECT_ASSET_MANIFEST: readonly MapObjectVisualDefinition[] = [
   defineAsset("port-dock", {
     category: "economic-poi",
     displayName: "항구·부두",
-    silhouetteCue: "수면 쪽으로 뻗은 선형 부두와 돛대",
+    silhouetteCue: "물가 띠를 가로질러 수면 쪽으로 뻗은 선형 부두와 돛대",
     scaleRole: "poi",
     materialFamily: "terrain-earth",
     grounding: {
@@ -319,6 +333,21 @@ export const MAP_OBJECT_ASSET_MANIFEST: readonly MapObjectVisualDefinition[] = [
       acceptsTerrainHeight: true,
     },
     visibleAt: ["meso", "micro"],
+  }),
+  defineAsset("water-shelf", {
+    category: "terrain",
+    displayName: "해안 수면·물가 단",
+    silhouetteCue:
+      "넓은 낮은 수면판과 대비되는 물가 띠가 부두의 바깥 경계를 만듦",
+    scaleRole: "decorative-prop",
+    materialFamily: "terrain-water",
+    grounding: {
+      footprint: "linear",
+      contactShadow: "soft",
+      terrainBlend: "coastal",
+      acceptsTerrainHeight: true,
+    },
+    visibleAt: ["macro", "meso", "micro"],
   }),
   defineAsset("mine", {
     category: "economic-poi",
@@ -337,7 +366,7 @@ export const MAP_OBJECT_ASSET_MANIFEST: readonly MapObjectVisualDefinition[] = [
   defineAsset("factory-iron-works", {
     category: "economic-poi",
     displayName: "철산 공장·제철소",
-    silhouetteCue: "넓은 작업동과 서로 다른 높이의 연통",
+    silhouetteCue: "넓은 작업동, 낮고 다른 높이의 연통, 분리된 작업 야드",
     scaleRole: "major-project",
     materialFamily: "industrial-iron",
     grounding: {
@@ -351,7 +380,7 @@ export const MAP_OBJECT_ASSET_MANIFEST: readonly MapObjectVisualDefinition[] = [
   defineAsset("fort", {
     category: "border-poi",
     displayName: "변경 요새",
-    silhouetteCue: "낮은 성벽과 네 모서리의 망루",
+    silhouetteCue: "열린 통과구가 있는 낮은 성벽과 네 모서리의 망루",
     scaleRole: "poi",
     materialFamily: "terrain-stone",
     grounding: {
@@ -379,7 +408,7 @@ export const MAP_OBJECT_ASSET_MANIFEST: readonly MapObjectVisualDefinition[] = [
   defineAsset("granary-storehouse", {
     category: "state-project",
     displayName: "곡창·저장고",
-    silhouetteCue: "두 개의 저장 사일로와 밝은 삼각 지붕",
+    silhouetteCue: "넓은 저장고와 두 개의 저장 사일로가 만드는 식량 비축 윤곽",
     scaleRole: "major-project",
     materialFamily: "civic-plaster",
     grounding: {
@@ -393,7 +422,7 @@ export const MAP_OBJECT_ASSET_MANIFEST: readonly MapObjectVisualDefinition[] = [
   defineAsset("distribution-yard", {
     category: "state-project",
     displayName: "배급·물류 야드",
-    silhouetteCue: "낮은 창고와 진입 동선이 있는 열린 마당",
+    silhouetteCue: "낮은 창고, 덮개, 병렬 적재 동선이 드러나는 열린 마당",
     scaleRole: "major-project",
     materialFamily: "terrain-earth",
     grounding: {
@@ -463,7 +492,7 @@ export const MAP_OBJECT_ASSET_MANIFEST: readonly MapObjectVisualDefinition[] = [
   defineAsset("field-plot", {
     category: "terrain",
     displayName: "경작지·밭",
-    silhouetteCue: "낮은 사각 경작면과 반복되는 밭고랑",
+    silhouetteCue: "넓은 수평 경작면과 반복되는 밭고랑·배수 둑",
     scaleRole: "decorative-prop",
     materialFamily: "terrain-earth",
     grounding: {

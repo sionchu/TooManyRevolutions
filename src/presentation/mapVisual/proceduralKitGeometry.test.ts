@@ -17,6 +17,7 @@ const EXPECTED_KIT_FAMILIES: readonly MapObjectFamily[] = [
   "dense-town",
   "small-settlement",
   "port-dock",
+  "water-shelf",
   "mine",
   "factory-iron-works",
   "fort",
@@ -93,6 +94,67 @@ describe("PROCEDURAL_WORLD_ART_KITS", () => {
     ).toEqual(["instance-friendly", "instance-friendly", "instance-friendly"]);
     expect(getProceduralWorldArtKit("palace")?.instancing).toBe(
       "single-placement",
+    );
+  });
+
+  it("encodes the P0 geography and identity silhouettes in authored primitives", () => {
+    const waterShelf = getProceduralWorldArtKit("water-shelf");
+    const portDock = getProceduralWorldArtKit("port-dock");
+    const field = getProceduralWorldArtKit("field-plot");
+    const distribution = getProceduralWorldArtKit("distribution-yard");
+    const fort = getProceduralWorldArtKit("fort");
+    const checkpoint = getProceduralWorldArtKit("checkpoint-gate");
+    expect(waterShelf?.instancing).toBe("instance-friendly");
+    expect(waterShelf?.primitives.map((primitive) => primitive.id)).toEqual(
+      expect.arrayContaining([
+        "water-plane",
+        "shoreline-band",
+        "shoreline-edge",
+      ]),
+    );
+    const waterPlane = waterShelf?.primitives.find(
+      (primitive) => primitive.id === "water-plane",
+    );
+    const shorelineEdge = waterShelf?.primitives.find(
+      (primitive) => primitive.id === "shoreline-edge",
+    );
+    const pier = portDock?.primitives.find(
+      (primitive) => primitive.id === "pier",
+    );
+    expect(waterPlane?.materialFamily).toBe("terrain-water");
+    expect(waterPlane?.size[0]).toBeGreaterThan(pier?.size[0] ?? 0);
+    expect(shorelineEdge).toBeDefined();
+    expect(pier).toBeDefined();
+    if (pier !== undefined && shorelineEdge !== undefined) {
+      const pierStart = pier.position[2] - pier.size[2] / 2;
+      const pierEnd = pier.position[2] + pier.size[2] / 2;
+      expect(pierStart).toBeLessThan(shorelineEdge.position[2]);
+      expect(pierEnd).toBeGreaterThan(shorelineEdge.position[2]);
+    }
+
+    const fieldGround = field?.primitives.find(
+      (primitive) => primitive.id === "field-ground",
+    );
+    const furrow = field?.primitives.find(
+      (primitive) => primitive.id === "furrow-a",
+    );
+    expect(fieldGround?.size[0]).toBeGreaterThanOrEqual(2.5);
+    expect(furrow?.size[2]).toBeGreaterThanOrEqual(1.5);
+    expect(distribution?.silhouetteTags).toEqual(
+      expect.arrayContaining([
+        "canopy",
+        "loading-platform",
+        "lanes",
+        "open-yard",
+      ]),
+    );
+    expect(fort?.primitives.map((primitive) => primitive.id)).toEqual(
+      expect.arrayContaining(["south-wall-left", "south-wall-right", "gate"]),
+    );
+    const gate = fort?.primitives.find((primitive) => primitive.id === "gate");
+    expect(gate?.position[1]).toBeGreaterThan(0.6);
+    expect(checkpoint?.silhouetteTags).toEqual(
+      expect.arrayContaining(["gate-posts", "lintel", "guard-booth"]),
     );
   });
 });
