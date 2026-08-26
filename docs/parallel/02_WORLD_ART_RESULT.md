@@ -13,6 +13,8 @@
 - `src/presentation/mapVisual/worldArt.test.ts`
 - `src/presentation/mapVisual/proceduralKitGeometry.ts`
 - `src/presentation/mapVisual/proceduralKitGeometry.test.ts`
+- `src/presentation/mapVisual/ProceduralWorldArtKitRenderer.tsx`
+- `src/presentation/mapVisual/ProceduralWorldArtKitRenderer.test.ts`
 - `src/presentation/mapContent/regionComposition.ts`
 - `src/presentation/mapContent/index.ts`
 - `src/presentation/mapContent/regionCompositionAdapter.ts`
@@ -81,6 +83,16 @@ Mountain, forest, field, and road kits declare `instance-friendly` placement con
 
 `src/app/mapVisual/WorldArtGallery.tsx` is a standalone R3F component that maps each primitive to a real mesh and applies the Kit relative scale. `src/app/mapVisual/worldArtGalleryModel.ts` builds five comparison panels (`capital`, `industrial`, `port`, `frontier`, `agrarian-distribution`) with `previewOnly: true` and `labelsVisible: false`. It is not mounted by the production runtime and cannot authorize semantic world objects.
 
+## FIX1
+
+`ProceduralWorldArtPrimitive.size` remains `[width, height, depth]`. The reusable renderer now uses unit `box`, `cylinder`, and `cone` geometries with mesh scale set directly to `size`, so X/Y/Z dimensions are preserved for every primitive. The existing Kit data was not rewritten.
+
+`src/presentation/mapVisual/ProceduralWorldArtKitRenderer.tsx` exports `ProceduralWorldArtKitRenderer`, `createProceduralPrimitiveRenderDescriptor`, and `createProceduralWorldArtKitRenderDescriptor`. The API accepts either a stable `family` or a `resolvedPlacement`, an integrator-provided 3D position, optional LOD/visibility, and an optional scale multiplier. `WorldArtGallery` now consumes this reusable renderer instead of owning private primitive/kit renderers.
+
+The render descriptor consumes manifest grounding data: `contactShadow` controls whether a contact proxy is rendered, `terrainBlend` selects its deterministic footprint scale, `contactShadowOpacity` comes from the shared material family, and `acceptsTerrainHeight` controls whether the integrator-provided Y coordinate is consumed. No terrain sampling or synthetic height calculation is performed.
+
+The resolver remains strict for settlement evidence. `AUTHORED_SETTLEMENT` is still required for `dense-town` and `small-settlement`; no resolver loosening or fabricated non-capital settlement evidence was added. The missing non-capital authored semantic-content input is an integration-stage content gap, not a reason to display settlement art by role alone.
+
 ## PROVENANCE
 
 Every manifest candidate is marked:
@@ -95,7 +107,7 @@ No external asset was copied into this branch. Every object has a replacement se
 ## TEST_RESULTS
 
 - `pnpm install --frozen-lockfile --offline`: completed; lockfile supply-chain policy passed.
-- `pnpm exec vitest run src/presentation/mapVisual/worldArt.test.ts src/presentation/mapVisual/proceduralKitGeometry.test.ts src/presentation/mapContent/regionCompositionAdapter.test.ts src/app/mapVisual/worldArtGallery.test.ts`: passed, 4 files / 14 tests.
+- `pnpm exec vitest run src/presentation/mapVisual/worldArt.test.ts src/presentation/mapVisual/proceduralKitGeometry.test.ts src/presentation/mapVisual/ProceduralWorldArtKitRenderer.test.ts src/presentation/mapContent/regionCompositionAdapter.test.ts src/app/mapVisual/worldArtGallery.test.ts`: passed, 5 files / 17 tests.
 - `pnpm run format`: passed.
 - `pnpm run typecheck`: passed.
 - `pnpm run lint`: passed.
@@ -112,7 +124,7 @@ No external asset was copied into this branch. Every object has a replacement se
 
 ## INTEGRATION_API
 
-Import from `src/presentation/mapContent` for `getRegionComposition`, `REGION_COMPOSITION_TEMPLATES`, `regionCompositionRoles`, `regionCompositionEvidenceFromWorldSceneModel`, and `resolveRegionCompositionPlacements`. Import from `src/presentation/mapVisual` for `MAP_OBJECT_ASSET_MANIFEST`, `getWorldObjectVisualDefinition`, `MAP_MATERIAL_FAMILIES`, `MAP_SCALE_HIERARCHY`, `STATE_PROJECT_ART_GRAMMAR`, `PROCEDURAL_WORLD_ART_KITS`, `getProceduralWorldArtKit`, and the related types.
+Import from `src/presentation/mapContent` for `getRegionComposition`, `REGION_COMPOSITION_TEMPLATES`, `regionCompositionRoles`, `regionCompositionEvidenceFromWorldSceneModel`, and `resolveRegionCompositionPlacements`. Import from `src/presentation/mapVisual` for `MAP_OBJECT_ASSET_MANIFEST`, `getWorldObjectVisualDefinition`, `MAP_MATERIAL_FAMILIES`, `MAP_SCALE_HIERARCHY`, `STATE_PROJECT_ART_GRAMMAR`, `PROCEDURAL_WORLD_ART_KITS`, `getProceduralWorldArtKit`, `ProceduralWorldArtKitRenderer`, `createProceduralPrimitiveRenderDescriptor`, `createProceduralWorldArtKitRenderDescriptor`, and the related types.
 
 The runtime integrator should derive typed evidence from the actual WorldSceneModel, bind each actual Region to a role and anchor, call `resolveRegionCompositionPlacements`, apply `visibleAt` LOD, and use the Kit grounding/material contract for terrain placement. A GLB loader can resolve `replacementSeam.slotId` while preserving the shared origin and unit scale, with the procedural Kit as fallback.
 
@@ -122,6 +134,7 @@ The runtime integrator should derive typed evidence from the actual WorldSceneMo
 - No GLB/glTF binary asset files are included; the procedural Kit is the current candidate fallback and the seam is ready for later cleared candidates.
 - The gallery is an authoring preview and deliberately displays composition silhouettes without authority evidence. Production code must use the resolver output instead.
 - No screenshot or browser visual QA was generated in this branch.
+- Non-capital authored settlement facts are not present in the current WorldSceneModel content source, so dense-town/small-settlement resolution remains absent until the integration owner supplies real authored settlement facts.
 
 ## FILES_RUNTIME_INTEGRATOR_MUST_CHANGE
 

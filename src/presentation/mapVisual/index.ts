@@ -7,6 +7,18 @@ export {
   STATE_PROJECT_ART_GRAMMAR,
 } from "./worldArt";
 export {
+  ProceduralWorldArtKitRenderer,
+  createProceduralPrimitiveRenderDescriptor,
+  createProceduralWorldArtKitRenderDescriptor,
+} from "./ProceduralWorldArtKitRenderer";
+export type {
+  ProceduralPrimitiveRenderDescriptor,
+  ProceduralWorldArtKitGroundingDescriptor,
+  ProceduralWorldArtKitPosition,
+  ProceduralWorldArtKitRenderDescriptor,
+  ProceduralWorldArtKitRenderInput,
+} from "./ProceduralWorldArtKitRenderer";
+export {
   AssemblyKit,
   BarricadeKit,
   CheckpointGateKit,

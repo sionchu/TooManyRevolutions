@@ -28,6 +28,7 @@ export interface ProceduralWorldArtKit {
   readonly family: MapObjectFamily;
   readonly scaleRole: MapScaleRole;
   readonly relativeScale: number;
+  readonly visibleAt: readonly ("macro" | "meso" | "micro")[];
   readonly materialFamily: MapMaterialFamilyId;
   readonly primitives: readonly ProceduralWorldArtPrimitive[];
   readonly primitiveCount: number;
@@ -114,6 +115,7 @@ function defineKit(
     family,
     scaleRole: visual.scaleRole,
     relativeScale: visual.relativeScale,
+    visibleAt: visual.visibleAt,
     materialFamily,
     primitives,
     primitiveCount: primitives.length,

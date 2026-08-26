@@ -2,98 +2,12 @@ import { Canvas } from "@react-three/fiber";
 
 import {
   MAP_MATERIAL_FAMILIES,
-  getProceduralWorldArtKit,
-  type ProceduralWorldArtPrimitive,
+  ProceduralWorldArtKitRenderer,
 } from "../../presentation/mapVisual";
 import {
   createWorldArtGallerySnapshot,
   type WorldArtGalleryPanel,
 } from "./worldArtGalleryModel";
-
-function PrimitiveMesh({
-  primitive,
-}: {
-  readonly primitive: ProceduralWorldArtPrimitive;
-}) {
-  const material = MAP_MATERIAL_FAMILIES[primitive.materialFamily];
-  const materialProps = {
-    color: material.baseColor,
-    roughness: material.roughness,
-    metalness: material.metalness,
-  };
-  switch (primitive.kind) {
-    case "box":
-      return (
-        <mesh
-          position={primitive.position}
-          rotation={primitive.rotation}
-          castShadow
-          receiveShadow
-        >
-          <boxGeometry args={primitive.size} />
-          <meshStandardMaterial {...materialProps} />
-        </mesh>
-      );
-    case "cylinder":
-      return (
-        <mesh
-          position={primitive.position}
-          rotation={primitive.rotation}
-          castShadow
-          receiveShadow
-        >
-          <cylinderGeometry
-            args={[
-              primitive.size[0] / 2,
-              primitive.size[2] / 2,
-              primitive.size[1],
-              primitive.sides ?? 8,
-            ]}
-          />
-          <meshStandardMaterial {...materialProps} />
-        </mesh>
-      );
-    case "cone":
-      return (
-        <mesh
-          position={primitive.position}
-          rotation={primitive.rotation}
-          castShadow
-          receiveShadow
-        >
-          <coneGeometry
-            args={[
-              primitive.size[0] / 2,
-              primitive.size[1],
-              primitive.sides ?? 6,
-            ]}
-          />
-          <meshStandardMaterial {...materialProps} />
-        </mesh>
-      );
-  }
-}
-
-function KitGroup({
-  family,
-  offset,
-}: {
-  readonly family: WorldArtGalleryPanel["placements"][number]["family"];
-  readonly offset: readonly [x: number, z: number];
-}) {
-  const kit = getProceduralWorldArtKit(family);
-  if (kit === undefined) return null;
-  return (
-    <group
-      position={[offset[0], 0, offset[1]]}
-      scale={[kit.relativeScale, kit.relativeScale, kit.relativeScale]}
-    >
-      {kit.primitives.map((primitive) => (
-        <PrimitiveMesh key={primitive.id} primitive={primitive} />
-      ))}
-    </group>
-  );
-}
 
 function GalleryPanel({
   panel,
@@ -120,10 +34,10 @@ function GalleryPanel({
         />
       </mesh>
       {panel.placements.map((placement) => (
-        <KitGroup
+        <ProceduralWorldArtKitRenderer
           key={`${panel.role}:${placement.family}`}
           family={placement.family}
-          offset={placement.offset}
+          position={[placement.offset[0], 0, placement.offset[1]]}
         />
       ))}
     </group>
