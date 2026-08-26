@@ -373,7 +373,9 @@ function itemFor(
     ...(kind === "DECISION_REQUIRED"
       ? { requiresResponse: true as const }
       : {}),
-    ...(event.type === "STATE_DISSOLVED" ? { terminal: true as const } : {}),
+    ...(event.type === "ORDER_CONSOLIDATED" || event.type === "STATE_DISSOLVED"
+      ? { terminal: true as const }
+      : {}),
   };
 }
 

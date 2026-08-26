@@ -14,7 +14,8 @@
 | `TOAST` | `RESOURCE_SHORTAGE_CHANGED` 중 scarcity band가 바뀌거나 절대 변화량이 `0.08` 이상인 경우 | 2 |
 | `CHRONICLE_ONLY` | 위 규칙에 해당하지 않는 모든 `GameEvent`; proposal이 없거나 이미 resolved 되었거나 player filter와 맞지 않는 `POLITICAL_PROPOSAL_OPENED`도 포함 | 1 |
 
-`STATE_DISSOLVED`는 `NEWS` item 하나에만 `terminal: true`를 붙인다.
+`ORDER_CONSOLIDATED`와 `STATE_DISSOLVED`는 각각 `NEWS` item 하나에만
+`terminal: true`를 붙인다.
 반란·쿠데타·정부 전환·국경·물자 부족에는 `requiresResponse`나
 `proposalId`를 만들지 않는다. `requiresResponse: true`와 `proposalId`는
 실제 open `PoliticalProposal`이 연결된 경우에만 출력된다.
@@ -41,7 +42,7 @@ read-model은 이벤트 payload에 이미 기록된 `regionId`, `factionId`,
 - `POLICY_ENACTED` → `TOAST`
 - `REBELLION_STARTED`, `COUP_ATTEMPT_STARTED`, `CIVIL_WAR_STARTED`, `GOVERNMENT_TRANSITIONED` → `NEWS`
 - `STATE_DISSOLVED` → `NEWS` + `terminal: true`
-- `ORDER_CONSOLIDATED` → `NEWS` + non-terminal
+- `ORDER_CONSOLIDATED` → `NEWS` + `terminal: true`
 - matching open proposal → 정확히 하나의 `DECISION_REQUIRED`
 - accepted/rejected proposal → decision prompt 없음
 - authoritative proposal 없음 → fake decision 없음

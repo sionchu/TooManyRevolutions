@@ -151,12 +151,12 @@ describe("fact-backed event presentation read model", () => {
     });
   });
 
-  it("classifies ORDER_CONSOLIDATED as news without marking it terminal", () => {
+  it("classifies ORDER_CONSOLIDATED as terminal news", () => {
     const item = single([event("ORDER_CONSOLIDATED", 0)]);
     expect(item).toMatchObject({
       kind: "NEWS",
+      terminal: true,
     });
-    expect(item).not.toHaveProperty("terminal");
   });
 
   it("creates exactly one decision item for a matching open proposal", () => {
