@@ -6,3 +6,4 @@ docs/
 AGENTS.md
 CODEX_KICKOFF.md
 README.md
+public/assets/tmr/models/kaykit/**/*.gltf

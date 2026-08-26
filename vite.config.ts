@@ -4,4 +4,12 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react(), sites()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: "index.html",
+        worldAssetGallery: "world-asset-gallery.html",
+      },
+    },
+  },
 });

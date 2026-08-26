@@ -60,3 +60,21 @@ export type {
   ProceduralWorldArtKit,
   ProceduralWorldArtPrimitive,
 } from "./proceduralKitGeometry";
+export {
+  getResolvedWorldAssetEntries,
+  getWorldAssetEntry,
+  getWorldAssetSlot,
+  WORLD_ASSET_ENTRIES,
+  WORLD_ASSET_MANIFEST,
+  WORLD_ASSET_SLOTS,
+} from "../modelAssets/worldAssetManifest";
+export type {
+  WorldAssetManifestData,
+  WorldAssetManifestEntry,
+  WorldAssetNormalization,
+  WorldAssetSlotId,
+  WorldAssetSlotManifest,
+  WorldAssetSlotStatus,
+  WorldAssetSourcePack,
+  WorldAssetSourcePackId,
+} from "../modelAssets/worldAssetManifest";
