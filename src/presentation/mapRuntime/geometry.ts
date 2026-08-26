@@ -68,7 +68,11 @@ interface TerrainVertexAccumulator {
   readonly samples: TerrainVertexSample[];
 }
 
-const HEX_RADIUS = 1.01;
+// The authorial axial spacing is intentionally anisotropic in world X/Z.
+// Matching both axes keeps shared corners coincident instead of producing a
+// disconnected collection of almost-touching hex faces.
+const HEX_RADIUS_X = 1.74 / Math.sqrt(3);
+const HEX_RADIUS_Z = 1.52 / 1.5;
 const SNAP_DIGITS = 2;
 
 function compareStableText(first: string, second: string): number {
@@ -85,26 +89,49 @@ function pointKey(x: number, z: number): string {
 
 function terrainColor(terrain: RuntimeTerrain): [number, number, number] {
   const palette: Record<RuntimeTerrain, string> = {
-    plains: "#c8b982",
-    coast: "#6e9ea1",
-    wetlands: "#819879",
-    forest: "#5d8168",
-    hills: "#a0805e",
-    mountains: "#73707a",
+    plains: "#72765b",
+    coast: "#426568",
+    wetlands: "#596b55",
+    forest: "#485c46",
+    hills: "#756b52",
+    mountains: "#666761",
   };
   const value = Number.parseInt(palette[terrain].slice(1), 16);
-  const raw: [number, number, number] = [
-    ((value >> 16) & 255) / 255,
-    ((value >> 8) & 255) / 255,
-    (value & 255) / 255,
-  ];
-  const base: [number, number, number] = [0.49, 0.54, 0.45];
-  const blend = 0.2;
+  const toLinear = (channel: number): number => {
+    const srgb = channel / 255;
+    return srgb <= 0.04045
+      ? srgb / 12.92
+      : Math.pow((srgb + 0.055) / 1.055, 2.4);
+  };
   return [
-    base[0] * (1 - blend) + raw[0] * blend,
-    base[1] * (1 - blend) + raw[1] * blend,
-    base[2] * (1 - blend) + raw[2] * blend,
+    toLinear((value >> 16) & 255),
+    toLinear((value >> 8) & 255),
+    toLinear(value & 255),
   ];
+}
+
+function deterministicWorldRelief(x: number, z: number): number {
+  const broad = Math.sin(x * 0.74 + z * 0.41) * 0.034;
+  const cross = Math.cos(x * 0.29 - z * 0.83) * 0.022;
+  const fine = Math.sin((x + z) * 1.53) * 0.011;
+  return broad + cross + fine;
+}
+
+function reliefHeight(samples: readonly TerrainVertexSample[], x: number, z: number): number {
+  if (samples.length === 0) return deterministicWorldRelief(x, z);
+  const average =
+    samples.reduce((total, sample) => total + sample.height, 0) /
+    samples.length;
+  const highlandShare =
+    samples.filter(
+      (sample) => sample.terrain === "hills" || sample.terrain === "mountains",
+    ).length / samples.length;
+  const lowlandShare =
+    samples.filter(
+      (sample) => sample.terrain === "coast" || sample.terrain === "wetlands",
+    ).length / samples.length;
+  const reliefScale = 0.72 + highlandShare * 0.8 - lowlandShare * 0.25;
+  return Math.max(0.035, average + deterministicWorldRelief(x, z) * reliefScale);
 }
 
 function averageTerrainColor(
@@ -125,8 +152,8 @@ function hexCorners(
 ): readonly WorldScenePoint[] {
   return Array.from({ length: 6 }, (_, index) => {
     const angle = (Math.PI / 180) * (60 * index + 30);
-    const x = hex.position[0] + HEX_RADIUS * Math.cos(angle);
-    const z = hex.position[2] + HEX_RADIUS * Math.sin(angle);
+    const x = hex.position[0] + HEX_RADIUS_X * Math.cos(angle);
+    const z = hex.position[2] + HEX_RADIUS_Z * Math.sin(angle);
     return [
       round(x),
       cornerY.get(pointKey(x, z)) ?? hex.position[1] + hex.height + 0.025,
@@ -144,8 +171,8 @@ function createTopology(model: WorldSceneModel): RuntimeTopology {
   for (const hex of hexes) {
     for (let index = 0; index < 6; index += 1) {
       const angle = (Math.PI / 180) * (60 * index + 30);
-      const x = hex.position[0] + HEX_RADIUS * Math.cos(angle);
-      const z = hex.position[2] + HEX_RADIUS * Math.sin(angle);
+      const x = hex.position[0] + HEX_RADIUS_X * Math.cos(angle);
+      const z = hex.position[2] + HEX_RADIUS_Z * Math.sin(angle);
       const key = pointKey(x, z);
       const samples = cornerSamples.get(key) ?? [];
       samples.push(hex.position[1] + hex.height + 0.025);
@@ -549,8 +576,8 @@ function createContinuousTerrainMesh(
     const sample = { terrain: hex.terrain, height };
     for (let index = 0; index < 6; index += 1) {
       const angle = (Math.PI / 180) * (60 * index + 30);
-      const x = hex.position[0] + HEX_RADIUS * Math.cos(angle);
-      const z = hex.position[2] + HEX_RADIUS * Math.sin(angle);
+      const x = hex.position[0] + HEX_RADIUS_X * Math.cos(angle);
+      const z = hex.position[2] + HEX_RADIUS_Z * Math.sin(angle);
       addSample(cornerSamples, pointKey(x, z), x, z, sample);
     }
     addSample(
@@ -572,9 +599,7 @@ function createContinuousTerrainMesh(
     const existing = vertexIndexes.get(key);
     if (existing !== undefined) return existing;
     const index = vertices.length;
-    const height =
-      accumulator.samples.reduce((total, sample) => total + sample.height, 0) /
-      accumulator.samples.length;
+    const height = reliefHeight(accumulator.samples, accumulator.x, accumulator.z);
     vertices.push([accumulator.x, height, accumulator.z]);
     colors.push(averageTerrainColor(accumulator.samples));
     vertexIndexes.set(key, index);
@@ -583,8 +608,8 @@ function createContinuousTerrainMesh(
   const cornersForHex = (hex: WorldSceneModel["hexes"][number]) =>
     Array.from({ length: 6 }, (_, index) => {
       const angle = (Math.PI / 180) * (60 * index + 30);
-      const x = hex.position[0] + HEX_RADIUS * Math.cos(angle);
-      const z = hex.position[2] + HEX_RADIUS * Math.sin(angle);
+      const x = hex.position[0] + HEX_RADIUS_X * Math.cos(angle);
+      const z = hex.position[2] + HEX_RADIUS_Z * Math.sin(angle);
       return pointKey(x, z);
     });
   for (const hex of [...topology.hexesById.values()].sort((first, second) =>

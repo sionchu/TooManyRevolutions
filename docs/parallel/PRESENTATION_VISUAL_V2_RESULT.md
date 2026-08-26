@@ -28,7 +28,7 @@
 | Phase | 상태 | 증거 |
 | --- | --- | --- |
 | 0 | COMPLETED | branch/ancestry/clean sync, deterministic Day 0 screenshots, deterministic rebellion sequence |
-| 1 | NOT_RUN | - |
+| 1 | COMPLETED | shared-relief mesh code/test gate; `docs/parallel/evidence/visual-v2-phase1-terrain-desktop.png`; `docs/parallel/evidence/visual-v2-phase1-terrain-mobile.png` 직접 OPEN 검사. X/Z authorial spacing에 맞춘 공통 corner 공유와 실제 높이/vertex color relief 적용, connected translucent fill 비활성화. |
 | 2 | NOT_RUN | - |
 | 3 | NOT_RUN | - |
 | 4 | NOT_RUN | - |

@@ -238,12 +238,12 @@ export const MAP_ARCHITECTURE_LAYER_ORDER = [
 
 export const DEFAULT_MAP_STYLE: MapStyleDefinition = {
   terrainPalette: {
-    plains: "#9b9b7d",
-    coast: "#78979a",
-    wetlands: "#879678",
-    forest: "#708670",
-    hills: "#8e896f",
-    mountains: "#7b7d77",
+    plains: "#72765b",
+    coast: "#426568",
+    wetlands: "#596b55",
+    forest: "#485c46",
+    hills: "#756b52",
+    mountains: "#666761",
   },
   politicalOpacity: 0.2,
   ownerBoundaryColor: "#f0d9a1",
@@ -259,7 +259,9 @@ export const DEFAULT_MAP_STYLE: MapStyleDefinition = {
   selectedCellOpacity: 0.96,
 };
 
-const HEX_RADIUS = 1.01;
+const HEX_RADIUS_X = 1.74 / Math.sqrt(3);
+const HEX_RADIUS_Z = 1.52 / 1.5;
+const HEX_RADIUS = 1;
 const SNAP_DIGITS = 2;
 
 function compareStableText(first: string, second: string): number {
@@ -298,9 +300,9 @@ function hexCorners(
   return Array.from({ length: 6 }, (_, index) => {
     const angle = (Math.PI / 180) * (60 * index + 30);
     return [
-      hex.position[0] + radius * Math.cos(angle),
+      hex.position[0] + radius * HEX_RADIUS_X * Math.cos(angle),
       hex.position[1] + hex.height + 0.025,
-      hex.position[2] + radius * Math.sin(angle),
+      hex.position[2] + radius * HEX_RADIUS_Z * Math.sin(angle),
     ];
   });
 }
@@ -949,17 +951,10 @@ function deriveGeography(
 function colorForTerrain(terrain: LandHexTerrain): [number, number, number] {
   const color = DEFAULT_MAP_STYLE.terrainPalette[terrain].slice(1);
   const value = Number.parseInt(color, 16);
-  const base: [number, number, number] = [0.49, 0.54, 0.45];
-  const blend = 0.2;
-  const raw: [number, number, number] = [
+  return [
     ((value >> 16) & 255) / 255,
     ((value >> 8) & 255) / 255,
     (value & 255) / 255,
-  ];
-  return [
-    base[0] * (1 - blend) + raw[0] * blend,
-    base[1] * (1 - blend) + raw[1] * blend,
-    base[2] * (1 - blend) + raw[2] * blend,
   ];
 }
 

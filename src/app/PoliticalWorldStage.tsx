@@ -94,6 +94,8 @@ const IDEOLOGY_SURFACE_COLORS = [
   "#b96f62",
   "#748d61",
 ] as const;
+const MAP_HEX_RADIUS_X = 1.74 / Math.sqrt(3);
+const MAP_HEX_RADIUS_Z = 1.52 / 1.5;
 
 interface CameraState {
   readonly x: number;
@@ -112,9 +114,9 @@ function pointsForHex(point: WorldScenePoint, radius = 0.93): THREE.Vector3[] {
   return Array.from({ length: 7 }, (_, index) => {
     const angle = (Math.PI / 180) * (60 * (index % 6) + 30);
     return new THREE.Vector3(
-      point[0] + radius * Math.cos(angle),
+      point[0] + radius * MAP_HEX_RADIUS_X * Math.cos(angle),
       point[1],
-      point[2] + radius * Math.sin(angle),
+      point[2] + radius * MAP_HEX_RADIUS_Z * Math.sin(angle),
     );
   });
 }
@@ -213,94 +215,46 @@ function RuntimeSurfaceMesh({
   );
 }
 
-const CONNECTED_GEOGRAPHY_COLOR = "#718666";
-const TERRAIN_SURFACE_COLORS: Readonly<
-  Record<WorldSceneModel["hexes"][number]["terrain"], string>
-> = {
-  plains: "#718666",
-  coast: "#5f8584",
-  wetlands: "#6f8b73",
-  forest: "#587561",
-  hills: "#81775e",
-  mountains: "#686d6b",
-};
-
-function terrainSurfaceOpacity(
-  terrain: WorldSceneModel["hexes"][number]["terrain"] | undefined,
-  lodTier: MapLodTier,
-): number {
-  if (terrain === "coast") return lodTier === "near" ? 0.12 : 0.06;
-  if (terrain === "mountains") return lodTier === "near" ? 0.08 : 0.04;
-  if (terrain === "plains" || terrain === undefined) return 0;
-  return lodTier === "near" ? 0.07 : 0.035;
-}
-
-function smoothComponentBoundary(
-  points: readonly WorldScenePoint[],
-): readonly WorldScenePoint[] {
-  let boundary = [...points];
-  for (let iteration = 0; iteration < 3; iteration += 1) {
-    boundary = boundary.flatMap((current, index) => {
-      const next = boundary[(index + 1) % boundary.length]!;
-      return [
-        [
-          current[0] * 0.75 + next[0] * 0.25,
-          current[1] * 0.75 + next[1] * 0.25,
-          current[2] * 0.75 + next[2] * 0.25,
-        ],
-        [
-          current[0] * 0.25 + next[0] * 0.75,
-          current[1] * 0.25 + next[1] * 0.75,
-          current[2] * 0.25 + next[2] * 0.75,
-        ],
-      ] as const;
-    });
-  }
-  return boundary;
-}
-
-function softenedComponentGeometry(
-  polygon: MapRuntimePolygon,
+function terrainMeshGeometry(
+  terrainMesh: MapRuntimeGeometry["terrainMesh"],
 ): THREE.BufferGeometry {
-  const contour = smoothComponentBoundary(polygon.points);
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute(
     "position",
     new THREE.Float32BufferAttribute(
-      contour.flatMap((point) => [point[0], point[1], point[2]]),
+      terrainMesh.vertices.flatMap((point) => [point[0], point[1], point[2]]),
       3,
     ),
   );
-  const triangles = THREE.ShapeUtils.triangulateShape(
-    contour.map((point) => new THREE.Vector2(point[0], point[2])),
-    [],
+  geometry.setAttribute(
+    "color",
+    new THREE.Float32BufferAttribute(terrainMesh.colors.flatMap((color) => [...color]), 3),
   );
-  geometry.setIndex(triangles.flatMap((triangle) => [...triangle]));
+  geometry.setIndex(
+    terrainMesh.triangles.flatMap((triangle) => [...triangle]),
+  );
   geometry.computeVertexNormals();
   return geometry;
 }
 
-function ConnectedGeographySurface({
-  polygon,
-  color,
-  opacity,
-  renderOrder,
+function TerrainMeshSurface({
+  terrainMesh,
 }: {
-  readonly polygon: MapRuntimePolygon;
-  readonly color: string;
-  readonly opacity: number;
-  readonly renderOrder: number;
+  readonly terrainMesh: MapRuntimeGeometry["terrainMesh"];
 }) {
-  const geometry = useMemo(() => softenedComponentGeometry(polygon), [polygon]);
+  const geometry = useMemo(() => terrainMeshGeometry(terrainMesh), [terrainMesh]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   return (
-    <mesh geometry={geometry} renderOrder={renderOrder}>
-      <meshBasicMaterial
-        color={color}
+    <mesh geometry={geometry} receiveShadow castShadow renderOrder={1}>
+      <meshStandardMaterial
+        vertexColors
         side={THREE.DoubleSide}
-        transparent
-        opacity={opacity}
-        depthWrite={false}
+        roughness={0.98}
+        metalness={0}
+        flatShading={false}
+        polygonOffset
+        polygonOffsetFactor={1}
+        polygonOffsetUnits={1}
       />
     </mesh>
   );
@@ -692,50 +646,25 @@ function projectWorldPointsToCanvas(
 
 function TerrainWorldSurface({
   runtimeGeometry,
-  lodTier,
 }: {
   readonly runtimeGeometry: MapRuntimeGeometry;
-  readonly lodTier: MapLodTier;
 }) {
   return (
     <group
       userData={{
-        truthClass: "DECORATIVE_SUBSTRATE",
+        truthClass: "DERIVED_PRESENTATION",
         mapLayer: "MapGeographyDefinition",
-        geometryMode: "connected-component-surfaces",
+        geometryMode: "shared-terrain-mesh",
         sharedVertexCount: runtimeGeometry.terrainMesh.sharedVertexCount,
         polygonCount: runtimeGeometry.terrainMesh.polygonCount,
         connectedWorldSurfaceCount: runtimeGeometry.worldSurfaces.length,
         connectedTerrainSurfaceCount: runtimeGeometry.terrainSurfaces.length,
-        boundaryTreatment: "soft-translucent-no-outline",
+        boundaryTreatment: "outline-only",
         terrainKinds: runtimeGeometry.terrainMesh.terrainKinds.join(","),
         terrainHeightRange: `${runtimeGeometry.terrainMesh.minHeight.toFixed(3)}:${runtimeGeometry.terrainMesh.maxHeight.toFixed(3)}`,
       }}
     >
-      {runtimeGeometry.worldSurfaces.map((polygon) => (
-        <ConnectedGeographySurface
-          key={`world-surface:${polygon.id}`}
-          polygon={polygon}
-          color={CONNECTED_GEOGRAPHY_COLOR}
-          opacity={0.72}
-          renderOrder={0}
-        />
-      ))}
-      {runtimeGeometry.terrainSurfaces.map((polygon) => {
-        const opacity = terrainSurfaceOpacity(polygon.terrain, lodTier);
-        return opacity === 0 ? null : (
-          <ConnectedGeographySurface
-            key={`terrain-surface:${polygon.id}`}
-            polygon={polygon}
-            color={
-              TERRAIN_SURFACE_COLORS[polygon.terrain ?? "plains"] ??
-              CONNECTED_GEOGRAPHY_COLOR
-            }
-            opacity={opacity}
-            renderOrder={1}
-          />
-        );
-      })}
+      <TerrainMeshSurface terrainMesh={runtimeGeometry.terrainMesh} />
     </group>
   );
 }
@@ -749,7 +678,7 @@ function TerrainBackdrop({
     <mesh
       position={[
         (bounds.minX + bounds.maxX) / 2,
-        -0.02,
+        -0.08,
         (bounds.minZ + bounds.maxZ) / 2,
       ]}
       rotation={[-Math.PI / 2, 0, 0]}
@@ -760,7 +689,7 @@ function TerrainBackdrop({
           bounds.maxZ - bounds.minZ + 0.6,
         ]}
       />
-      <meshStandardMaterial color="#3d4a3d" roughness={1} />
+      <meshStandardMaterial color="#263b3c" roughness={1} />
     </mesh>
   );
 }
@@ -1311,10 +1240,7 @@ function WorldScene({
       />
       <group>
         <TerrainBackdrop bounds={architecture.geography.worldBounds} />
-        <TerrainWorldSurface
-          runtimeGeometry={runtimeGeometry}
-          lodTier={lodTier}
-        />
+        <TerrainWorldSurface runtimeGeometry={runtimeGeometry} />
         <IntegratedRegionArtLayer
           model={model}
           plan={integratedArtPlan}
@@ -1778,7 +1704,7 @@ export function PoliticalWorldStage({
           }
           data-map-icon-system="tmr-semantic-registry"
           data-land-hex-count={model.hexes.length}
-          data-map-runtime-geometry="connected-component-surfaces"
+          data-map-runtime-geometry="shared-relief-mesh"
           data-map-connected-world-surface-count={
             runtimeGeometry.worldSurfaces.length
           }
