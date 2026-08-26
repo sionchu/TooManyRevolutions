@@ -1775,3 +1775,460 @@ h3 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* GameBuilders P0 factual feedback, roadmap, project and authoring surfaces. */
+.world-map-surface {
+  border-color: #9f8b6d;
+  background: #c9b99c;
+  box-shadow: 0 18px 38px rgb(67 47 29 / 17%);
+}
+.map-camera-controls {
+  position: absolute;
+  z-index: 8;
+  right: 0.85rem;
+  bottom: 3.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.28rem 0.36rem;
+  border: 1px solid rgb(145 116 70 / 55%);
+  color: #66533e;
+  background: rgb(248 240 226 / 90%);
+  box-shadow: 0 5px 12px rgb(67 47 29 / 12%);
+  font-size: 0.59rem;
+}
+.map-camera-controls button {
+  min-width: 1.55rem;
+  min-height: 1.55rem;
+  padding: 0.16rem 0.3rem;
+  border: 1px solid #b89e73;
+  color: #594431;
+  background: #eee1cc;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+.map-camera-controls button:hover,
+.map-camera-controls button:focus-visible {
+  border-color: #7f332f;
+  background: #f8eddc;
+}
+.map-camera-status {
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.atlas-delta-focus {
+  animation: atlas-delta-pulse 1.8s ease-out 1;
+}
+.atlas-delta-hit {
+  fill: rgb(255 247 207 / 14%);
+}
+.atlas-focus-ring {
+  fill: none;
+  stroke: #f8e0a2;
+  stroke-width: 3;
+  stroke-dasharray: 5 5;
+  pointer-events: none;
+  animation: atlas-focus-pulse 1.6s ease-in-out infinite;
+}
+.atlas-project-marker rect {
+  stroke-width: 2;
+  filter: drop-shadow(0 2px 2px rgb(50 40 30 / 25%));
+}
+.atlas-project-marker text {
+  fill: #fff5dd;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+.atlas-project-implementing rect {
+  fill: #8b5c3b;
+  stroke: #f5ddb0;
+}
+.atlas-project-completed rect {
+  fill: #3d784c;
+  stroke: #e8f2d2;
+}
+@keyframes atlas-delta-pulse {
+  0% {
+    filter: brightness(1.35) saturate(1.25);
+  }
+  100% {
+    filter: brightness(1) saturate(1);
+  }
+}
+@keyframes atlas-focus-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.chronicle-digest-row {
+  align-items: start;
+}
+.chronicle-digest-row[data-chronicle-level="1"] {
+  border-left: 3px solid #a33d34;
+  background: #f5e2d7;
+}
+.chronicle-digest-row[data-chronicle-level="2"] {
+  border-left: 3px solid #9b7022;
+  background: #f5edd8;
+}
+.chronicle-source-details {
+  margin-top: 0.25rem;
+  color: #8a7862;
+  font-size: 0.6rem;
+}
+.chronicle-source-details summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+.chronicle-source-details small {
+  display: block;
+  margin-top: 0.15rem;
+  overflow-wrap: anywhere;
+}
+.roadmap-panel,
+.state-project-panel {
+  margin: 0 0 1.15rem;
+  padding: 0.85rem;
+  border: 1px solid #d2c2a9;
+  background: #f8f0e2;
+}
+.roadmap-panel .panel-intro,
+.state-project-panel .panel-intro {
+  margin-bottom: 0.7rem;
+}
+.roadmap-graph,
+.state-project-list {
+  display: grid;
+  gap: 0.38rem;
+}
+.roadmap-node,
+.state-project {
+  padding: 0.55rem 0.62rem;
+  border: 1px solid #d2c2a9;
+  background: #fffaf0;
+}
+.roadmap-node-head,
+.state-project-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+.roadmap-node-head strong,
+.state-project-head strong {
+  color: #4c3a2b;
+  font-size: 0.72rem;
+}
+.roadmap-node-head span,
+.state-project-head span,
+.derived-label {
+  color: #806e58;
+  font-size: 0.58rem;
+  font-weight: 900;
+}
+.roadmap-node small,
+.state-project p,
+.state-project small {
+  display: block;
+  margin-top: 0.28rem;
+  color: #806e58;
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+.roadmap-node em {
+  display: block;
+  margin-top: 0.25rem;
+  color: #a33d34;
+  font-size: 0.58rem;
+  font-style: normal;
+  font-weight: 800;
+}
+.roadmap-enacted {
+  border-color: #7da083;
+  background: #edf3e8;
+}
+.roadmap-available {
+  border-color: #b89e73;
+}
+.roadmap-blocked_by_prerequisite,
+.roadmap-blocked_by_incompatibility {
+  border-color: #d7a59a;
+  background: #fbede8;
+}
+.roadmap-edges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+  margin-top: 0.45rem;
+}
+.roadmap-edge {
+  padding: 0.23rem 0.3rem;
+  color: #806e58;
+  background: #eee1cc;
+  font-size: 0.56rem;
+  overflow-wrap: anywhere;
+}
+.roadmap-edge-incompatible {
+  color: #a33d34;
+  background: #f5e2d7;
+}
+.state-project p {
+  margin-bottom: 0;
+}
+.project-progress-track {
+  height: 0.34rem;
+  margin-top: 0.42rem;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #e6d8c0;
+}
+.project-progress-track span {
+  display: block;
+  height: 100%;
+  background: #8b5c3b;
+  transition: width 180ms ease-out;
+}
+.state-project-completed .project-progress-track span {
+  background: #3d784c;
+}
+.project-focus-button {
+  margin-top: 0.45rem;
+  padding: 0.3rem 0.42rem;
+  border: 1px solid #a48655;
+  color: #6e4c2e;
+  background: #eee1cc;
+  font-size: 0.6rem;
+  font-weight: 800;
+}
+.content-studio-shell {
+  min-height: 100svh;
+  padding: clamp(1rem, 3vw, 3rem);
+  color: #4b392c;
+  background: #e8ddca;
+}
+.studio-header,
+.studio-toolbar,
+.studio-layout {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+.studio-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.2rem;
+}
+.studio-header h1 {
+  margin: 0.2rem 0 0;
+  font-family: Georgia, "Noto Serif KR", serif;
+  font-size: clamp(1.8rem, 4vw, 3.5rem);
+}
+.studio-header p {
+  margin: 0.35rem 0 0;
+  color: #806e58;
+  font-size: 0.78rem;
+}
+.studio-back {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #a48655;
+  color: #6e4c2e;
+  background: #f8f0e2;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+.studio-toolbar {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1.6fr) repeat(2, minmax(9rem, 1fr));
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid #d2c2a9;
+  background: #f8f0e2;
+}
+.studio-toolbar label,
+.studio-text-label {
+  display: grid;
+  gap: 0.3rem;
+  color: #806e58;
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+.studio-toolbar input,
+.studio-toolbar select,
+.studio-text-label textarea,
+.studio-patch-tools textarea {
+  width: 100%;
+  border: 1px solid #c6b28f;
+  padding: 0.52rem;
+  color: #4b392c;
+  background: #fffaf0;
+  font: inherit;
+  font-size: 0.72rem;
+}
+.studio-layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.8fr) minmax(0, 1.8fr);
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.studio-record-list,
+.studio-editor {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid #d2c2a9;
+  background: #f8f0e2;
+}
+.studio-list-heading,
+.studio-editor-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.studio-list-heading {
+  margin-bottom: 0.5rem;
+  color: #806e58;
+  font-size: 0.66rem;
+}
+.studio-record-list {
+  display: grid;
+  align-content: start;
+  gap: 0.28rem;
+  max-height: 70svh;
+  overflow: auto;
+}
+.studio-record {
+  display: grid;
+  gap: 0.18rem;
+  width: 100%;
+  padding: 0.48rem;
+  border: 1px solid transparent;
+  color: #806e58;
+  background: transparent;
+  text-align: left;
+}
+.studio-record:hover,
+.studio-record.active {
+  border-color: #b89e73;
+  background: #fffaf0;
+}
+.studio-record strong {
+  color: #4c3a2b;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.62rem;
+  overflow-wrap: anywhere;
+}
+.studio-record span {
+  overflow: hidden;
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.studio-record small,
+.studio-editor-heading p,
+.studio-baseline {
+  color: #9a856d;
+  font-size: 0.57rem;
+}
+.studio-editor h2 {
+  margin: 0.18rem 0 0;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.studio-editor-heading p {
+  margin: 0.2rem 0 0;
+}
+.studio-text-label {
+  margin-top: 1rem;
+}
+.studio-text-label textarea,
+.studio-patch-tools textarea {
+  min-height: 8rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+.studio-diff {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+}
+.studio-diff > div {
+  min-width: 0;
+  padding: 0.55rem;
+  border: 1px solid #d2c2a9;
+  background: #fffaf0;
+}
+.studio-diff p {
+  margin: 0.28rem 0 0;
+  color: #806e58;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.studio-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+}
+.studio-actions button {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #a48655;
+  color: #6e4c2e;
+  background: #eee1cc;
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+.studio-warning {
+  margin: 0.5rem 0 0;
+  color: #a33d34;
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+.studio-patch-tools {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #d2c2a9;
+}
+.studio-status {
+  min-height: 1rem;
+  margin: 0.45rem 0 0;
+  color: #3d784c;
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .map-camera-controls {
+    right: 0.55rem;
+    bottom: 3.85rem;
+  }
+  .map-camera-status {
+    max-width: 5.4rem;
+  }
+  .studio-header,
+  .studio-toolbar,
+  .studio-layout {
+    width: 100%;
+  }
+  .studio-header {
+    align-items: start;
+    flex-direction: column;
+  }
+  .studio-toolbar,
+  .studio-layout,
+  .studio-diff {
+    grid-template-columns: 1fr;
+  }
+  .studio-record-list {
+    max-height: 16rem;
+  }
+}

@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PLAYER_COPY } from "../presentation/design/copyRegistry.ko";
 import { derivePresentationState } from "../presentation/presentationState";
 import { deriveNationalAgendas } from "../sim/readModels/agenda";
-import type { GameEvent } from "../sim/events/event";
 import type { ConflictKind } from "../sim/state/conflict";
 import {
   evaluateInterventionFeasibility,
@@ -17,6 +16,7 @@ import type { CountryId, RegionId } from "../sim/state/ids";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
 import { POLICY_FIXTURE_IDS } from "../sim/state/policyFixture";
 import { deriveOrderConsolidationEligibility } from "../sim/systems/orderConsolidation";
+import { ContentStudio } from "./ContentStudio";
 import {
   advanceDemoRuntime,
   createDemoRuntimeState,
@@ -35,12 +35,20 @@ import { PoliticalAtlas } from "./PoliticalAtlas";
 import { RegionInspector } from "./RegionInspector";
 import { ChroniclePanel } from "./ChroniclePanel";
 import { SPEED_INTERVAL_MS, type DemoSpeed } from "./demoSpeed";
+import { deriveChronicleDigest } from "./chronicleDigest";
 import {
   eventLabel,
   formatDate,
   isSignificantEvent,
   selectSignificantEvents,
 } from "./gamePresentation";
+import { deriveInstitutionalRoadmap } from "./institutionalRoadmap";
+import { isAutoPauseWorthyEvent } from "./autoPause";
+import { deriveStateProjectPresentations } from "./stateProjects";
+import {
+  deriveWorldVisualDeltas,
+  type WorldVisualDelta,
+} from "./worldVisualDelta";
 import { TitleScreen } from "./TitleScreen";
 import { transitionProductScreen, type ProductScreen } from "./screenFlow";
 
@@ -51,23 +59,6 @@ if (PLAYER_COUNTRY_ID === null) {
 }
 
 const PLAYER_ID: CountryId = PLAYER_COUNTRY_ID;
-
-const MAJOR_EVENT_TYPES = new Set<GameEvent["type"]>([
-  "COUP_ATTEMPT_STARTED",
-  "REBELLION_STARTED",
-  "POLICY_ENACTED",
-  "INTERVENTION_STARTED",
-  "INTERVENTION_COMPLETED",
-  "CONFLICT_RESOLVED",
-  "LAND_HEX_CONTROL_CHANGED",
-  "BORDER_CLOSED",
-  "BORDER_REOPENED",
-  "CIVIL_WAR_STARTED",
-  "GOVERNMENT_TRANSITIONED",
-  "ORDER_CONSOLIDATION_STARTED",
-  "ORDER_CONSOLIDATED",
-  "STATE_DISSOLVED",
-]);
 
 function conflictKindLabel(kind: ConflictKind): string {
   switch (kind) {
@@ -101,6 +92,12 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     GAMEBUILDERS_DEMO_SCENARIO.initialRegions[0]?.id ?? null,
   );
   const [activePanel, setActivePanel] = useState<ContextPanel>("map");
+  const [visualDeltas, setVisualDeltas] = useState<readonly WorldVisualDelta[]>(
+    [],
+  );
+  const [mapFocusRegionId, setMapFocusRegionId] = useState<RegionId | null>(
+    null,
+  );
 
   useEffect(() => {
     recordRef.current = record;
@@ -152,6 +149,35 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     () => derivePresentationState(GAMEBUILDERS_DEMO_SCENARIO, record.world),
     [record],
   );
+  const commitRuntimeTransition = useCallback(
+    (previous: DemoRuntimeState, next: DemoRuntimeState) => {
+      const previousEventIds = new Set(
+        previous.eventStore.events.map((event) => event.id),
+      );
+      const newEvents = next.eventStore.events.filter(
+        (event) => !previousEventIds.has(event.id),
+      );
+      const deltas = deriveWorldVisualDeltas({
+        previous: derivePresentationState(
+          GAMEBUILDERS_DEMO_SCENARIO,
+          previous.world,
+        ),
+        next: derivePresentationState(GAMEBUILDERS_DEMO_SCENARIO, next.world),
+        events: newEvents,
+        previousPolicy: previous.world.policies[PLAYER_ID],
+        nextPolicy: next.world.policies[PLAYER_ID],
+      });
+      setVisualDeltas(deltas);
+      const focusRegionId = deltas.flatMap((delta) => delta.regionIds)[0];
+      if (focusRegionId !== undefined) {
+        setMapFocusRegionId(focusRegionId as RegionId);
+      }
+      recordRef.current = next;
+      setRecord(next);
+      return newEvents;
+    },
+    [],
+  );
   const agendas = useMemo(
     () =>
       deriveNationalAgendas({
@@ -168,6 +194,34 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       deriveOrderConsolidationEligibility(
         GAMEBUILDERS_DEMO_SCENARIO,
         record.world,
+      ),
+    [record],
+  );
+  const roadmap = useMemo(
+    () =>
+      policyState === undefined
+        ? { nodes: [], edges: [] }
+        : deriveInstitutionalRoadmap(
+            policyState,
+            GAMEBUILDERS_DEMO_SCENARIO.policyCatalog,
+          ),
+    [policyState],
+  );
+  const projects = useMemo(
+    () =>
+      deriveStateProjectPresentations(
+        GAMEBUILDERS_DEMO_SCENARIO,
+        record.world,
+        record.eventStore.events,
+      ),
+    [record],
+  );
+  const chronicleDigest = useMemo(
+    () =>
+      deriveChronicleDigest(
+        record.eventStore.events,
+        GAMEBUILDERS_DEMO_SCENARIO,
+        12,
       ),
     [record],
   );
@@ -281,19 +335,10 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
 
     stepLockRef.current = true;
     try {
-      const previousEventIds = new Set(
-        current.eventStore.events.map((event) => event.id),
-      );
       const next = advanceDemoRuntime(current, 1);
-      const newEvents = next.eventStore.events.filter(
-        (event) => !previousEventIds.has(event.id),
-      );
-      const majorEvent = newEvents.find((event) =>
-        MAJOR_EVENT_TYPES.has(event.type),
-      );
+      const newEvents = commitRuntimeTransition(current, next);
+      const majorEvent = newEvents.find(isAutoPauseWorthyEvent);
       const significantEvent = newEvents.find(isSignificantEvent);
-      recordRef.current = next;
-      setRecord(next);
 
       if (majorEvent !== undefined) {
         const mapped = eventLabel(majorEvent, GAMEBUILDERS_DEMO_SCENARIO);
@@ -315,7 +360,13 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     } finally {
       stepLockRef.current = false;
     }
-  }, [autoPauseMajorEvents, clearClock, playTone, speed]);
+  }, [
+    autoPauseMajorEvents,
+    clearClock,
+    commitRuntimeTransition,
+    playTone,
+    speed,
+  ]);
 
   useEffect(() => {
     clearClock();
@@ -343,9 +394,9 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const advance = (days: number) => {
     clearClock();
     setIsPlaying(false);
-    const next = advanceDemoRuntime(recordRef.current, days);
-    recordRef.current = next;
-    setRecord(next);
+    const current = recordRef.current;
+    const next = advanceDemoRuntime(current, days);
+    commitRuntimeTransition(current, next);
     setFlowNotice(`수동 보조 진행 · ${next.world.tick}일차`);
     playTone("confirm");
   };
@@ -353,9 +404,9 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const submitAction = (interventionId: InterventionDefinition["id"]) => {
     clearClock();
     setIsPlaying(false);
-    const next = submitRuntimeIntervention(recordRef.current, interventionId);
-    recordRef.current = next;
-    setRecord(next);
+    const current = recordRef.current;
+    const next = submitRuntimeIntervention(current, interventionId);
+    commitRuntimeTransition(current, next);
     setFlowNotice("행동 제출 완료 · 시간이 일시정지되었습니다.");
     playTone("confirm");
   };
@@ -363,15 +414,16 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const submitPolicy = (policyId: PolicyDefinition["id"]) => {
     clearClock();
     setIsPlaying(false);
-    const next = submitRuntimePolicy(recordRef.current, policyId);
-    recordRef.current = next;
-    setRecord(next);
+    const current = recordRef.current;
+    const next = submitRuntimePolicy(current, policyId);
+    commitRuntimeTransition(current, next);
     setFlowNotice("정책 제출 완료 · 제도 기록을 갱신했습니다.");
     playTone("confirm");
   };
 
   const focusRegion = (regionId: RegionId) => {
     setSelectedRegionId(regionId);
+    setMapFocusRegionId(regionId);
     setActivePanel("region");
   };
 
@@ -425,6 +477,13 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
             presentation={presentation}
             selectedRegionId={selectedRegionId}
             onSelectRegion={focusRegion}
+            onClearFocus={() => {
+              setMapFocusRegionId(null);
+              setActivePanel("map");
+            }}
+            projects={projects}
+            visualDeltas={visualDeltas}
+            focusRegionId={mapFocusRegionId}
           />
           <div className="map-fact-strip" aria-label="현재 세계 사실">
             <span>
@@ -509,6 +568,9 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
               world={record.world}
               policyState={policyState}
               policyCandidates={policyCandidates}
+              roadmap={roadmap}
+              projects={projects}
+              onFocusProject={focusRegion}
               onSubmit={submitAction}
               onSubmitPolicy={submitPolicy}
             />
@@ -520,6 +582,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
           ) : activePanel === "chronicle" ? (
             <ChroniclePanel
               events={visibleEvents}
+              digest={chronicleDigest}
               scenario={GAMEBUILDERS_DEMO_SCENARIO}
             />
           ) : null}
@@ -531,6 +594,13 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
 
 export function App() {
   const [screen, setScreen] = useState<ProductScreen>("title");
+  if (
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("contentStudio") === "1"
+  ) {
+    return <ContentStudio />;
+  }
   if (screen === "title") {
     return (
       <TitleScreen

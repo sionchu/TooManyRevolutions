@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import {
   COUNTRY_CREST_ASSET_IDS,
   FACTION_EMBLEM_ASSET_IDS,
@@ -11,6 +13,8 @@ import type {
 } from "../presentation/presentationState";
 import { TMR_LAYER_REGISTRY } from "../presentation/design/layerRegistry";
 import type { CountryId, RegionId } from "../sim/state/ids";
+import type { StateProjectPresentation } from "./stateProjects";
+import type { WorldVisualDelta } from "./worldVisualDelta";
 
 const HEX_SIZE = 42;
 const MAP_CENTER_X = 400;
@@ -53,6 +57,46 @@ function verticesFor(center: Point): readonly Point[] {
 
 function pointsString(points: readonly Point[]): string {
   return points.map((point) => `${point.x},${point.y}`).join(" ");
+}
+
+interface MapBounds {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+function mapBounds(presentation: PresentationState): MapBounds {
+  const points = presentation.landHexes.flatMap((hex) =>
+    verticesFor(centerFor(hex.coordinate.q, hex.coordinate.r)),
+  );
+  if (points.length === 0) return { x: 0, y: 0, width: 800, height: 480 };
+  const minX = Math.min(...points.map((point) => point.x));
+  const maxX = Math.max(...points.map((point) => point.x));
+  const minY = Math.min(...points.map((point) => point.y));
+  const maxY = Math.max(...points.map((point) => point.y));
+  const padding = 28;
+  return {
+    x: minX - padding,
+    y: minY - padding,
+    width: maxX - minX + padding * 2,
+    height: maxY - minY + padding * 2,
+  };
+}
+
+function cameraViewBox(
+  bounds: MapBounds,
+  focus: Point | undefined,
+  zoom: number,
+): string {
+  const safeZoom = Math.max(1, Math.min(2.4, zoom));
+  const width = bounds.width / safeZoom;
+  const height = bounds.height / safeZoom;
+  const target = focus ?? {
+    x: bounds.x + bounds.width / 2,
+    y: bounds.y + bounds.height / 2,
+  };
+  return `${target.x - width / 2} ${target.y - height / 2} ${width} ${height}`;
 }
 
 function averagePoint(points: readonly Point[]): Point {
@@ -225,11 +269,20 @@ export function PoliticalAtlas({
   presentation,
   selectedRegionId,
   onSelectRegion,
+  onClearFocus,
+  projects,
+  visualDeltas,
+  focusRegionId,
 }: {
   readonly presentation: PresentationState;
   readonly selectedRegionId: RegionId | null;
   readonly onSelectRegion: (regionId: RegionId) => void;
+  readonly onClearFocus: () => void;
+  readonly projects: readonly StateProjectPresentation[];
+  readonly visualDeltas: readonly WorldVisualDelta[];
+  readonly focusRegionId: RegionId | null;
 }) {
+  const [zoom, setZoom] = useState(1);
   const regions = new Map(
     presentation.regions.map((region) => [region.regionId, region]),
   );
@@ -238,6 +291,12 @@ export function PoliticalAtlas({
   );
   const visuals = countryVisuals(presentation.countries);
   const centers = regionCenters(presentation);
+  const bounds = mapBounds(presentation);
+  const activeDeltaRegions = new Set(
+    visualDeltas.flatMap((delta) => delta.regionIds),
+  );
+  const focusedCenter =
+    focusRegionId === null ? undefined : centers.get(focusRegionId);
   const politicalCenters = countryCenters(presentation, centers);
   const hexesByCoordinate = new Map(
     presentation.landHexes.map((hex) => [
@@ -262,9 +321,11 @@ export function PoliticalAtlas({
       <div className="map-wrap">
         <svg
           className="hex-map political-atlas"
-          viewBox="195 75 600 405"
+          viewBox={cameraViewBox(bounds, focusedCenter, zoom)}
           role="img"
           aria-label="아르켄 왕국과 벨로리아·카르센 접경국의 정치 지도"
+          data-camera-focus={focusRegionId ?? "world"}
+          data-camera-zoom={zoom.toFixed(2)}
         >
           <defs>
             <pattern
@@ -319,7 +380,7 @@ export function PoliticalAtlas({
               return (
                 <polygon
                   key={`political-${hex.landHexId}`}
-                  className="atlas-political-fill"
+                  className={`atlas-political-fill${activeDeltaRegions.has(hex.regionId) ? " atlas-delta-focus" : ""}`}
                   points={pointsString(vertices)}
                   fill={fill}
                   aria-hidden="true"
@@ -341,7 +402,7 @@ export function PoliticalAtlas({
                 .map((hex) => (
                   <polygon
                     key={`ideology-${hex.landHexId}`}
-                    className="atlas-ideology-overlay"
+                    className={`atlas-ideology-overlay${activeDeltaRegions.has(region.regionId) ? " atlas-delta-focus" : ""}`}
                     points={pointsString(
                       verticesFor(
                         centerFor(hex.coordinate.q, hex.coordinate.r),
@@ -376,7 +437,7 @@ export function PoliticalAtlas({
               return (
                 <polygon
                   key={`controller-${hex.landHexId}`}
-                  className={`atlas-controller-overlay controller-${hex.controller.kind}${sameAsOwner ? " controller-same" : ""}`}
+                  className={`atlas-controller-overlay controller-${hex.controller.kind}${sameAsOwner ? " controller-same" : ""}${activeDeltaRegions.has(hex.regionId) ? " atlas-delta-focus" : ""}`}
                   points={pointsString(verticesFor(center))}
                   fill={sameAsOwner ? "none" : fill}
                   data-controller-kind={hex.controller.kind}
@@ -448,7 +509,7 @@ export function PoliticalAtlas({
               return (
                 <circle
                   key={`pressure-${region.regionId}`}
-                  className="atlas-pressure-pulse"
+                  className={`atlas-pressure-pulse${activeDeltaRegions.has(region.regionId) ? " atlas-delta-focus" : ""}`}
                   cx={center.x}
                   cy={center.y}
                   r={5 + pressure * 18}
@@ -554,6 +615,31 @@ export function PoliticalAtlas({
                 </g>
               );
             })}
+            {projects
+              .filter((project) => project.status !== "not-started")
+              .map((project) => {
+                const center = centers.get(project.anchorRegionId);
+                if (center === undefined) return null;
+                return (
+                  <g
+                    key={project.id}
+                    className={`atlas-project-marker atlas-project-${project.status}`}
+                    transform={`translate(${center.x + 28} ${center.y + 20})`}
+                    data-project-id={project.id}
+                    data-source-intervention-id={project.sourceInterventionId}
+                  >
+                    <rect x="-13" y="-13" width="26" height="26" rx="6" />
+                    <text y="5" textAnchor="middle">
+                      {project.landmarkKind === "food"
+                        ? "粮"
+                        : project.landmarkKind === "industrial"
+                          ? "산"
+                          : "헌"}
+                    </text>
+                    <title>{`${project.name} · ${Math.round(project.progress * 100)}%`}</title>
+                  </g>
+                );
+              })}
           </g>
           <g
             data-layer-id="tmr.layer.map.labels"
@@ -619,7 +705,7 @@ export function PoliticalAtlas({
               return (
                 <polygon
                   key={`interactive-${hex.landHexId}`}
-                  className={`atlas-hit-area${selectedRegionId === hex.regionId ? " atlas-hit-selected" : ""}`}
+                  className={`atlas-hit-area${selectedRegionId === hex.regionId ? " atlas-hit-selected" : ""}${activeDeltaRegions.has(hex.regionId) ? " atlas-delta-hit" : ""}`}
                   points={pointsString(verticesFor(center))}
                   tabIndex={0}
                   role="button"
@@ -634,8 +720,51 @@ export function PoliticalAtlas({
                 />
               );
             })}
+            {focusRegionId === null || focusedCenter === undefined ? null : (
+              <circle
+                className="atlas-focus-ring"
+                cx={focusedCenter.x}
+                cy={focusedCenter.y}
+                r={HEX_SIZE * 1.35}
+                data-focus-region-id={focusRegionId}
+              />
+            )}
           </g>
         </svg>
+        <div className="map-camera-controls" aria-label="지도 카메라">
+          <span className="eyebrow">지도 시선</span>
+          <button
+            type="button"
+            aria-label="지도 축소"
+            data-map-zoom="out"
+            onClick={() => setZoom((value) => Math.max(1, value / 1.18))}
+          >
+            −
+          </button>
+          <button
+            type="button"
+            aria-label="지도 확대"
+            data-map-zoom="in"
+            onClick={() => setZoom((value) => Math.min(2.4, value * 1.18))}
+          >
+            +
+          </button>
+          <button
+            type="button"
+            data-map-focus="world"
+            onClick={() => {
+              setZoom(1);
+              onClearFocus();
+            }}
+          >
+            전체 보기
+          </button>
+          <span className="map-camera-status">
+            {focusRegionId === null
+              ? "전체 세계"
+              : `${regionName(regions, focusRegionId)} 중심`}
+          </span>
+        </div>
         <div className="map-legend" aria-label="지도 범례">
           {presentation.countries.map((country, index) => (
             <span key={country.countryId}>

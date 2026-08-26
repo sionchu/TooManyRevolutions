@@ -20,6 +20,8 @@ import { asConflictId } from "../sim/state/ids";
 import { IDEOLOGY_FIXTURE_IDS } from "../sim/state/ideologyFixture";
 import { createInitialWorldState } from "../sim/state/world";
 import { deriveOrderConsolidationEligibility } from "../sim/systems/orderConsolidation";
+import { deriveInstitutionalRoadmap } from "./institutionalRoadmap";
+import { deriveStateProjectPresentations } from "./stateProjects";
 
 describe("GAMEBUILDERS gameplay reality read models", () => {
   it("keeps current LandHex control and active Conflict in the presentation state", () => {
@@ -67,6 +69,10 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
         presentation: presented,
         selectedRegionId: null,
         onSelectRegion: () => undefined,
+        onClearFocus: () => undefined,
+        projects: [],
+        visualDeltas: [],
+        focusRegionId: null,
       }),
     );
     expect(mapMarkup).toContain('data-controller-kind="faction"');
@@ -169,6 +175,16 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
         world,
         policyState,
         policyCandidates,
+        roadmap: deriveInstitutionalRoadmap(
+          policyState!,
+          GAMEBUILDERS_DEMO_SCENARIO.policyCatalog,
+        ),
+        projects: deriveStateProjectPresentations(
+          GAMEBUILDERS_DEMO_SCENARIO,
+          world,
+          [],
+        ),
+        onFocusProject: () => undefined,
         onSubmit: () => undefined,
         onSubmitPolicy: () => undefined,
       }),
@@ -178,6 +194,10 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
         presentation,
         selectedRegionId: null,
         onSelectRegion: () => undefined,
+        onClearFocus: () => undefined,
+        projects: [],
+        visualDeltas: [],
+        focusRegionId: null,
       }),
     );
 

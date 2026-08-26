@@ -1,15 +1,21 @@
 import { PLAYER_COPY } from "../presentation/design/copyRegistry.ko";
 import type { GameEvent } from "../sim/events/event";
 import type { ScenarioDefinition } from "../sim/state/scenario";
-import { eventLabel } from "./gamePresentation";
+import {
+  deriveChronicleDigest,
+  type ChronicleDigestItem,
+} from "./chronicleDigest";
 
 export function ChroniclePanel({
   events,
+  digest,
   scenario,
 }: {
-  readonly events: readonly GameEvent[];
+  readonly events?: readonly GameEvent[];
+  readonly digest?: readonly ChronicleDigestItem[];
   readonly scenario: ScenarioDefinition;
 }) {
+  const items = digest ?? deriveChronicleDigest(events ?? [], scenario);
   return (
     <section className="panel event-panel">
       <div className="panel-heading">
@@ -17,26 +23,35 @@ export function ChroniclePanel({
           <span className="eyebrow">{PLAYER_COPY.main.chronicleEyebrow}</span>
           <h2>{PLAYER_COPY.main.chronicleTitle}</h2>
         </div>
-        <span className="panel-count">{events.length}건</span>
+        <span className="panel-count">{items.length}묶음</span>
       </div>
       <div className="event-list">
-        {events.length === 0 ? (
+        {items.length === 0 ? (
           <p className="empty-state">아직 기록된 사건이 없습니다.</p>
         ) : (
-          events.map((event) => {
-            const mapped = eventLabel(event, scenario);
+          items.map((item) => {
             return (
               <article
-                className={`event-row${mapped.crisis ? " event-crisis" : ""}`}
-                key={event.id}
+                className={`event-row chronicle-digest-row${item.crisis ? " event-crisis" : ""}`}
+                key={item.id}
+                data-chronicle-level={item.level}
+                data-source-event-ids={item.sourceEventIds.join(",")}
               >
-                <time>{event.tick}일</time>
+                <time>{item.tick}일</time>
                 <div>
-                  <strong>{mapped.title}</strong>
-                  <span>{mapped.detail}</span>
+                  <strong>{item.title}</strong>
+                  <span>{item.detail}</span>
+                  <details className="chronicle-source-details">
+                    <summary>원문 기록 {item.sourceEventIds.length}건</summary>
+                    <small>{item.sourceEventIds.join(" · ")}</small>
+                  </details>
                 </div>
                 <small>
-                  {event.visibility === "important" ? "중요" : "일반"}
+                  {item.level === 1
+                    ? "주요"
+                    : item.level === 2
+                      ? "전략"
+                      : "추세"}
                 </small>
               </article>
             );

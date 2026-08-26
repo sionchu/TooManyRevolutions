@@ -14,6 +14,10 @@ import type { WorldState } from "../sim/state/world";
 import type { PrimaryAgenda } from "../sim/readModels/agenda";
 import { DecisionCard } from "./DecisionCard";
 import { PolicyCard } from "./PolicyCard";
+import { InstitutionalRoadmapPanel } from "./InstitutionalRoadmapPanel";
+import type { InstitutionalRoadmap } from "./institutionalRoadmap";
+import { StateProjectPanel } from "./StateProjectPanel";
+import type { StateProjectPresentation } from "./stateProjects";
 import {
   REGIME_LABELS,
   RULE_LABELS,
@@ -37,6 +41,9 @@ export function DecisionPanel({
   world,
   policyState,
   policyCandidates,
+  roadmap,
+  projects,
+  onFocusProject,
   onSubmit,
   onSubmitPolicy,
 }: {
@@ -46,6 +53,11 @@ export function DecisionPanel({
   readonly world: WorldState;
   readonly policyState: PolicyState | undefined;
   readonly policyCandidates: readonly PolicyCandidate[];
+  readonly roadmap: InstitutionalRoadmap;
+  readonly projects: readonly StateProjectPresentation[];
+  readonly onFocusProject: (
+    regionId: StateProjectPresentation["anchorRegionId"],
+  ) => void;
   readonly onSubmit: (interventionId: InterventionDefinition["id"]) => void;
   readonly onSubmitPolicy: (policyId: PolicyDefinition["id"]) => void;
 }) {
@@ -69,6 +81,8 @@ export function DecisionPanel({
         정책과 개입은 공통 action pipeline으로 다음 tick에 반영됩니다. 카드는
         확정 변화만 먼저 보여주고, 세부 조건은 접어 둡니다.
       </p>
+      <InstitutionalRoadmapPanel roadmap={roadmap} />
+      <StateProjectPanel projects={projects} onFocusRegion={onFocusProject} />
       <div className="decision-group">
         <div className="decision-group-heading">
           <span className="eyebrow">법과 제도</span>

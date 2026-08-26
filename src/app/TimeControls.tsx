@@ -44,13 +44,16 @@ export function TimeControls({
           </button>
         ))}
       </div>
-      <label className="auto-pause-toggle">
+      <label
+        className="auto-pause-toggle"
+        data-auto-pause-scope="consequential-transitions"
+      >
         <input
           type="checkbox"
           checked={autoPauseMajorEvents}
           onChange={(event) => onSetAutoPause(event.target.checked)}
         />
-        중요 사건 시 자동 일시정지
+        중대 전환 때만 자동 일시정지
       </label>
       <span className="time-status" role="status" aria-live="polite">
         {flowNotice}

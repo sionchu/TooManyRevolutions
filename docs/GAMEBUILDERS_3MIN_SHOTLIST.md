@@ -24,7 +24,7 @@ The same URL is recorded in `docs/bridge/results/GAMEBUILDERS_DEMO_SPRINT_01_RES
 
 ## Capture guardrails
 
-- Keep `중요 사건 시 자동 일시정지` enabled for the first pass if a major event is useful; it is an optional presentation setting, not a game rule.
+- Keep `중대 전환 때만 자동 일시정지` enabled for the first pass if a state transition is useful; it is an optional presentation setting, not a game rule.
 - If no coup or rebellion event occurs in the short capture, do not manufacture a crisis banner. Show the factual Agenda and EventStore instead; crisis presentation is conditional on actual `COUP_ATTEMPT_STARTED` or `REBELLION_STARTED` evidence.
 - The horizon audit found a late-state stall, so do not use fast speed to imply a complete twenty-year arc. The 3-minute capture is a short-horizon playable slice.
 - The task delivered capture readiness and a shot list, not a recorded video file.
