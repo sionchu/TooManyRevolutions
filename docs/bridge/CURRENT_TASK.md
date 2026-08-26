@@ -1,145 +1,232 @@
 # TMR Current Bridge Task
 
-TASK_ID: F05_FIX16
-STATUS: COMPLETE / AWAITING_CHATGPT_REVIEW
-BASE_BRANCH: master
-TASK_COMMIT: 7a75116f74fadeb1fa4cc98f91591b1607999ead
-STATE_ACTIVATION_COMMIT: 5075eca39da977d630e9359c795b057274665262
-TASK_FILE: NONE
-COMMIT_POLICY: COMMIT_AND_PUSH_ON_PASS
-RESULT_PATH: docs/bridge/results/F05_FIX16_RESULT.md
-TASK_RESULT_COMMIT: f096a84
-END_COMMIT: f096a84
+TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
+STATUS: AUTHORIZED
+BASE_IMPLEMENTATION_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
+BASE_IMPLEMENTATION_BRANCH: gamebuilders-demo-sprint-01
+WORK_BRANCH: gamebuilders-product-surface-p0
+TASK_FILE: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0.md
+MAP_FIRST_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_FIRST_ADDENDUM.md
+GAMEPLAY_REALITY_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAMEPLAY_REALITY_ADDENDUM.md
+GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM.md
+GAME_VISUAL_UX_RENDER_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_VISUAL_UX_RENDER_ADDENDUM.md
+GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM.md
+PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM.md
+GDD_AMENDMENT: docs/GDD_GAME_LOOP_WORLD_FEEL_ADDENDUM_2026-08-26.md
+ARCHITECTURE_AMENDMENT: docs/ARCHITECTURE_P0_RENDERER_CONTENT_BOUNDARY_ADDENDUM_2026-08-26.md
+DECISION_RECORD: docs/DECISION_GAMEBUILDERS_P0_GAME_LOOP_RENDERER_CONTENT_STUDIO_2026-08-26.md
+QA_ADDENDUM: docs/QA_GAMEBUILDERS_P0_GAME_LOOP_WORLD_FEEL_2026-08-26.md
+BACKLOG_ADDENDUM: docs/BACKLOG_GAMEBUILDERS_P0_GAME_LOOP_WORLD_FEEL_2026-08-26.md
+RESULT_PATH: docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md
 
-## Mission summary
-
-F05_FIX15 is reviewed/accepted as:
-
-```text
-WAR_POLITICS_REQUIRES_NEW_AUTHORITATIVE_DOMAIN
-COUP_REQUIRES_NEW_COORDINATION_DOMAIN: YES
-REBELLION_REQUIRES_SETTLEMENT_OR_PERSISTENCE_DOMAIN: YES
-```
-
-F05_FIX16 chooses the coup branch and closes it for the current Gate 1F repair.
-
-Required question:
+## Accepted predecessor
 
 ```text
-Can TMR model coup success/failure with a bounded coup-only set of explicit decisive coordination actors and categorical observable alignment/action provenance,
-without creating a general military/state-apparatus simulation, hidden coordination score, random roll, or fake territorial battle?
-```
-
-Repository note: T018 currently has unimplemented `militarySympathy` and `leadership` future-evidence placeholders. These are evidence that the gap was anticipated; they are not permission to implement scalar loyalty/coordination meters.
-
-## Exact outcomes
-
-Exactly one:
-
-```text
-COUP_COORDINATION_MINIMAL_DOMAIN_DESIGNABLE
-COUP_COORDINATION_REJECTED_FOR_GATE1F
-```
-
-If designable:
-
-```text
-NEXT_IMPLEMENTATION_READINESS: COUP_COORDINATION_AUTHORING_SEAM
-```
-
-If honest modeling requires a broad military/state-apparatus actor model, command hierarchy, communications network, hidden belief model, officer-loyalty system, or tactical units:
-
-```text
-NEXT_IMPLEMENTATION_READINESS: PIVOT_TO_REBELLION_PERSISTENCE_GROUNDING
-```
-
-There is no third open-ended coup-grounding outcome.
-
-## Required audit
-
-- compare reuse of current `Faction` vs `Government` vs narrow coup-only coordination actor/node vs broader state-apparatus actor domain;
-- audit categorical `incumbent | coup | uncommitted` only as observable alignment, not a loyalty/belief meter;
-- identify an explicit authoritative transition/writer provenance contract or reject the coup route;
-- identify an honest discrete success/failure rule or reject the coup route;
-- preserve existing `ConflictOutcome.statusQuo` / nonterminal `governmentTransition` as result sinks only;
-- replay/inspect the exact late coup blocker for relevance;
-- produce the required design/result docs;
-- make no production gameplay implementation.
-
-## Forbidden scope
-
-- no new WorldState/Conflict/Government/Faction fields;
-- no new ActionRecord type or coup outcome writer;
-- no T018/T021/T022/T023 changes;
-- no persistence change; remain V6;
-- no numeric coup support/coordination/loyalty/command-cohesion/inevitability/progress score;
-- no random roll;
-- no majority rule unless the actor contract itself makes that discrete rule explicitly grounded;
-- no inferred alignment from militaryPower, stateCapacity, legitimacy, instability, Faction grievance/organization/resources/influence, ideology, name, currentStrategy, Agenda, or LandHex count;
-- no fake coup LandHex front;
-- no state dissolution from coup/Government transition;
-- no FUND_MOVEMENT extension;
-- no rebellion implementation;
-- no V02/UI/runtime LLM solver;
-- no Gate 1F PASS or F05_FIX17 self-authorization.
-
-## Repository-root / Codex Desktop freshness guard
-
-The real repository is the nested `TooManyRevolutions` directory.
-
-**The existing Codex Desktop thread may be reused. A new thread is not required.**
-
-First externally synchronize the real nested repository. Then in the existing thread/worktree run:
-
-```bash
-git status
-git rev-parse HEAD
-git rev-parse master
-git rev-parse origin/master
-```
-
-If the worktree is clean, `master`/`origin/master` are current, and only HEAD is behind, `git merge --ff-only origin/master` is permitted.
-
-Do not reset/rebase/force or create a new branch merely to bypass freshness.
-
-Proceed only when the worktree is clean and `HEAD == origin/master ==` the exact current GitHub master activation SHA supplied by ChatGPT/user.
-
-If parent `Game-TMR` shows `TooManyRevolutions/` as untracked, `cd TooManyRevolutions` first and never modify/configure/reset the parent repository.
-
-## Verification
-
-Follow the immutable task, including at minimum:
-
-```bash
-pnpm install --frozen-lockfile
-pnpm run format
-pnpm run typecheck
-pnpm run lint
-pnpm run build
-pnpm run inspect:t024
-pnpm run inspect:f05
-pnpm run inspect:f05fix9
-pnpm run inspect:f05fix14
-# focused F05_FIX16 inspection only if developer-only code was added
-pnpm test
-git diff --check
-```
-
-Report the known Vitest `onTaskUpdate` runner/IPC issue separately from assertion status if it reproduces.
-
-## Completion
-
-```text
-F05_FIX16: COMPLETE / AWAITING_CHATGPT_REVIEW
-LAST_COMPLETED_TASK_ID: F05_FIX16
-NEXT_AUTHORIZED_TASK_ID: NONE
-NEXT_TASK_STATUS: WAITING_FOR_CHATGPT_REVIEW
-CURRENT_TASK_FILE: NONE
+GAMEBUILDERS_DEMO_SPRINT_01: COMPLETE / REVIEWED / TECHNICAL_PASS / ACCEPTED_AS_VERTICAL_SLICE
+REVIEWED_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
+SITES_STATUS: DEPLOYED
+DEMO_HORIZON_STATUS: STRONG_SHORT_HORIZON_LATE_STALL
+PERSISTENCE_ACCEPTED: SerializedSimulationSnapshotV8 / format version 8
 GATE1F: NOT_READY
 V02: NOT_STARTED
-F05_FIX17: NOT_AUTHORIZED
 ```
 
-F05_FIX16 stops at grounding/design, verification, result documentation,
-commit, and push. It does not authorize F05_FIX17, Gate 1F PASS, V02, or
-production coup gameplay.
+## Current blocking product finding
+
+Hands-on review of the in-progress P0 Site shows four linked blockers:
+
+1. **gameplay reality / dynamism:** real state changes now occur, but the player still experiences too much of the loop as time -> banner/counter -> text choice;
+2. **visual grammar:** the screen still risks reading as a parchment-themed responsive website/admin dashboard instead of a game world;
+3. **history/progression communication:** low-level ideology/faction events can become repetitive Chronicle rows while major spatial/institutional consequences are not dominant enough;
+4. **medium-term state-building fantasy:** policy choices do not yet create enough visible accumulated institutional path and map-linked project/landmark history, so the player lacks the satisfying sense of building a distinct state over time.
+
+The next work must repair those blockers before more decorative static art is accepted.
+
+## Mandatory preflight — documentation alignment
+
+Before new gameplay/UI implementation, read the five alignment documents referenced above and fold their durable requirements into the canonical relevant sections of:
+
+```text
+docs/GDD.md
+docs/ARCHITECTURE.md
+docs/DECISIONS.md
+docs/BACKLOG.md
+docs/QA_PLAYTEST.md
+```
+
+Do not delete historical decisions or weaken existing simulation-authority contracts. The amendment/addendum files remain historical evidence after canonical integration.
+
+## Mandatory execution order
+
+Read and execute all seven task/addendum documents. Later addenda strengthen earlier ones; they do not authorize bypassing simulation truth.
+
+1. `GAMEBUILDERS_PRODUCT_SURFACE_P0.md`
+2. `GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_FIRST_ADDENDUM.md`
+3. `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAMEPLAY_REALITY_ADDENDUM.md`
+4. `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM.md`
+5. `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_VISUAL_UX_RENDER_ADDENDUM.md`
+6. `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM.md`
+7. `GAMEBUILDERS_PRODUCT_SURFACE_P0_PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM.md`
+
+Priority inside the remaining sprint:
+
+```text
+documentation alignment checkpoint
+-> Gameplay Reality repair
+-> audit/relax routine auto-pause so flow is observation + selective intervention rather than modal paperwork
+-> factual changes visible on map
+-> ChronicleDigest / event hierarchy so low-level changes do not become log spam
+-> bounded PixiJS renderer spike / renderer decision
+-> map/world-stage visual composition + terrain/asset density
+-> real Policy Institutional Roadmap
+-> 2–4 map-linked State Projects / landmark traces from existing authoritative lifecycles
+-> factual WorldVisualDelta feedback / camera / motion
+-> compact game-native HUD and spatial decision UX
+-> Content Studio / stable-ID branch-and-variant editable player copy
+-> responsive QA / Sites redeploy
+```
+
+## Required gameplay-reality outcomes
+
+```text
+SYSTEM_PROPOSAL_CARRY_LOOP: IMPLEMENTED_AND_TESTED
+IDEOLOGY_DIFFUSION_IN_DEMO_RUNTIME: ENABLED
+CURRENT_CONTROLLER_VISUALLY_DISTINCT_FROM_OWNER: YES
+ACTIVE_CONFLICT_PERSISTENT_PRESENTATION: YES
+SIGNIFICANT_EVENT_FEED: YES
+PLAYER_POLICY_ACTIONS: YES
+CONSOLIDATION_OBJECTIVE_BLOCKERS_VISIBLE: YES
+PLAYER_OBSERVABLE_DYNAMICS_AUDIT: PASS_OR_BLOCKER_DOCUMENTED
+DAY_1000_LOOKS_IDENTICAL_TO_DAY_0: NO
+ROUTINE_AUTO_PAUSE_DOMINATES_GAME_LOOP: NO
+```
+
+## Required game-feel / progression outcomes
+
+The player fantasy is no longer only `time -> crisis text -> intervention text`. Existing authoritative systems must accumulate into visible history.
+
+```text
+INSTITUTIONAL_ROADMAP: visual graph of real PolicyDefinition prerequisites/incompatibilities
+GENERIC_TECH_OR_POLICY_MANA: NO
+STATE_PROJECT_PRESENTATION: 2–4 existing actions with defensible map-linked presentation
+PROJECT_PROGRESS: projection of existing intervention duration only
+COMPLETED_PROJECT_LEAVES_MAP_VISIBLE_TRACE: YES
+WORLD_VISUAL_DELTA_PIPELINE: factual state/event-driven feedback
+CHRONICLE_DIGEST: grouped presentation of low-level factual events with source EventId drill-down
+CONTENT_STUDIO: stable-ID editable player-facing content with branch/variant search/filter/import/export JSON patch
+MEDIUM_TERM_STATE_BUILDING_PATH_VISIBLE: YES
+```
+
+Institutional Roadmap is a visualization of actual legal/institutional possibilities, not a focus tree/story progression or research-point system. State Projects are projections of existing authoritative lifecycles, not a second construction economy.
+
+## Required visual / renderer outcomes
+
+Persistent gameplay must stop looking like a normal responsive webpage.
+
+```text
+WEB_DASHBOARD_VISUAL_GRAMMAR_DOMINANT: NO
+MAP_OCCUPIES_PRIMARY_VIEWPORT: YES
+MAP_WORLD_BOUNDS_FILLED: YES
+RAW_HEX_TEST_STRIP_APPEARANCE: NO
+PERSISTENT_PARAGRAPHS_ON_MAIN_MAP: NO
+PRIMARY_HUD_COMPACT: YES
+SETTINGS_CONTROLS_OUT_OF_PRIMARY_HUD: YES
+ICON_FAMILY_COHERENT: YES
+FACTUAL_WORLD_MOTION_VISIBLE: YES
+CAMERA_PAN_ZOOM_FOCUS: YES
+POLICY_AND_PROJECT_VISUAL_TRACE: YES
+MOBILE_STACKED_CARD_PAGE_FEEL: NO
+SCREENSHOT_VISUAL_REVIEW: PASS_OR_BLOCKERS_DOCUMENTED
+```
+
+Run the bounded PixiJS v8 + React renderer spike required by the addenda. Keep the existing TMR TypeScript simulation/action/time pipeline authoritative. Do not migrate the simulation into Pixi/Phaser or add a second game clock. If the Pixi spike fails or threatens the deadline, keep one SVG production renderer and implement the same visual-delta/camera principles there; document the renderer decision in `docs/DECISIONS.md`.
+
+## Original product direction
+
+```text
+내 왕국에 혁명이 너무 많다
+TOO MANY REVOLUTIONS
+정권은 무너져도, 국가는 계속된다.
+```
+
+GDD spatial contract:
+
+```text
+politics is calculated at Region scale
+territory moves on LandHexes
+ideology spreads as color/pattern
+authoritative organizations become map markers
+revolution becomes territory
+```
+
+Player-loop target:
+
+```text
+choose medium-term institutional/state-building direction
+-> let time flow while world remains legible
+-> watch spatial political change
+-> selectively intervene
+-> choices alter future availability
+-> completed choices leave visible history
+-> next decisions emerge from the changed world
+```
+
+Reference roles:
+
+- Plague Inc. / Rebel Inc. -> persistent living world-map game surface, readable spatial feedback and time flow;
+- Civilization -> long-term tree readability/path satisfaction only, not research-point political authority;
+- Rebel Inc. Azure Dam -> major visible map-linked development objective interacting with instability/conflict;
+- Against the Storm -> strategic choices/upgrades becoming visible settlement/world changes and strong game-native HUD hierarchy;
+- Frostpunk -> laws/state-building producing visible consequences, not scripted scenario authority;
+- Victoria / Paradox politics -> laws and organized interests creating trade-offs, not dashboard-heavy persistent UI;
+- CK3 -> political geography / heraldry / territorial identity;
+- Suzerain / Papers Please -> title/briefing/decision flavor only, not persistent main-screen layout.
+
+## Design / content architecture
+
+Preserve and extend the modular stack:
+
+```text
+Design Tokens
+-> Semantic Tokens
+-> Design Registry
+-> Asset Manifest
+-> Layer Registry
+-> Component Registry
+-> Screen Composition
+-> State / Crisis Overlay
+
+Content Registry
+-> stable player-facing copy IDs
+-> screen/entity/event/policy/intervention/project/branch/variant metadata
+-> Content Studio edit/diff/import/export
+```
+
+Normal gameplay and Content Studio must use different UI grammar. Dense forms/tables belong only in the Content Studio.
+
+## Architecture boundaries
+
+- accepted FIX23 simulation core remains authoritative;
+- no direct UI/renderer mutation of WorldState;
+- no second renderer/game clock owning authoritative simulation;
+- EventStore remains append-only; ChronicleDigest is presentation-only;
+- no scripted/scheduled coup/rebellion;
+- no fake Agenda/EventStore facts;
+- neighboring countries remain real authored scenario entities;
+- physical territorial authority remains LandHex controller state;
+- Region.stateControl is separate from physical territory;
+- fronts remain derived;
+- no fake army/crowd/front/project completion;
+- no generic tech/reform/policy currency;
+- no focus-tree/story-node authority;
+- no hidden pacing timer/RNG cheat;
+- no new F05 operational-evidence/settlement runtime hidden in P0;
+- no persistence V9;
+- no Gate1F PASS;
+- no V02;
+- no solver/universal utility score;
+- no commercial-game asset copying;
+- no unvetted copyleft code import;
+- no successor task self-authorization.
+
+Continue on `gamebuilders-product-surface-p0`, commit/push safe checkpoints, redeploy the actual corrected build to Sites, and stop only after the result reports documentation alignment, gameplay-reality, auto-pause audit, ChronicleDigest, renderer, visual-UX, progression/project, Content Studio, responsive, and Sites statuses.
