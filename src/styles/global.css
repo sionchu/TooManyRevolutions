@@ -492,7 +492,7 @@ h3 {
 
 .world-stage {
   position: relative;
-  height: clamp(560px, calc(100svh - 250px), 820px);
+  height: clamp(560px, calc(100svh - 270px), 820px);
   margin: 0 auto 1rem;
   width: 100%;
 }
