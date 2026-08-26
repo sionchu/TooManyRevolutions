@@ -35,21 +35,21 @@ export function MetricStrip({
   playerCountry,
   isPlaying,
   speed,
-  autoPauseMajorEvents,
+  autoSlowCrises,
   flowNotice,
   onTogglePlaying,
   onSetSpeed,
-  onSetAutoPause,
+  onSetAutoSlow,
   onAdvance,
 }: {
   readonly playerCountry: Country | undefined;
   readonly isPlaying: boolean;
   readonly speed: DemoSpeed;
-  readonly autoPauseMajorEvents: boolean;
+  readonly autoSlowCrises: boolean;
   readonly flowNotice: string;
   readonly onTogglePlaying: () => void;
   readonly onSetSpeed: (speed: DemoSpeed) => void;
-  readonly onSetAutoPause: (enabled: boolean) => void;
+  readonly onSetAutoSlow: (enabled: boolean) => void;
   readonly onAdvance: (days: number) => void;
 }) {
   const treasury = playerCountry?.treasury ?? 0;
@@ -124,11 +124,11 @@ export function MetricStrip({
       <TimeControls
         isPlaying={isPlaying}
         speed={speed}
-        autoPauseMajorEvents={autoPauseMajorEvents}
+        autoSlowCrises={autoSlowCrises}
         flowNotice={flowNotice}
         onTogglePlaying={onTogglePlaying}
         onSetSpeed={onSetSpeed}
-        onSetAutoPause={onSetAutoPause}
+        onSetAutoSlow={onSetAutoSlow}
         onAdvance={onAdvance}
       />
     </section>

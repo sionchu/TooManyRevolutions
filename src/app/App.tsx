@@ -37,6 +37,7 @@ import { RegionInspector } from "./RegionInspector";
 import { ChroniclePanel } from "./ChroniclePanel";
 import { SPEED_INTERVAL_MS, type DemoSpeed } from "./demoSpeed";
 import { deriveChronicleDigest } from "./chronicleDigest";
+import type { GameEvent } from "../sim/events/event";
 import {
   eventLabel,
   formatDate,
@@ -44,7 +45,11 @@ import {
   selectSignificantEvents,
 } from "./gamePresentation";
 import { deriveInstitutionalRoadmap } from "./institutionalRoadmap";
-import { isAutoPauseWorthyEvent } from "./autoPause";
+import {
+  deriveEventTimeReaction,
+  deriveTimeReaction,
+  nextSpeedAfterTimeReaction,
+} from "./autoPause";
 import { deriveStateProjectPresentations } from "./stateProjects";
 import {
   deriveWorldVisualDeltas,
@@ -88,7 +93,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
   );
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState<DemoSpeed>(1);
-  const [autoPauseMajorEvents, setAutoPauseMajorEvents] = useState(true);
+  const [autoSlowCrises, setAutoSlowCrises] = useState(true);
   const [flowNotice, setFlowNotice] = useState(
     "일시정지 · 재생을 누르면 하루씩 진행합니다.",
   );
@@ -353,6 +358,47 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     return presentation.regions[0]?.regionId ?? null;
   })();
 
+  const applyTimeReaction = useCallback(
+    (next: DemoRuntimeState, newEvents: readonly GameEvent[]) => {
+      const reaction =
+        next.world.run.outcome.status === "active"
+          ? deriveTimeReaction(newEvents)
+          : "STOP";
+      const reactionEvent = newEvents.find(
+        (event) => deriveEventTimeReaction(event) === reaction,
+      );
+
+      if (reaction === "STOP") {
+        clearClock();
+        setIsPlaying(false);
+        if (reactionEvent !== undefined) {
+          const mapped = eventLabel(reactionEvent, GAMEBUILDERS_DEMO_SCENARIO);
+          setFlowNotice(
+            `${mapped.title} · ${next.world.tick}일차 · 시간이 멈췄습니다.`,
+          );
+        } else {
+          setFlowNotice("실행 결과가 확정되어 시간이 멈췄습니다.");
+        }
+      } else if (reaction === "SLOW" && reactionEvent !== undefined) {
+        const mapped = eventLabel(reactionEvent, GAMEBUILDERS_DEMO_SCENARIO);
+        const nextSpeed = nextSpeedAfterTimeReaction(
+          speed,
+          reaction,
+          autoSlowCrises,
+        );
+        if (nextSpeed !== speed) setSpeed(nextSpeed);
+        setFlowNotice(
+          autoSlowCrises
+            ? `${mapped.title} · ${next.world.tick}일차 · ${nextSpeed}x로 자동 감속`
+            : `${mapped.title} · ${next.world.tick}일차 · 현재 ${speed}x 유지`,
+        );
+      }
+
+      return reaction;
+    },
+    [autoSlowCrises, clearClock, speed],
+  );
+
   const advanceOneDay = useCallback(() => {
     if (stepLockRef.current) return;
     const current = recordRef.current;
@@ -367,19 +413,11 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     try {
       const next = advanceDemoRuntime(current, 1);
       const newEvents = commitRuntimeTransition(current, next);
-      const majorEvent = newEvents.find(isAutoPauseWorthyEvent);
+      const timeReaction = applyTimeReaction(next, newEvents);
       const significantEvent = newEvents.find(isSignificantEvent);
 
-      if (majorEvent !== undefined) {
-        const mapped = eventLabel(majorEvent, GAMEBUILDERS_DEMO_SCENARIO);
-        setFlowNotice(
-          `${mapped.title} · ${next.world.tick}일차${autoPauseMajorEvents ? " · 자동 일시정지" : " · 계속 진행"}`,
-        );
-        if (autoPauseMajorEvents) setIsPlaying(false);
-      } else if (next.world.run.outcome.status !== "active") {
-        setFlowNotice("실행 결과가 확정되어 시간이 멈췄습니다.");
-        setIsPlaying(false);
-      } else if (significantEvent !== undefined) {
+      if (timeReaction !== "NONE") return;
+      if (significantEvent !== undefined) {
         const mapped = eventLabel(significantEvent, GAMEBUILDERS_DEMO_SCENARIO);
         setFlowNotice(`${mapped.title} · ${next.world.tick}일차`);
       } else {
@@ -388,13 +426,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     } finally {
       stepLockRef.current = false;
     }
-  }, [
-    autoPauseMajorEvents,
-    activateAudioFromGesture,
-    clearClock,
-    commitRuntimeTransition,
-    speed,
-  ]);
+  }, [applyTimeReaction, clearClock, commitRuntimeTransition, speed]);
 
   useEffect(() => {
     clearClock();
@@ -451,12 +483,15 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
 
   const submitAction = (interventionId: InterventionDefinition["id"]) => {
     void activateAudioFromGesture();
-    clearClock();
-    setIsPlaying(false);
     const current = recordRef.current;
     const next = submitRuntimeIntervention(current, interventionId);
-    commitRuntimeTransition(current, next);
-    setFlowNotice("행동 제출 완료 · 시간이 일시정지되었습니다.");
+    const newEvents = commitRuntimeTransition(current, next);
+    const timeReaction = applyTimeReaction(next, newEvents);
+    if (timeReaction === "NONE") {
+      setFlowNotice(
+        `행동 제출 완료 · ${isPlaying ? "재생을 계속합니다." : "일시정지 상태를 유지합니다."}`,
+      );
+    }
     playResolvedAudio({
       interactionCues: [
         {
@@ -471,12 +506,15 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
 
   const submitPolicy = (policyId: PolicyDefinition["id"]) => {
     void activateAudioFromGesture();
-    clearClock();
-    setIsPlaying(false);
     const current = recordRef.current;
     const next = submitRuntimePolicy(current, policyId);
-    commitRuntimeTransition(current, next);
-    setFlowNotice("정책 제출 완료 · 제도 기록을 갱신했습니다.");
+    const newEvents = commitRuntimeTransition(current, next);
+    const timeReaction = applyTimeReaction(next, newEvents);
+    if (timeReaction === "NONE") {
+      setFlowNotice(
+        `정책 제출 완료 · 제도 기록을 갱신했습니다. · ${isPlaying ? "재생 계속" : "일시정지 유지"}`,
+      );
+    }
     playResolvedAudio({
       interactionCues: [
         {
@@ -534,14 +572,14 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
         playerCountry={playerCountry}
         isPlaying={isPlaying}
         speed={speed}
-        autoPauseMajorEvents={autoPauseMajorEvents}
+        autoSlowCrises={autoSlowCrises}
         flowNotice={flowNotice}
         onTogglePlaying={togglePlaying}
         onSetSpeed={(nextSpeed) => {
           setSpeed(nextSpeed);
           setFlowNotice(`${nextSpeed}x 속도 선택`);
         }}
-        onSetAutoPause={setAutoPauseMajorEvents}
+        onSetAutoSlow={setAutoSlowCrises}
         onAdvance={advance}
       />
 

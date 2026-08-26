@@ -213,16 +213,18 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
       createElement(TimeControls, {
         isPlaying: false,
         speed: 1,
-        autoPauseMajorEvents: true,
+        autoSlowCrises: true,
         flowNotice: "일시정지",
         onTogglePlaying: () => undefined,
         onSetSpeed: () => undefined,
-        onSetAutoPause: () => undefined,
+        onSetAutoSlow: () => undefined,
         onAdvance: () => undefined,
       }),
     );
     expect(timeControlsMarkup).toContain("manual-jumps-mobile");
     expect(timeControlsMarkup).toContain("+30일");
+    expect(timeControlsMarkup).toContain("위기 발생 시 자동 감속");
+    expect(timeControlsMarkup).toContain('data-auto-slow-scope="crises"');
     expect(mapMarkup).toContain("atlas-controller-overlay");
     expect(mapMarkup).toContain("atlas-ideology-overlay");
     expect(mapMarkup).toContain("atlas-pressure-pulse");
