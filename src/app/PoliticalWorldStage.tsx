@@ -13,6 +13,7 @@ import {
   deriveMapArchitecture,
   deriveMapLodTier,
   estimateMapOccupancy,
+  deriveMapViewportBounds,
   ideologySurfacePaletteIndex,
   type MapArchitecture,
   type MapLodTier,
@@ -24,6 +25,11 @@ import {
   type MapRegionComposition,
   type MapVisualSystem,
 } from "../presentation/mapVisualSystem";
+import {
+  deriveMapRuntimeGeometry,
+  type MapRuntimeGeometry,
+  type MapRuntimePolygon,
+} from "../presentation/mapRuntime/geometry";
 import type { PresentationState } from "../presentation/presentationState";
 import type { RegionId } from "../sim/state/ids";
 import type { StateProjectPresentation } from "./stateProjects";
@@ -112,6 +118,48 @@ function SceneLine({
     [geometry, line],
   );
   return <primitive object={line} />;
+}
+
+function runtimePolygonGeometry(
+  polygon: MapRuntimePolygon,
+): THREE.BufferGeometry {
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(
+      polygon.points.flatMap((point) => [point[0], point[1], point[2]]),
+      3,
+    ),
+  );
+  geometry.setIndex(polygon.triangles.flatMap((triangle) => [...triangle]));
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function RuntimeSurfaceMesh({
+  polygon,
+  color,
+  opacity = 1,
+  depthWrite = false,
+}: {
+  readonly polygon: MapRuntimePolygon;
+  readonly color: string;
+  readonly opacity?: number;
+  readonly depthWrite?: boolean;
+}) {
+  const geometry = useMemo(() => runtimePolygonGeometry(polygon), [polygon]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return (
+    <mesh geometry={geometry} renderOrder={1}>
+      <meshBasicMaterial
+        color={color}
+        transparent={opacity < 1}
+        opacity={opacity}
+        depthWrite={depthWrite}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
 }
 
 function SpriteLabel({
@@ -680,16 +728,16 @@ function CompositionLayer({
 }
 
 function TerrainWorldSurface({
-  architecture,
+  runtimeGeometry,
 }: {
-  readonly architecture: MapArchitecture;
+  readonly runtimeGeometry: MapRuntimeGeometry;
 }) {
   const geometry = useMemo(() => {
     const {
       vertices,
       colors: vertexColors,
       triangles,
-    } = architecture.sharedTerrainMesh;
+    } = runtimeGeometry.terrainMesh;
     const nextGeometry = new THREE.BufferGeometry();
     nextGeometry.setAttribute(
       "position",
@@ -708,7 +756,7 @@ function TerrainWorldSurface({
     nextGeometry.setIndex(triangles.flatMap((triangle) => [...triangle]));
     nextGeometry.computeVertexNormals();
     return nextGeometry;
-  }, [architecture.sharedTerrainMesh]);
+  }, [runtimeGeometry.terrainMesh]);
   useEffect(
     () => () => {
       geometry.dispose();
@@ -721,7 +769,9 @@ function TerrainWorldSurface({
       userData={{
         truthClass: "DECORATIVE_SUBSTRATE",
         mapLayer: "MapGeographyDefinition",
-        sharedVertexCount: architecture.sharedTerrainMesh.sharedVertexCount,
+        geometryMode: "continuous-connected-surfaces",
+        sharedVertexCount: runtimeGeometry.terrainMesh.sharedVertexCount,
+        polygonCount: runtimeGeometry.terrainMesh.polygonCount,
       }}
     >
       <meshStandardMaterial vertexColors roughness={0.98} metalness={0} />
@@ -745,8 +795,8 @@ function TerrainBackdrop({
     >
       <planeGeometry
         args={[
-          bounds.maxX - bounds.minX + 1.2,
-          bounds.maxZ - bounds.minZ + 1.2,
+          bounds.maxX - bounds.minX + 0.6,
+          bounds.maxZ - bounds.minZ + 0.6,
         ]}
       />
       <meshStandardMaterial color="#4f584b" roughness={1} />
@@ -789,37 +839,38 @@ function MapPathLayer({
 }
 
 function IdeologySurfaceLayer({
-  model,
   architecture,
+  runtimeGeometry,
+  lodTier,
 }: {
-  readonly model: WorldSceneModel;
   readonly architecture: MapArchitecture;
+  readonly runtimeGeometry: MapRuntimeGeometry;
+  readonly lodTier: MapLodTier;
 }) {
-  const hexesById = useMemo(
-    () =>
-      new Map<string, WorldSceneModel["hexes"][number]>(
-        model.hexes.map((hex) => [hex.id, hex]),
+  if (lodTier === "far") return null;
+  const regionPolygons = (regionId: string) =>
+    runtimeGeometry.regionSurfaces.filter(
+      (polygon) => polygon.semanticKey === `region:${regionId}`,
+    );
+  const factionPolygons = (factionId: string) =>
+    runtimeGeometry.factionSurfaces.filter(
+      (polygon) => polygon.semanticKey === `faction:${factionId}`,
+    );
+  const factionOpacity = new Map(
+    architecture.political.factionTerritories.map((territory) => [
+      territory.factionId,
+      Math.min(
+        0.24,
+        0.11 +
+          Math.max(
+            ...architecture.activity.factionPresence
+              .filter((presence) => presence.factionId === territory.factionId)
+              .map((presence) => presence.organization * 0.12),
+            0,
+          ),
       ),
-    [model.hexes],
+    ]),
   );
-  const footprint = (landHexIds: readonly string[]) => {
-    const hexes = landHexIds.flatMap((id) => {
-      const hex = hexesById.get(id);
-      return hex === undefined ? [] : [hex];
-    });
-    if (hexes.length === 0) return null;
-    const minX = Math.min(...hexes.map((hex) => hex.position[0]));
-    const maxX = Math.max(...hexes.map((hex) => hex.position[0]));
-    const minZ = Math.min(...hexes.map((hex) => hex.position[2]));
-    const maxZ = Math.max(...hexes.map((hex) => hex.position[2]));
-    return {
-      x: (minX + maxX) / 2,
-      z: (minZ + maxZ) / 2,
-      width: Math.max(1.25, maxX - minX + 1.65),
-      depth: Math.max(1, maxZ - minZ + 1.35),
-      y: Math.max(...hexes.map((hex) => hex.position[1] + hex.height)) + 0.045,
-    };
-  };
   return (
     <group
       userData={{
@@ -827,62 +878,147 @@ function IdeologySurfaceLayer({
         truthClass: "AUTHORITATIVE_PROJECTION",
       }}
     >
-      {architecture.political.ideologySurfaces.flatMap((surface) => {
-        const area = footprint(surface.landHexIds);
-        if (area === null) return [];
-        return [
-          <mesh
-            key={surface.id}
-            position={[area.x, area.y, area.z]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            scale={[area.width, area.depth, 1]}
-          >
-            <circleGeometry args={[0.5, 32]} />
-            <meshBasicMaterial
+      {architecture.political.ideologySurfaces.flatMap((surface) =>
+        regionPolygons(surface.regionId).map((polygon) => (
+          <group key={`${surface.id}:${polygon.id}`}>
+            <RuntimeSurfaceMesh
+              polygon={polygon}
               color={
                 IDEOLOGY_SURFACE_COLORS[
                   ideologySurfacePaletteIndex(surface.ideologyId)
                 ]
               }
-              transparent
               opacity={
                 DEFAULT_MAP_STYLE.ideologySurfaceOpacity *
-                (0.45 + surface.support * 0.35)
+                (0.55 + surface.support * 0.5)
               }
-              depthWrite={false}
             />
-          </mesh>,
-        ];
-      })}
-      {architecture.political.factionTerritories.flatMap((territory) => {
-        const area = footprint(territory.landHexIds);
-        if (area === null) return [];
-        return [
-          <mesh
-            key={`faction-surface:${territory.factionId}`}
-            position={[area.x, area.y + 0.006, area.z]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            scale={[area.width, area.depth, 1]}
-          >
-            <circleGeometry args={[0.5, 32]} />
-            <meshBasicMaterial
-              color={CONTROLLER_COLORS.faction}
-              transparent
-              opacity={0.12}
-              depthWrite={false}
+            <SurfaceDirectionalTreatment
+              polygon={polygon}
+              color={
+                IDEOLOGY_SURFACE_COLORS[
+                  ideologySurfacePaletteIndex(surface.ideologyId)
+                ]
+              }
+              opacity={
+                0.12 + surface.radicalism * 0.22 + surface.organization * 0.12
+              }
+              patternIndex={ideologySurfacePaletteIndex(surface.ideologyId)}
             />
-          </mesh>,
-        ];
+          </group>
+        )),
+      )}
+      {architecture.political.factionTerritories.flatMap((territory) =>
+        factionPolygons(territory.factionId).map((polygon) => (
+          <RuntimeSurfaceMesh
+            key={`faction-surface:${territory.factionId}:${polygon.id}`}
+            polygon={polygon}
+            color={CONTROLLER_COLORS.faction}
+            opacity={factionOpacity.get(territory.factionId) ?? 0.12}
+          />
+        )),
+      )}
+    </group>
+  );
+}
+
+function SurfaceDirectionalTreatment({
+  polygon,
+  color,
+  opacity,
+  patternIndex,
+}: {
+  readonly polygon: MapRuntimePolygon;
+  readonly color: string;
+  readonly opacity: number;
+  readonly patternIndex: number;
+}) {
+  const { minX, maxX, minZ, maxZ } = polygon.bounds;
+  const width = maxX - minX;
+  const depth = maxZ - minZ;
+  const y = Math.max(...polygon.points.map((point) => point[1])) + 0.018;
+  const lines = [0.28, 0.52, 0.76].slice(0, 1 + (patternIndex % 2));
+  return (
+    <group userData={{ politicalTreatment: "directional-surface" }}>
+      {lines.map((fraction) => {
+        const offset = (fraction - 0.5) * depth;
+        const points =
+          patternIndex % 2 === 0
+            ? [
+                new THREE.Vector3(
+                  minX + width * 0.14,
+                  y,
+                  minZ + depth * 0.18 + offset,
+                ),
+                new THREE.Vector3(
+                  maxX - width * 0.14,
+                  y,
+                  minZ + depth * 0.82 + offset,
+                ),
+              ]
+            : [
+                new THREE.Vector3(
+                  minX + width * 0.18 + offset,
+                  y,
+                  minZ + depth * 0.16,
+                ),
+                new THREE.Vector3(
+                  minX + width * 0.82 + offset,
+                  y,
+                  maxZ - depth * 0.16,
+                ),
+              ];
+        return (
+          <SceneLine
+            key={`${polygon.id}:direction:${fraction}`}
+            points={points}
+            color={color}
+            opacity={Math.min(0.38, opacity)}
+            width={1.2}
+          />
+        );
       })}
     </group>
   );
 }
 
 function BoundaryLayer({
+  model,
   architecture,
+  lodTier,
 }: {
+  readonly model: WorldSceneModel;
   readonly architecture: MapArchitecture;
+  readonly lodTier: MapLodTier;
 }) {
+  const hexesById = new Map<string, WorldSceneModel["hexes"][number]>(
+    model.hexes.map((hex) => [hex.id, hex]),
+  );
+  const controllerKey = (hexId: string) => {
+    const controller = hexesById.get(hexId)?.controller;
+    if (controller === undefined) return "missing";
+    switch (controller.kind) {
+      case "country":
+        return `country:${controller.countryId}`;
+      case "faction":
+        return `faction:${controller.factionId}`;
+      case "uncontrolled":
+        return "uncontrolled";
+    }
+  };
+  const visibleOwnerSegments =
+    architecture.political.legalOwnerBoundarySegments.filter(
+      (segment) =>
+        segment.secondLandHexId !== null &&
+        controllerKey(segment.firstLandHexId) !==
+          controllerKey(segment.secondLandHexId),
+    );
+  const visibleControllerSegments =
+    lodTier === "far"
+      ? []
+      : architecture.political.physicalControllerBoundarySegments;
+  const visibleFrontSegments =
+    lodTier === "far" ? [] : architecture.political.frontBoundarySegments;
   const renderSegments = (
     segments: readonly MapArchitecture["political"]["physicalControllerBoundarySegments"][number][],
     color: string,
@@ -905,27 +1041,25 @@ function BoundaryLayer({
     <group
       userData={{
         mapLayer: "MapPoliticalProjection",
-        ownerBoundaryCount:
-          architecture.political.legalOwnerBoundarySegments.length,
-        controllerBoundaryCount:
-          architecture.political.physicalControllerBoundarySegments.length,
-        frontBoundaryCount: architecture.political.frontBoundarySegments.length,
+        ownerBoundaryCount: visibleOwnerSegments.length,
+        controllerBoundaryCount: visibleControllerSegments.length,
+        frontBoundaryCount: visibleFrontSegments.length,
       }}
     >
       {renderSegments(
-        architecture.political.legalOwnerBoundarySegments,
+        visibleOwnerSegments,
         DEFAULT_MAP_STYLE.ownerBoundaryColor,
         DEFAULT_MAP_STYLE.ownerBoundaryWidth,
         0.52,
       )}
       {renderSegments(
-        architecture.political.physicalControllerBoundarySegments,
+        visibleControllerSegments,
         DEFAULT_MAP_STYLE.controllerBoundaryColor,
         DEFAULT_MAP_STYLE.controllerBoundaryWidth,
         0.84,
       )}
       {renderSegments(
-        architecture.political.frontBoundarySegments,
+        visibleFrontSegments,
         DEFAULT_MAP_STYLE.frontBoundaryColor,
         DEFAULT_MAP_STYLE.frontBoundaryWidth,
         0.96,
@@ -938,12 +1072,14 @@ function WorldTile({
   hex,
   selected,
   showContextGrid,
+  showTerrainDetail,
   onSelectRegion,
   onSelectHex,
 }: {
   readonly hex: WorldSceneModel["hexes"][number];
   readonly selected: boolean;
   readonly showContextGrid: boolean;
+  readonly showTerrainDetail: boolean;
   readonly onSelectRegion: (regionId: RegionId) => void;
   readonly onSelectHex: (landHexId: string) => void;
 }) {
@@ -963,7 +1099,9 @@ function WorldTile({
         <cylinderGeometry args={[0.99, 0.99, 0.08, 6]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
-      <TerrainDetail terrain={hex.terrain} height={hex.height} />
+      {showTerrainDetail ? (
+        <TerrainDetail terrain={hex.terrain} height={hex.height} />
+      ) : null}
       {showContextGrid ? (
         <SceneLine
           points={pointsForHex([0, top + 0.035, 0], 0.98)}
@@ -1755,9 +1893,11 @@ function ConflictActivity({
 function WorldScene({
   model,
   architecture,
+  runtimeGeometry,
   visualSystem,
   lodTier,
   cameraState,
+  cameraBounds,
   highlightedRegionIds,
   selectedHexId,
   onSelectRegion,
@@ -1765,9 +1905,11 @@ function WorldScene({
 }: {
   readonly model: WorldSceneModel;
   readonly architecture: MapArchitecture;
+  readonly runtimeGeometry: MapRuntimeGeometry;
   readonly visualSystem: MapVisualSystem;
   readonly lodTier: MapLodTier;
   readonly cameraState: CameraState;
+  readonly cameraBounds: MapArchitecture["contentBounds"];
   readonly highlightedRegionIds: ReadonlySet<string>;
   readonly selectedHexId: string | null;
   readonly onSelectRegion: (regionId: RegionId) => void;
@@ -1775,25 +1917,15 @@ function WorldScene({
 }) {
   const { camera, size } = useThree();
   const fitZoom = Math.min(
-    size.width /
-      Math.max(
-        architecture.geography.worldBounds.maxX -
-          architecture.geography.worldBounds.minX +
-          1.2,
-        1,
-      ),
-    size.height /
-      Math.max(
-        architecture.geography.worldBounds.maxZ -
-          architecture.geography.worldBounds.minZ +
-          1.2,
-        1,
-      ),
+    size.width / Math.max(cameraBounds.maxX - cameraBounds.minX + 1.2, 1),
+    size.height / Math.max(cameraBounds.maxZ - cameraBounds.minZ + 1.2, 1),
   );
   useEffect(() => {
-    camera.position.set(cameraState.x, 10, cameraState.z + 14);
+    // A restrained 2.5D tilt keeps the actual terrain mass in the stage,
+    // especially on the narrow mobile theater, without switching renderers.
+    camera.position.set(cameraState.x, 13, cameraState.z + 14);
     camera.lookAt(cameraState.x, 0, cameraState.z);
-    camera.zoom = Math.max(12, fitZoom * cameraState.zoom * 1.28);
+    camera.zoom = Math.max(12, fitZoom * cameraState.zoom);
     camera.updateProjectionMatrix();
   }, [camera, cameraState, fitZoom]);
 
@@ -1829,20 +1961,29 @@ function WorldScene({
       />
       <group>
         <TerrainBackdrop bounds={architecture.geography.worldBounds} />
-        <TerrainWorldSurface architecture={architecture} />
+        <TerrainWorldSurface runtimeGeometry={runtimeGeometry} />
         <CompositionLayer
           compositions={visualSystem.compositions}
           showMeso={showDetailedObjects}
         />
         <MapPathLayer architecture={architecture} lodTier={lodTier} />
-        <IdeologySurfaceLayer model={model} architecture={architecture} />
-        <BoundaryLayer architecture={architecture} />
+        <IdeologySurfaceLayer
+          architecture={architecture}
+          runtimeGeometry={runtimeGeometry}
+          lodTier={lodTier}
+        />
+        <BoundaryLayer
+          model={model}
+          architecture={architecture}
+          lodTier={lodTier}
+        />
         {model.hexes.map((hex) => (
           <WorldTile
             key={hex.id}
             hex={hex}
             selected={selectedHexId === hex.id}
             showContextGrid={selectedHexId === hex.id}
+            showTerrainDetail={lodTier === "near"}
             onSelectRegion={onSelectRegion}
             onSelectHex={onSelectHex}
           />
@@ -1884,7 +2025,15 @@ function WorldScene({
           <Settlement key={settlement.id} settlement={settlement} />
         ))}
         {showDetailedObjects
-          ? model.pois.map((poi) => <PoiObject key={poi.id} poi={poi} />)
+          ? model.pois
+              .filter(
+                (poi) =>
+                  lodTier === "near" ||
+                  poi.kind === "port" ||
+                  poi.kind === "mine" ||
+                  poi.kind === "fort",
+              )
+              .map((poi) => <PoiObject key={poi.id} poi={poi} />)
           : null}
         {showDetailedObjects
           ? model.institutions.map((landmark) => (
@@ -1896,24 +2045,9 @@ function WorldScene({
               <ProjectLandmark key={project.id} project={project} />
             ))
           : null}
-        {showMinorObjects
-          ? model.hexes
-              .filter((hex) => hex.controller.kind === "faction")
-              .map((hex) => (
-                <FactionBanner
-                  key={`faction-banner:${hex.id}`}
-                  position={[hex.position[0], hex.height, hex.position[2]]}
-                />
-              ))
-          : null}
         {showMinorObjects && model.factionPresence.length > 0
           ? model.factionPresence.map((presence) => (
-              <group key={presence.id} position={presence.position}>
-                <mesh>
-                  <boxGeometry args={[0.22, 0.16, 0.22]} />
-                  <meshBasicMaterial color="#e45f55" />
-                </mesh>
-              </group>
+              <FactionBanner key={presence.id} position={presence.position} />
             ))
           : null}
         {model.conflicts.map((conflict) => (
@@ -2067,6 +2201,10 @@ export function PoliticalWorldStage({
     [presentation, projects],
   );
   const architecture = useMemo(() => deriveMapArchitecture(model), [model]);
+  const runtimeGeometry = useMemo(
+    () => deriveMapRuntimeGeometry(model),
+    [model],
+  );
   const viewPresets = architecture.viewPresets;
   const initialPreset = useMemo(
     () => defaultMapPreset(viewPresets),
@@ -2103,6 +2241,10 @@ export function PoliticalWorldStage({
     focusRegionId === null
       ? (presetById.get(activePresetId) ?? initialPreset)
       : (presetById.get(`region.focus.${focusRegionId}`) ?? initialPreset);
+  const cameraBounds = useMemo(
+    () => deriveMapViewportBounds(model, activeFocusPreset),
+    [activeFocusPreset, model],
+  );
   useEffect(() => {
     const target = activeFocusPreset;
     setCamera((current) => ({
@@ -2193,6 +2335,32 @@ export function PoliticalWorldStage({
           data-map-composition-count={visualSystem.compositions.length}
           data-map-asset-kit={visualSystem.assets.length}
           data-land-hex-count={model.hexes.length}
+          data-map-runtime-geometry="continuous-surface"
+          data-map-runtime-polygon-count={
+            runtimeGeometry.terrainMesh.polygonCount
+          }
+          data-map-runtime-shared-vertices={
+            runtimeGeometry.terrainMesh.sharedVertexCount
+          }
+          data-map-ideology-surface-count={
+            architecture.political.ideologySurfaces.length
+          }
+          data-map-faction-surface-count={
+            runtimeGeometry.factionSurfaces.length
+          }
+          data-map-front-count={
+            architecture.political.frontBoundarySegments.length
+          }
+          data-map-camera-bounds={`${cameraBounds.minX.toFixed(2)},${cameraBounds.maxX.toFixed(
+            2,
+          )},${cameraBounds.minZ.toFixed(2)},${cameraBounds.maxZ.toFixed(2)}`}
+          data-world-render-bounds={`${runtimeGeometry.renderBounds.minX.toFixed(
+            2,
+          )},${runtimeGeometry.renderBounds.maxX.toFixed(
+            2,
+          )},${runtimeGeometry.renderBounds.minZ.toFixed(
+            2,
+          )},${runtimeGeometry.renderBounds.maxZ.toFixed(2)}`}
           data-world-content-occupancy-width={desktopOccupancy.width.toFixed(3)}
           data-world-content-occupancy-height={desktopOccupancy.height.toFixed(
             3,
@@ -2231,9 +2399,11 @@ export function PoliticalWorldStage({
             <WorldScene
               model={model}
               architecture={architecture}
+              runtimeGeometry={runtimeGeometry}
               visualSystem={renderedVisualSystem}
               lodTier={lodTier}
               cameraState={camera}
+              cameraBounds={cameraBounds}
               highlightedRegionIds={highlightedRegionIds}
               selectedHexId={selectedHexId}
               onSelectRegion={onSelectRegion}

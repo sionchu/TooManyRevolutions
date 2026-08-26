@@ -487,7 +487,6 @@ function deriveBoundarySegments(model: WorldSceneModel): {
 
 function deriveFrontBoundarySegments(
   model: WorldSceneModel,
-  controllerSegments: readonly MapBoundarySegment[],
   byHexPair: ReadonlyMap<string, MapBoundarySegment>,
 ): readonly MapBoundarySegment[] {
   const direct = model.fronts.flatMap((front) => {
@@ -505,9 +504,10 @@ function deriveFrontBoundarySegments(
     ];
   });
   if (direct.length > 0) return mergeConnectedSegments(direct);
-  return controllerSegments.filter(
-    (segment) => segment.kind === "physical-controller-boundary",
-  );
+  // A front is an active-conflict projection, not a synonym for every
+  // controller edge. In particular, outer faction perimeters and quiet
+  // country borders must never become a fake red front.
+  return [];
 }
 
 function ideologyColorIndex(ideologyId: string): number {
@@ -531,19 +531,24 @@ function derivePoliticalProjection(
   }
   const factionTerritories = [...factionGroups.entries()]
     .sort(([first], [second]) => compareStableText(first, second))
-    .map(([factionId, landHexIds]) => ({
-      factionId,
-      landHexIds: [...landHexIds].sort(compareStableText),
-      outerBoundarySegmentIds: boundaries.controller
-        .filter((segment) =>
-          [segment.firstLandHexId, segment.secondLandHexId].some(
-            (id) => id !== null && landHexIds.includes(id),
-          ),
-        )
-        .map((segment) => segment.id)
-        .sort(compareStableText),
-      truthClass: "AUTHORITATIVE_PROJECTION" as const,
-    }));
+    .map(([factionId, landHexIds]) => {
+      const factionHexIds = new Set(landHexIds);
+      return {
+        factionId,
+        landHexIds: [...landHexIds].sort(compareStableText),
+        outerBoundarySegmentIds: boundaries.controller
+          .filter((segment) => {
+            const firstIsFaction = factionHexIds.has(segment.firstLandHexId);
+            const secondIsFaction =
+              segment.secondLandHexId !== null &&
+              factionHexIds.has(segment.secondLandHexId);
+            return firstIsFaction || secondIsFaction;
+          })
+          .map((segment) => segment.id)
+          .sort(compareStableText),
+        truthClass: "AUTHORITATIVE_PROJECTION" as const,
+      };
+    });
   const regionHexIds = new Map<string, string[]>();
   for (const hex of model.hexes) {
     const ids = regionHexIds.get(hex.regionId) ?? [];
@@ -571,8 +576,8 @@ function derivePoliticalProjection(
               regionId,
               ideologyId: influence.ideologyId,
               support: influence.support,
-              radicalism: 0,
-              organization: 0,
+              radicalism: influence.radicalism,
+              organization: influence.organization,
               landHexIds: [...landHexIds].sort(compareStableText),
               truthClass: "AUTHORITATIVE_PROJECTION" as const,
             },
@@ -584,7 +589,6 @@ function derivePoliticalProjection(
     physicalControllerBoundarySegments: boundaries.controller,
     frontBoundarySegments: deriveFrontBoundarySegments(
       model,
-      boundaries.controller,
       boundaries.byHexPair,
     ),
     factionTerritories,
@@ -615,6 +619,98 @@ function deriveContentBounds(model: WorldSceneModel): MapWorldBounds {
     minZ: Math.min(...withHexRadius.map((point) => point[2])) - 0.35,
     maxZ: Math.max(...withHexRadius.map((point) => point[2])) + 0.35,
   };
+}
+
+function pointDistance(
+  first: WorldScenePoint,
+  second: WorldScenePoint,
+): number {
+  return Math.hypot(first[0] - second[0], first[2] - second[2]);
+}
+
+function boundsForPoints(points: readonly WorldScenePoint[]): MapWorldBounds {
+  return {
+    minX: Math.min(...points.map((point) => point[0])) - 0.35,
+    maxX: Math.max(...points.map((point) => point[0])) + 0.35,
+    minZ: Math.min(...points.map((point) => point[2])) - 0.35,
+    maxZ: Math.max(...points.map((point) => point[2])) + 0.35,
+  };
+}
+
+function boundsForHexes(
+  model: WorldSceneModel,
+  hexes: readonly WorldSceneModel["hexes"][number][],
+): MapWorldBounds {
+  const points = hexes.flatMap((hex) => hexCorners(hex));
+  return points.length === 0
+    ? deriveContentBounds(model)
+    : boundsForPoints(points);
+}
+
+function contextHexes(
+  model: WorldSceneModel,
+  anchors: readonly WorldScenePoint[],
+  radius: number,
+): readonly WorldSceneModel["hexes"][number][] {
+  const selected = model.hexes.filter((hex) =>
+    anchors.some((anchor) => pointDistance(anchor, hex.position) <= radius),
+  );
+  return selected.length > 0 ? selected : model.hexes;
+}
+
+/** Bounds of the actual terrain context intentionally framed by a preset. */
+export function deriveMapViewportBounds(
+  model: WorldSceneModel,
+  preset: Pick<MapViewPreset, "id">,
+): MapWorldBounds {
+  if (preset.id === "desktop.global" || preset.id === "full-world") {
+    return deriveContentBounds(model);
+  }
+  if (preset.id === "mobile.player-theater") {
+    const player = model.countries.find((country) => country.isPlayer);
+    const core =
+      player === undefined
+        ? []
+        : model.hexes.filter((hex) => hex.ownerCountryId === player.countryId);
+    const anchors =
+      core.length > 0
+        ? core.map((hex) => hex.position)
+        : player === undefined
+          ? []
+          : [player.position];
+    return boundsForHexes(model, contextHexes(model, anchors, 2.75));
+  }
+  if (preset.id.startsWith("region.focus.")) {
+    const regionId = preset.id.slice("region.focus.".length);
+    const region = model.regions.find(
+      (candidate) => candidate.regionId === regionId,
+    );
+    return boundsForHexes(
+      model,
+      contextHexes(model, region === undefined ? [] : [region.position], 2.75),
+    );
+  }
+  if (preset.id === "crisis.focus") {
+    return boundsForHexes(
+      model,
+      contextHexes(
+        model,
+        model.conflicts.map((conflict) => conflict.position),
+        3.1,
+      ),
+    );
+  }
+  if (preset.id === "project.focus") {
+    return boundsForHexes(
+      model,
+      contextHexes(
+        model,
+        model.projects.map((project) => project.position),
+        3.1,
+      ),
+    );
+  }
+  return deriveContentBounds(model);
 }
 
 function deriveGeography(
@@ -891,7 +987,7 @@ export function deriveMapViewPresets(
       label: "데스크톱 세계",
       x: centerX,
       z: centerZ,
-      zoom: 1.22,
+      zoom: 1.12,
       minZoom: 0.78,
       maxZoom: 2.2,
       truthClass: "DERIVED_PRESENTATION",
@@ -901,7 +997,7 @@ export function deriveMapViewPresets(
       label: "모바일 플레이어 극장",
       x: player[0],
       z: player[2],
-      zoom: 1.72,
+      zoom: 1.82,
       minZoom: 0.95,
       maxZoom: 2.35,
       truthClass: "DERIVED_PRESENTATION",
@@ -911,7 +1007,7 @@ export function deriveMapViewPresets(
       label: "위기 중심",
       x: crisisCenter(model)[0],
       z: crisisCenter(model)[2],
-      zoom: 1.62,
+      zoom: 1.34,
       minZoom: 0.95,
       maxZoom: 2.35,
       truthClass: "DERIVED_PRESENTATION",
@@ -921,7 +1017,7 @@ export function deriveMapViewPresets(
       label: "사업 중심",
       x: projectCenter(model)[0],
       z: projectCenter(model)[2],
-      zoom: 1.56,
+      zoom: 1.3,
       minZoom: 0.95,
       maxZoom: 2.35,
       truthClass: "DERIVED_PRESENTATION",
@@ -948,7 +1044,7 @@ export function deriveMapViewPresets(
         label: `${region.name} 중심`,
         x: region.position[0],
         z: region.position[2],
-        zoom: 1.68,
+        zoom: 1.42,
         minZoom: 0.95,
         maxZoom: 2.4,
         targetRegionId: region.regionId,
@@ -967,17 +1063,25 @@ export function estimateMapOccupancy(
   model: WorldSceneModel,
   preset: MapViewPreset,
 ): MapOccupancyMetric {
-  const contentBounds = deriveContentBounds(model);
-  const worldWidth = Math.max(model.bounds.maxX - model.bounds.minX + 3, 1);
-  const worldHeight = Math.max(model.bounds.maxZ - model.bounds.minZ + 4, 1);
+  const contentBounds = deriveMapViewportBounds(model, preset);
+  const renderedWorldWidth = Math.max(
+    contentBounds.maxX - contentBounds.minX + 1.2,
+    1,
+  );
+  const renderedWorldHeight = Math.max(
+    contentBounds.maxZ - contentBounds.minZ + 1.2,
+    1,
+  );
   return {
     width: clamp(
-      ((contentBounds.maxX - contentBounds.minX) * preset.zoom) / worldWidth,
+      ((contentBounds.maxX - contentBounds.minX) * preset.zoom) /
+        renderedWorldWidth,
       0,
       1,
     ),
     height: clamp(
-      ((contentBounds.maxZ - contentBounds.minZ) * preset.zoom) / worldHeight,
+      ((contentBounds.maxZ - contentBounds.minZ) * preset.zoom) /
+        renderedWorldHeight,
       0,
       1,
     ),

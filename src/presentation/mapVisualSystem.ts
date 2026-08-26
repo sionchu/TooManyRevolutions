@@ -609,6 +609,8 @@ export function deriveMapVisualSystem(
     );
   }
   for (const poi of model.pois) {
+    const majorPoi =
+      poi.kind === "port" || poi.kind === "mine" || poi.kind === "fort";
     labels.push(
       labelCandidate(
         poi.id,
@@ -619,7 +621,7 @@ export function deriveMapVisualSystem(
           ? 58
           : 48,
         0.7,
-        ["micro"],
+        majorPoi ? ["meso", "micro"] : ["micro"],
         "AUTHORITATIVE_PROJECTION",
       ),
     );

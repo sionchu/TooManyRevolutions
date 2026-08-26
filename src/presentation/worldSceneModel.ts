@@ -60,6 +60,8 @@ export interface WorldSceneProjectInput {
 export interface WorldSceneHex {
   readonly id: PresentationLandHex["landHexId"];
   readonly regionId: PresentationLandHex["regionId"];
+  /** Axial topology retained for renderer geometry; no topology is authored here. */
+  readonly coordinate: PresentationLandHex["coordinate"];
   readonly terrain: LandHexTerrain;
   readonly controller: PresentationLandHex["controller"];
   readonly ownerCountryId: PresentationRegion["ownerCountryId"];
@@ -130,6 +132,8 @@ export interface WorldSceneInfluence {
   readonly regionId: PresentationRegion["regionId"];
   readonly ideologyId: string;
   readonly support: number;
+  readonly radicalism: number;
+  readonly organization: number;
   readonly position: WorldScenePoint;
   readonly truthClass: "AUTHORITATIVE_PROJECTION";
 }
@@ -346,6 +350,7 @@ function createHexes(
       return {
         id: hex.landHexId,
         regionId: hex.regionId,
+        coordinate: { ...hex.coordinate },
         terrain: hex.terrain,
         controller: hex.controller,
         ownerCountryId: region.ownerCountryId,
@@ -554,6 +559,8 @@ function createInfluences(
               regionId: region.regionId,
               ideologyId: strongest.ideologyId,
               support: strongest.support,
+              radicalism: strongest.radicalism,
+              organization: strongest.organization,
               position: [center[0], 0.54, center[2]] as WorldScenePoint,
               truthClass: "AUTHORITATIVE_PROJECTION" as const,
             },
@@ -751,6 +758,9 @@ export function deriveWorldSceneModel(
     presentation.scenarioId,
   );
   const allPoints = hexes.map((hex) => hex.position);
+  if (allPoints.length === 0) {
+    throw new Error("WorldSceneModel requires at least one LandHex.");
+  }
   return {
     scenarioId: presentation.scenarioId,
     tick: presentation.tick,
@@ -772,10 +782,10 @@ export function deriveWorldSceneModel(
     fronts: createFronts(presentation, hexesById),
     projects: createProjects(projects, regionCenters),
     bounds: {
-      minX: Math.min(...allPoints.map((point) => point[0]), -6),
-      maxX: Math.max(...allPoints.map((point) => point[0]), 6),
-      minZ: Math.min(...allPoints.map((point) => point[2]), -4),
-      maxZ: Math.max(...allPoints.map((point) => point[2]), 4),
+      minX: Math.min(...allPoints.map((point) => point[0])),
+      maxX: Math.max(...allPoints.map((point) => point[0])),
+      minZ: Math.min(...allPoints.map((point) => point[2])),
+      maxZ: Math.max(...allPoints.map((point) => point[2])),
     },
   };
 }
