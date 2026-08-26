@@ -11,12 +11,19 @@ import {
   DIPLOMACY_ACTION_TYPES,
   FACTION_ACTION_TYPES,
   createEnactPolicyActionProposal,
+  createRespondPoliticalProposalActionProposal,
   createStartInterventionActionProposal,
+  type PoliticalProposalResponse,
   type ActionProposal,
 } from "../sim/state/action";
 import { createInitialWorldState } from "../sim/state/world";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
-import type { CountryId, InterventionId, PolicyId } from "../sim/state/ids";
+import type {
+  CountryId,
+  InterventionId,
+  PolicyId,
+  PoliticalProposalId,
+} from "../sim/state/ids";
 import { createIdeologyDiffusionPhaseHook } from "../sim/systems/ideologyDiffusion";
 import { createInterventionPhaseHooks } from "../sim/systems/interventionHooks";
 
@@ -278,6 +285,20 @@ export function submitRuntimePolicy(
       "player",
       policyId,
       countryId,
+    ),
+  ]);
+}
+
+export function submitRuntimePoliticalProposalResponse(
+  state: DemoRuntimeState,
+  proposalId: PoliticalProposalId,
+  response: PoliticalProposalResponse,
+): DemoRuntimeState {
+  return runDemoRuntimeStep(state, [
+    createRespondPoliticalProposalActionProposal(
+      state.world.tick + 1,
+      proposalId,
+      response,
     ),
   ]);
 }

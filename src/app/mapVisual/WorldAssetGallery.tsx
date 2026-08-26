@@ -1,10 +1,7 @@
-import { Canvas, useLoader, useThree } from "@react-three/fiber";
-import { useEffect, useLayoutEffect, useMemo } from "react";
-import { Mesh } from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { Canvas, useThree } from "@react-three/fiber";
+import { useCallback, useLayoutEffect } from "react";
 
 import { MAP_MATERIAL_FAMILIES } from "../../presentation/mapVisual";
-import type { WorldAssetManifestEntry } from "../../presentation/modelAssets/worldAssetManifest";
 import {
   WORLD_ASSET_ENTRIES,
   type WorldAssetSlotId,
@@ -13,10 +10,11 @@ import {
   createWorldAssetGallerySnapshot,
   type WorldAssetGalleryPanel,
 } from "./worldAssetGalleryModel";
+import { WorldAssetModel } from "./WorldAssetModel";
 import "./worldAssetGallery.css";
 
-function LoadedAssetMarker({ assetId }: { readonly assetId: string }) {
-  useEffect(() => {
+function useLoadedAssetMarker() {
+  return useCallback((assetId: string) => {
     const gallery = document.querySelector<HTMLElement>(
       "[data-world-asset-gallery]",
     );
@@ -29,54 +27,11 @@ function LoadedAssetMarker({ assetId }: { readonly assetId: string }) {
     );
     loaded.add(assetId);
     gallery.dataset.loadedAssets = [...loaded].sort().join(",");
-  }, [assetId]);
-  return null;
-}
-
-function WorldAssetModel({
-  entry,
-  position,
-}: {
-  readonly entry: WorldAssetManifestEntry;
-  readonly position: readonly [x: number, y: number, z: number];
-}) {
-  const gltf = useLoader(GLTFLoader, entry.publicUrl);
-  const scene = useMemo(() => {
-    const clone = gltf.scene.clone(true);
-    clone.traverse((node) => {
-      if (node instanceof Mesh) {
-        node.castShadow = true;
-        node.receiveShadow = true;
-      }
-    });
-    return clone;
-  }, [gltf.scene]);
-  const { scale, rotation, translation } = entry.normalization;
-
-  return (
-    <group
-      name={`world-asset-${entry.assetId}`}
-      position={position}
-      userData={{
-        assetId: entry.assetId,
-        slotId: entry.slotId,
-        sourcePack: entry.sourcePack,
-        sourceFilename: entry.sourceFilename,
-      }}
-    >
-      <group
-        position={translation}
-        rotation={rotation}
-        scale={[scale, scale, scale]}
-      >
-        <primitive object={scene} />
-      </group>
-      <LoadedAssetMarker assetId={entry.assetId} />
-    </group>
-  );
+  }, []);
 }
 
 function GalleryPanel({ panel }: { readonly panel: WorldAssetGalleryPanel }) {
+  const markLoaded = useLoadedAssetMarker();
   const material =
     panel.status === "unresolved"
       ? MAP_MATERIAL_FAMILIES["terrain-water"]
@@ -108,6 +63,7 @@ function GalleryPanel({ panel }: { readonly panel: WorldAssetGalleryPanel }) {
           key={entry.assetId}
           entry={entry}
           position={entryPositions[index] ?? [0, 0, 0]}
+          onLoaded={markLoaded}
         />
       ))}
     </group>

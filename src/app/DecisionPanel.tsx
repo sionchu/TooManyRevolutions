@@ -1,19 +1,14 @@
 import { PLAYER_COPY } from "../presentation/design/copyRegistry.ko";
 import { TMR_ICON_IDS } from "../presentation/design/iconRegistry";
 import { deriveRegimeClassification } from "../sim/state/government";
-import type {
-  InterventionDefinition,
-  InterventionFeasibilityResult,
-} from "../sim/state/intervention";
+import type { InterventionDefinition } from "../sim/state/intervention";
 import type { PolicyState } from "../sim/state/policy";
-import {
-  type PolicyAvailabilityResult,
-  type PolicyDefinition,
-} from "../sim/state/policy";
+import type { PolicyDefinition } from "../sim/state/policy";
 import type { ScenarioDefinition } from "../sim/state/scenario";
 import type { WorldState } from "../sim/state/world";
 import type { RegionId } from "../sim/state/ids";
 import type { PrimaryAgenda } from "../sim/readModels/agenda";
+import type { ContextualDecisionCandidate } from "../sim/readModels/contextualDecisions";
 import { DecisionCard } from "./DecisionCard";
 import { PolicyCard } from "./PolicyCard";
 import { InstitutionalRoadmapPanel } from "./InstitutionalRoadmapPanel";
@@ -27,23 +22,12 @@ import {
 } from "./gamePresentation";
 import { TmrIcon } from "./icons/TmrIcon";
 
-export interface DecisionCandidate {
-  readonly definition: InterventionDefinition;
-  readonly feasibility: InterventionFeasibilityResult;
-}
-
-export interface PolicyCandidate {
-  readonly definition: PolicyDefinition;
-  readonly availability: PolicyAvailabilityResult;
-}
-
 export function DecisionPanel({
-  candidates,
+  primaryShortlist,
   agendas,
   scenario,
   world,
   policyState,
-  policyCandidates,
   roadmap,
   projects,
   onFocusProject,
@@ -53,12 +37,11 @@ export function DecisionPanel({
   onSubmit,
   onSubmitPolicy,
 }: {
-  readonly candidates: readonly DecisionCandidate[];
+  readonly primaryShortlist: readonly ContextualDecisionCandidate[];
   readonly agendas: readonly PrimaryAgenda[];
   readonly scenario: ScenarioDefinition;
   readonly world: WorldState;
   readonly policyState: PolicyState | undefined;
-  readonly policyCandidates: readonly PolicyCandidate[];
   readonly roadmap: InstitutionalRoadmap;
   readonly projects: readonly StateProjectPresentation[];
   readonly onFocusProject: (
@@ -72,10 +55,9 @@ export function DecisionPanel({
 }) {
   const regime =
     policyState === undefined ? null : deriveRegimeClassification(policyState);
-  const availableCount =
-    candidates.filter((candidate) => candidate.feasibility.feasible).length +
-    policyCandidates.filter((candidate) => candidate.availability.feasible)
-      .length;
+  const availableCount = primaryShortlist.filter(
+    (candidate) => candidate.availability === "AVAILABLE",
+  ).length;
 
   return (
     <aside className="panel actions-panel">
@@ -95,8 +77,8 @@ export function DecisionPanel({
         <span className="panel-count">{availableCount}개 가능</span>
       </div>
       <p className="panel-intro">
-        정책과 개입은 공통 action pipeline으로 다음 tick에 반영됩니다. 카드는
-        확정 변화만 먼저 보여주고, 세부 조건은 접어 둡니다.
+        현재 압력과 위기에 맞는 정책·개입을 한 순서로 제시합니다. 카드는 확정
+        변화만 먼저 보여주고, 세부 조건은 접어 둡니다.
       </p>
       <details className="decision-support-details">
         <summary>
@@ -119,7 +101,13 @@ export function DecisionPanel({
           />
         </div>
       </details>
-      <div className="decision-group">
+      <div
+        className="decision-group"
+        data-contextual-shortlist-count={primaryShortlist.length}
+        data-contextual-shortlist-order={primaryShortlist
+          .map((candidate) => `${candidate.kind}:${candidate.id}`)
+          .join(",")}
+      >
         <div className="decision-group-heading">
           <TmrIcon
             className="decision-heading-icon"
@@ -128,52 +116,42 @@ export function DecisionPanel({
             decorative
             tone="neutral"
           />
-          <span className="eyebrow">법과 제도</span>
-          <strong>실제 정책</strong>
+          <span className="eyebrow">상황별 우선순위</span>
+          <strong>지금 결정할 일</strong>
         </div>
         <div className="action-list">
-          {policyState === undefined
-            ? null
-            : policyCandidates.map(({ definition, availability }) => (
+          {primaryShortlist.map((candidate) =>
+            candidate.kind === "policy" ? (
+              policyState === undefined ? null : (
                 <PolicyCard
-                  key={definition.id}
-                  definition={definition}
-                  availability={availability}
+                  key={`policy:${candidate.id}`}
+                  definition={candidate.definition}
+                  availability={candidate.feasibility}
                   policyState={policyState}
-                  affectedRegionIds={policyRegionIds}
+                  affectedRegionIds={
+                    candidate.affectedRegionIds.length > 0
+                      ? candidate.affectedRegionIds
+                      : policyRegionIds
+                  }
                   onPreviewRegions={onPreviewRegions}
                   onClearPreview={onClearPreview}
                   onSubmit={onSubmitPolicy}
                 />
-              ))}
-        </div>
-      </div>
-      <div className="decision-group">
-        <div className="decision-group-heading">
-          <TmrIcon
-            className="decision-heading-icon"
-            iconId={TMR_ICON_IDS.ui.decision}
-            size={20}
-            decorative
-            tone="neutral"
-          />
-          <span className="eyebrow">국가 집행</span>
-          <strong>행정 개입</strong>
-        </div>
-        <div className="action-list">
-          {candidates.map(({ definition, feasibility }) => (
-            <DecisionCard
-              key={definition.id}
-              definition={definition}
-              feasibility={feasibility}
-              scenario={scenario}
-              world={world}
-              agendas={agendas}
-              onPreviewRegions={onPreviewRegions}
-              onClearPreview={onClearPreview}
-              onSubmit={onSubmit}
-            />
-          ))}
+              )
+            ) : (
+              <DecisionCard
+                key={`intervention:${candidate.id}`}
+                definition={candidate.definition}
+                feasibility={candidate.feasibility}
+                scenario={scenario}
+                world={world}
+                agendas={agendas}
+                onPreviewRegions={onPreviewRegions}
+                onClearPreview={onClearPreview}
+                onSubmit={onSubmit}
+              />
+            ),
+          )}
         </div>
       </div>
       <div className="institution-box">

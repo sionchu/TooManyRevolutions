@@ -173,12 +173,11 @@ describe("player-facing TMR icon integration", () => {
     const markup = renderToStaticMarkup(
       <>
         <DecisionPanel
-          candidates={[]}
+          primaryShortlist={[]}
           agendas={[]}
           scenario={scenario}
           world={world}
           policyState={world.policies[countryId]}
-          policyCandidates={[]}
           roadmap={{ nodes: [], edges: [] }}
           projects={[]}
           onFocusProject={() => undefined}
@@ -198,8 +197,8 @@ describe("player-facing TMR icon integration", () => {
     expect(markup).toContain('data-icon-id="tmr.icon.politics.parliament"');
     expect(markup).toContain('data-icon-id="tmr.icon.ui.governance"');
     expect(markup).toContain('data-icon-id="tmr.icon.ui.details"');
-    expect(markup).toContain("법과 제도");
-    expect(markup).toContain("국가 집행");
+    expect(markup).toContain("상황별 우선순위");
+    expect(markup).toContain("지금 결정할 일");
     expect(markup).toContain("현재 제도");
   });
 

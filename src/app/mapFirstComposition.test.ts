@@ -59,4 +59,29 @@ describe("map-first product surface composition", () => {
     expect(roadmapSource).toContain("graphPositions");
     expect(roadmapSource).toContain("제도 연결 읽기");
   });
+
+  it("uses the contextual selector as the only immediate product decision authority", () => {
+    expect(appSource).toContain("deriveContextualDecisionSurface");
+    expect(appSource).toContain("decisionSurface.primaryShortlist");
+    expect(appSource).toContain("GAMEBUILDERS_PRODUCTION_CONTEXTUAL_CATALOG");
+    expect(appSource).not.toContain("POLICY_FIXTURE_IDS");
+    expect(appSource).not.toContain("policySurfaceIds");
+    expect(appSource).not.toContain(
+      "Object.values(GAMEBUILDERS_DEMO_SCENARIO.interventionCatalog)",
+    );
+  });
+
+  it("connects KayKit GLTF and EventStore presentation to the production surface", () => {
+    expect(worldStageSource).toContain("getResolvedWorldAssetEntries");
+    expect(worldStageSource).toContain("WorldAssetModel");
+    expect(worldStageSource).toContain(
+      'data-map-production-assets="kaykit-gltf"',
+    );
+    expect(worldStageSource).toContain(
+      'data-map-port-hero="unresolved-label-and-coast-facts-only"',
+    );
+    expect(appSource).toContain("deriveEventPresentation");
+    expect(appSource).toContain("EventPresentationOverlay");
+    expect(appSource).toContain("submitRuntimePoliticalProposalResponse");
+  });
 });

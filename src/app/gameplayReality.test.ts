@@ -9,14 +9,16 @@ import { PoliticalAtlas } from "./PoliticalAtlas";
 import { DecisionPanel } from "./DecisionPanel";
 import { TimeControls } from "./TimeControls";
 import { ConsolidationChecklist } from "./ConsolidationChecklist";
-import { evaluateInterventionFeasibility } from "../sim/state/intervention";
-import { evaluatePolicyAvailability } from "../sim/state/policy";
+import { deriveContextualDecisionSurface } from "../sim/readModels/contextualDecisions";
 import {
   GAMEBUILDERS_DEMO_COUNTRY_IDS,
   GAMEBUILDERS_DEMO_REGION_IDS,
   GAMEBUILDERS_DEMO_SCENARIO,
 } from "../sim/state/gameBuildersDemoScenario";
-import { GAMEBUILDERS_PRODUCTION_POLICY_IDS } from "../sim/state/gameBuildersDecisionCatalog";
+import {
+  GAMEBUILDERS_PRODUCTION_CONTEXTUAL_CATALOG,
+  GAMEBUILDERS_PRODUCTION_POLICY_IDS,
+} from "../sim/state/gameBuildersDecisionCatalog";
 import { asConflictId } from "../sim/state/ids";
 import { IDEOLOGY_FIXTURE_IDS } from "../sim/state/ideologyFixture";
 import { createInitialWorldState } from "../sim/state/world";
@@ -149,37 +151,21 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
     );
     const policyState =
       world.policies[GAMEBUILDERS_DEMO_SCENARIO.playerCountryId!];
-    const policyCandidates = Object.values(
-      GAMEBUILDERS_DEMO_SCENARIO.policyCatalog,
-    )
-      .slice(0, 3)
-      .map((definition) => ({
-        definition,
-        availability: evaluatePolicyAvailability(
-          policyState!,
-          definition,
-          GAMEBUILDERS_DEMO_SCENARIO.policyCatalog,
-        ),
-      }));
-    const candidates = Object.values(
-      GAMEBUILDERS_DEMO_SCENARIO.interventionCatalog,
-    ).map((definition) => ({
-      definition,
-      feasibility: evaluateInterventionFeasibility({
-        scenario: GAMEBUILDERS_DEMO_SCENARIO,
-        world,
-        interventionId: definition.id,
-        countryId: GAMEBUILDERS_DEMO_SCENARIO.playerCountryId!,
-      }),
-    }));
+    const decisionSurface = deriveContextualDecisionSurface({
+      scenario: GAMEBUILDERS_DEMO_SCENARIO,
+      world,
+      playerCountryId: GAMEBUILDERS_DEMO_SCENARIO.playerCountryId!,
+      catalog: GAMEBUILDERS_PRODUCTION_CONTEXTUAL_CATALOG,
+      agendas: [],
+      recentEvents: [],
+    });
     const decisionMarkup = renderToStaticMarkup(
       createElement(DecisionPanel, {
-        candidates,
+        primaryShortlist: decisionSurface.primaryShortlist,
         agendas: [],
         scenario: GAMEBUILDERS_DEMO_SCENARIO,
         world,
         policyState,
-        policyCandidates,
         roadmap: deriveInstitutionalRoadmap(
           policyState!,
           GAMEBUILDERS_DEMO_SCENARIO.policyCatalog,
@@ -211,7 +197,16 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
     );
 
     expect(decisionMarkup).toContain("data-policy-id");
-    expect(decisionMarkup).toContain("실제 정책");
+    expect(decisionMarkup).toContain("지금 결정할 일");
+    expect(decisionMarkup).toContain("data-contextual-shortlist-order");
+    expect(
+      new Set(decisionSurface.primaryShortlist.map((entry) => entry.kind)),
+    ).toEqual(new Set(["policy", "intervention"]));
+    expect(decisionMarkup).toContain(
+      `data-contextual-shortlist-order="${decisionSurface.primaryShortlist
+        .map((entry) => `${entry.kind}:${entry.id}`)
+        .join(",")}"`,
+    );
     const timeControlsMarkup = renderToStaticMarkup(
       createElement(TimeControls, {
         isPlaying: false,

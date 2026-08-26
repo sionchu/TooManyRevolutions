@@ -47,6 +47,11 @@ import {
   ProceduralWorldArtKitRenderer,
 } from "../presentation/mapVisual";
 import {
+  getResolvedWorldAssetEntries,
+  type WorldAssetManifestEntry,
+  type WorldAssetSlotId,
+} from "../presentation/modelAssets/worldAssetManifest";
+import {
   deriveMapRuntimeGeometry,
   type MapRuntimeGeometry,
   type MapRuntimePolygon,
@@ -55,6 +60,7 @@ import type { PresentationState } from "../presentation/presentationState";
 import type { RegionId } from "../sim/state/ids";
 import type { StateProjectPresentation } from "./stateProjects";
 import type { WorldVisualDelta } from "./worldVisualDelta";
+import { WorldAssetModel } from "./mapVisual/WorldAssetModel";
 
 const COUNTRY_COLORS = ["#a9694b", "#3f7880", "#6c5c83"] as const;
 const CONTROLLER_COLORS = {
@@ -66,6 +72,27 @@ const CONTROLLER_COLORS = {
 const PROCEDURAL_WORLD_ART_KIT_COUNT = Object.keys(
   PROCEDURAL_WORLD_ART_KITS,
 ).length;
+const PRODUCTION_WORLD_ASSETS = {
+  capitalHero: getResolvedWorldAssetEntries("capitalHero"),
+  industrialHero: getResolvedWorldAssetEntries("industrialHero"),
+  frontierHero: getResolvedWorldAssetEntries("frontierHero"),
+  mountainA: getResolvedWorldAssetEntries("mountainA"),
+  mountainB: getResolvedWorldAssetEntries("mountainB"),
+  treeClusterA: getResolvedWorldAssetEntries("treeClusterA"),
+  treeClusterB: getResolvedWorldAssetEntries("treeClusterB"),
+  rockCluster: getResolvedWorldAssetEntries("rockCluster"),
+} satisfies Readonly<
+  Partial<Record<WorldAssetSlotId, readonly WorldAssetManifestEntry[]>>
+>;
+const PRODUCTION_WORLD_ASSET_IDS = Object.values(PRODUCTION_WORLD_ASSETS)
+  .flat()
+  .map((entry) => entry.assetId)
+  .sort();
+const PRODUCTION_WORLD_ASSET_SLOTS_BY_ID = new Map(
+  Object.values(PRODUCTION_WORLD_ASSETS)
+    .flat()
+    .map((entry) => [entry.assetId, entry.slotId] as const),
+);
 const IDEOLOGY_SURFACE_COLORS = [
   "#d2a45a",
   "#8a6db1",
@@ -243,48 +270,96 @@ function SpriteLabel({
   );
 }
 
-function TerrainDetail({
-  terrain,
-  height,
+function AssetEntry({
+  entry,
+  position,
+  scaleMultiplier,
+  rotationY,
+  onAssetLoaded,
 }: {
-  readonly terrain: WorldSceneModel["hexes"][number]["terrain"];
-  readonly height: number;
+  readonly entry: WorldAssetManifestEntry;
+  readonly position: WorldScenePoint;
+  readonly scaleMultiplier: number;
+  readonly rotationY?: number;
+  readonly onAssetLoaded: (assetId: string) => void;
 }) {
-  if (terrain === "mountains") {
+  return (
+    <WorldAssetModel
+      entry={entry}
+      position={position}
+      scaleMultiplier={scaleMultiplier}
+      rotationY={rotationY}
+      onLoaded={onAssetLoaded}
+    />
+  );
+}
+
+function TerrainDetail({
+  hex,
+  onAssetLoaded,
+}: {
+  readonly hex: WorldSceneModel["hexes"][number];
+  readonly onAssetLoaded: (assetId: string) => void;
+}) {
+  const baseY = hex.height + 0.07;
+  if (hex.terrain === "mountains") {
+    const mountainA = PRODUCTION_WORLD_ASSETS.mountainA[0];
+    const mountainB = PRODUCTION_WORLD_ASSETS.mountainB[0];
+    const rock = PRODUCTION_WORLD_ASSETS.rockCluster[0];
     return (
-      <group position={[0, height + 0.11, 0]}>
-        <mesh position={[-0.2, 0.18, 0]}>
-          <coneGeometry args={[0.2, 0.38, 5]} />
-          <meshStandardMaterial color="#5f6068" roughness={1} />
-        </mesh>
-        <mesh position={[0.18, 0.12, 0.08]}>
-          <coneGeometry args={[0.15, 0.26, 5]} />
-          <meshStandardMaterial color="#85818a" roughness={1} />
-        </mesh>
+      <group userData={{ productionTerrain: "mountains", landHexId: hex.id }}>
+        {mountainA === undefined ? null : (
+          <AssetEntry
+            entry={mountainA}
+            position={[-0.2, baseY, -0.04]}
+            scaleMultiplier={0.5}
+            rotationY={-0.22}
+            onAssetLoaded={onAssetLoaded}
+          />
+        )}
+        {mountainB === undefined ? null : (
+          <AssetEntry
+            entry={mountainB}
+            position={[0.22, baseY, 0.12]}
+            scaleMultiplier={0.4}
+            rotationY={0.38}
+            onAssetLoaded={onAssetLoaded}
+          />
+        )}
+        {rock === undefined ? null : (
+          <AssetEntry
+            entry={rock}
+            position={[0.12, baseY, -0.24]}
+            scaleMultiplier={0.28}
+            onAssetLoaded={onAssetLoaded}
+          />
+        )}
       </group>
     );
   }
-  if (terrain === "forest") {
+  if (hex.terrain === "forest") {
+    const treeA = PRODUCTION_WORLD_ASSETS.treeClusterA[0];
+    const treeB = PRODUCTION_WORLD_ASSETS.treeClusterB[0];
     return (
-      <group position={[0, height + 0.1, 0]}>
-        {[-0.22, 0, 0.22].map((x) => (
-          <mesh key={x} position={[x, 0.16, (x * 1.7) % 0.18]}>
-            <coneGeometry args={[0.15, 0.34, 6]} />
-            <meshStandardMaterial color="#3f694f" roughness={1} />
-          </mesh>
-        ))}
+      <group userData={{ productionTerrain: "forest", landHexId: hex.id }}>
+        {treeA === undefined ? null : (
+          <AssetEntry
+            entry={treeA}
+            position={[-0.18, baseY, -0.08]}
+            scaleMultiplier={0.62}
+            onAssetLoaded={onAssetLoaded}
+          />
+        )}
+        {treeB === undefined ? null : (
+          <AssetEntry
+            entry={treeB}
+            position={[0.2, baseY, 0.13]}
+            scaleMultiplier={0.56}
+            rotationY={0.5}
+            onAssetLoaded={onAssetLoaded}
+          />
+        )}
       </group>
-    );
-  }
-  if (terrain === "coast") {
-    return (
-      <mesh
-        position={[0.2, height + 0.025, 0.1]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <circleGeometry args={[0.28, 12]} />
-        <meshBasicMaterial color="#c4e2dc" transparent opacity={0.75} />
-      </mesh>
     );
   }
   return null;
@@ -412,32 +487,155 @@ function CrisisBeaconKit({ scale = 1 }: { readonly scale?: number }) {
 function IntegratedRegionArtLayer({
   plan,
   lodTier,
+  onAssetLoaded,
 }: {
   readonly plan: IntegratedRegionArtPlan;
   readonly lodTier: MapLodTier;
+  readonly onAssetLoaded: (assetId: string) => void;
 }) {
   const lod = compositionLodForMapLod(lodTier);
   const visiblePlacements = selectIntegratedLandmarksForLod(
     plan.placements,
     lodTier,
   );
+  const heroPlans = (["capital", "industrial", "frontier"] as const).flatMap(
+    (role) => {
+      const rolePlacements = plan.placements.filter(
+        (placement) =>
+          placement.role === role &&
+          plan.composedRegionIds.includes(placement.regionId),
+      );
+      const preferredFamilies =
+        role === "capital"
+          ? ["palace"]
+          : role === "industrial"
+            ? ["factory-iron-works", "mine"]
+            : ["fort"];
+      const anchor =
+        preferredFamilies
+          .map((family) =>
+            rolePlacements.find((placement) => placement.family === family),
+          )
+          .find((placement) => placement !== undefined) ?? rolePlacements[0];
+      return anchor === undefined
+        ? []
+        : [{ regionId: anchor.regionId, role, anchor }];
+    },
+  );
+
+  const renderHero = (hero: (typeof heroPlans)[number]) => {
+    const entries = PRODUCTION_WORLD_ASSETS[`${hero.role}Hero`];
+    const offsets: readonly WorldScenePoint[] =
+      hero.role === "industrial"
+        ? [
+            [-0.28, 0, 0.02],
+            [0.32, 0, 0.08],
+          ]
+        : [[0, 0, 0]];
+    const scaleMultiplier =
+      hero.role === "capital" ? 0.78 : hero.role === "frontier" ? 0.72 : 0.64;
+    return (
+      <group
+        key={`kaykit-hero:${hero.regionId}:${hero.role}`}
+        position={hero.anchor.worldPosition}
+        userData={{
+          productionAssetSlot: `${hero.role}Hero`,
+          regionId: hero.regionId,
+          proceduralFallback: false,
+        }}
+      >
+        {entries.map((entry, index) => (
+          <AssetEntry
+            key={entry.assetId}
+            entry={entry}
+            position={offsets[index] ?? [0, 0, 0]}
+            scaleMultiplier={scaleMultiplier}
+            rotationY={index === 0 ? -0.12 : 0.22}
+            onAssetLoaded={onAssetLoaded}
+          />
+        ))}
+      </group>
+    );
+  };
+
+  const renderTerrainPlacement = (
+    placement: (typeof visiblePlacements)[number],
+  ) => {
+    const slotIds =
+      placement.family === "mountain-cluster"
+        ? (["mountainA", "mountainB", "rockCluster"] as const)
+        : (["treeClusterA", "treeClusterB"] as const);
+    const offsets: readonly WorldScenePoint[] =
+      placement.family === "mountain-cluster"
+        ? [
+            [-0.2, 0, 0],
+            [0.18, 0, 0.12],
+            [0.08, 0, -0.22],
+          ]
+        : [
+            [-0.17, 0, -0.08],
+            [0.18, 0, 0.1],
+          ];
+    return (
+      <group
+        key={`${placement.regionId}:${placement.family}:${placement.assetId}`}
+        position={placement.worldPosition}
+        userData={{ productionTerrainFamily: placement.family }}
+      >
+        {slotIds.flatMap((slotId, index) =>
+          PRODUCTION_WORLD_ASSETS[slotId].map((entry) => (
+            <AssetEntry
+              key={entry.assetId}
+              entry={entry}
+              position={offsets[index] ?? [0, 0, 0]}
+              scaleMultiplier={
+                placement.family === "mountain-cluster" ? 0.42 : 0.5
+              }
+              rotationY={index * 0.28}
+              onAssetLoaded={onAssetLoaded}
+            />
+          )),
+        )}
+      </group>
+    );
+  };
+
   return (
     <group
       userData={{
         mapLayer: "MapSemanticContent",
         composition: "resolved-world-scene-evidence",
-        renderer: "ProceduralWorldArtKitRenderer",
+        renderer: "KayKitGLTF+ProceduralUnresolvedFallback",
       }}
     >
-      {visiblePlacements.map((placement) => (
-        <ProceduralWorldArtKitRenderer
-          key={`${placement.regionId}:${placement.family}:${placement.assetId}`}
-          resolvedPlacement={placement}
-          position={placement.worldPosition}
-          lod={lod}
-          scale={integratedPlacementScale(placement.role, placement.family)}
-        />
-      ))}
+      {heroPlans.map(renderHero)}
+      {visiblePlacements.map((placement) => {
+        if (
+          (placement.role === "capital" && placement.family === "palace") ||
+          (placement.role === "industrial" &&
+            (placement.family === "factory-iron-works" ||
+              placement.family === "mine")) ||
+          (placement.role === "frontier" && placement.family === "fort") ||
+          (placement.role === "port" && placement.family === "port-dock")
+        ) {
+          return null;
+        }
+        if (
+          placement.family === "mountain-cluster" ||
+          placement.family === "forest-cluster"
+        ) {
+          return renderTerrainPlacement(placement);
+        }
+        return (
+          <ProceduralWorldArtKitRenderer
+            key={`${placement.regionId}:${placement.family}:${placement.assetId}`}
+            resolvedPlacement={placement}
+            position={placement.worldPosition}
+            lod={lod}
+            scale={integratedPlacementScale(placement.role, placement.family)}
+          />
+        );
+      })}
     </group>
   );
 }
@@ -825,6 +1023,7 @@ function WorldTile({
   selected,
   showContextGrid,
   showTerrainDetail,
+  onAssetLoaded,
   onSelectRegion,
   onSelectHex,
 }: {
@@ -832,6 +1031,7 @@ function WorldTile({
   readonly selected: boolean;
   readonly showContextGrid: boolean;
   readonly showTerrainDetail: boolean;
+  readonly onAssetLoaded: (assetId: string) => void;
   readonly onSelectRegion: (regionId: RegionId) => void;
   readonly onSelectHex: (landHexId: string) => void;
 }) {
@@ -852,7 +1052,7 @@ function WorldTile({
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
       {showTerrainDetail ? (
-        <TerrainDetail terrain={hex.terrain} height={hex.height} />
+        <TerrainDetail hex={hex} onAssetLoaded={onAssetLoaded} />
       ) : null}
       {showContextGrid ? (
         <SceneLine
@@ -1008,16 +1208,15 @@ function ProceduralPoiObject({
   readonly poi: WorldSceneModel["pois"][number];
   readonly lodTier: MapLodTier;
 }) {
+  if (poi.kind === "port") return null;
   const family =
-    poi.kind === "port"
-      ? "port-dock"
-      : poi.kind === "mine"
-        ? "mine"
-        : poi.kind === "fort"
-          ? "fort"
-          : poi.kind === "granary"
-            ? "granary-storehouse"
-            : "assembly-parliament";
+    poi.kind === "mine"
+      ? "mine"
+      : poi.kind === "fort"
+        ? "fort"
+        : poi.kind === "granary"
+          ? "granary-storehouse"
+          : "assembly-parliament";
   return (
     <ProceduralWorldArtKitRenderer
       family={family}
@@ -1122,6 +1321,7 @@ function WorldScene({
   factionPresenceAnchors,
   highlightedRegionIds,
   selectedHexId,
+  onAssetLoaded,
   onSelectRegion,
   onSelectHex,
   onProjectedWorldBounds,
@@ -1137,6 +1337,7 @@ function WorldScene({
   readonly factionPresenceAnchors: readonly WorldSceneModel["factionPresence"][number][];
   readonly highlightedRegionIds: ReadonlySet<string>;
   readonly selectedHexId: string | null;
+  readonly onAssetLoaded: (assetId: string) => void;
   readonly onSelectRegion: (regionId: RegionId) => void;
   readonly onSelectHex: (landHexId: string) => void;
   readonly onProjectedWorldBounds: (bounds: MapScreenSpaceRect) => void;
@@ -1212,7 +1413,11 @@ function WorldScene({
       <group>
         <TerrainBackdrop bounds={architecture.geography.worldBounds} />
         <TerrainWorldSurface runtimeGeometry={runtimeGeometry} />
-        <IntegratedRegionArtLayer plan={integratedArtPlan} lodTier={lodTier} />
+        <IntegratedRegionArtLayer
+          plan={integratedArtPlan}
+          lodTier={lodTier}
+          onAssetLoaded={onAssetLoaded}
+        />
         <MapPathLayer architecture={architecture} lodTier={lodTier} />
         <IdeologySurfaceLayer
           architecture={architecture}
@@ -1227,6 +1432,7 @@ function WorldScene({
             selected={selectedHexId === hex.id}
             showContextGrid={selectedHexId === hex.id}
             showTerrainDetail={lodTier === "near"}
+            onAssetLoaded={onAssetLoaded}
             onSelectRegion={onSelectRegion}
             onSelectHex={onSelectHex}
           />
@@ -1526,6 +1732,15 @@ export function PoliticalWorldStage({
     zoom: initialPreset.zoom,
   }));
   const [selectedHexId, setSelectedHexId] = useState<string | null>(null);
+  const [loadedProductionAssetIds, setLoadedProductionAssetIds] = useState<
+    readonly string[]
+  >([]);
+  const markProductionAssetLoaded = useCallback((assetId: string) => {
+    setLoadedProductionAssetIds((current) => {
+      if (current.includes(assetId)) return current;
+      return [...current, assetId].sort();
+    });
+  }, []);
   const viewportRef = useRef<HTMLDivElement>(null);
   const [screenSpaceOccupancy, setScreenSpaceOccupancy] =
     useState<MapScreenSpaceOccupancy | null>(null);
@@ -1696,6 +1911,25 @@ export function PoliticalWorldStage({
           data-map-label-policy="priority-collision-lod"
           data-map-composition-count={visualSystem.compositions.length}
           data-map-asset-kit={visualSystem.assets.length}
+          data-map-production-assets="kaykit-gltf"
+          data-map-production-asset-expected-count={
+            PRODUCTION_WORLD_ASSET_IDS.length
+          }
+          data-map-production-asset-loaded-count={
+            loadedProductionAssetIds.length
+          }
+          data-map-production-asset-ids={loadedProductionAssetIds.join(",")}
+          data-map-production-asset-slot-ids={[
+            ...new Set(
+              loadedProductionAssetIds.flatMap((assetId) => {
+                const slotId = PRODUCTION_WORLD_ASSET_SLOTS_BY_ID.get(assetId);
+                return slotId === undefined ? [] : [slotId];
+              }),
+            ),
+          ]
+            .sort()
+            .join(",")}
+          data-map-port-hero="unresolved-label-and-coast-facts-only"
           data-map-procedural-kit-registry-count={
             PROCEDURAL_WORLD_ART_KIT_COUNT
           }
@@ -1832,6 +2066,7 @@ export function PoliticalWorldStage({
               factionPresenceAnchors={factionPresenceAnchors}
               highlightedRegionIds={highlightedRegionIds}
               selectedHexId={selectedHexId}
+              onAssetLoaded={markProductionAssetLoaded}
               onSelectRegion={onSelectRegion}
               onSelectHex={setSelectedHexId}
               onProjectedWorldBounds={onProjectedWorldBounds}

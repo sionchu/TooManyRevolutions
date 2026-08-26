@@ -2,19 +2,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { PLAYER_COPY } from "../presentation/design/copyRegistry.ko";
 import { derivePresentationState } from "../presentation/presentationState";
+import { deriveEventPresentation } from "../presentation/eventPresentation";
 import { deriveNationalAgendas } from "../sim/readModels/agenda";
+import { deriveContextualDecisionSurface } from "../sim/readModels/contextualDecisions";
 import type { ConflictKind } from "../sim/state/conflict";
-import {
-  evaluateInterventionFeasibility,
-  type InterventionDefinition,
-} from "../sim/state/intervention";
-import {
-  evaluatePolicyAvailability,
-  type PolicyDefinition,
-} from "../sim/state/policy";
-import type { CountryId, RegionId } from "../sim/state/ids";
+import type { InterventionDefinition } from "../sim/state/intervention";
+import type { PolicyDefinition } from "../sim/state/policy";
+import type {
+  CountryId,
+  PoliticalProposalId,
+  RegionId,
+} from "../sim/state/ids";
+import type { PoliticalProposalResponse } from "../sim/state/action";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
-import { POLICY_FIXTURE_IDS } from "../sim/state/policyFixture";
+import { GAMEBUILDERS_PRODUCTION_CONTEXTUAL_CATALOG } from "../sim/state/gameBuildersDecisionCatalog";
 import { deriveOrderConsolidationEligibility } from "../sim/systems/orderConsolidation";
 import { ContentStudio } from "./ContentStudio";
 import { MapStudio } from "./MapStudio";
@@ -23,12 +24,13 @@ import {
   createDemoRuntimeState,
   submitRuntimeIntervention,
   submitRuntimePolicy,
+  submitRuntimePoliticalProposalResponse,
 } from "./demoGame";
 import type { DemoRuntimeState } from "./demoGame";
 import { AgendaPanel } from "./AgendaPanel";
-import { CrisisBanner } from "./CrisisBanner";
 import { ContextualDock, type ContextPanel } from "./ContextualDock";
 import { DecisionPanel } from "./DecisionPanel";
+import { EventPresentationOverlay } from "./EventPresentationOverlay";
 import { GameHeader } from "./GameHeader";
 import { MetricStrip } from "./MetricStrip";
 import { OpeningBriefing } from "./OpeningBriefing";
@@ -122,6 +124,9 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const [previewRegionIds, setPreviewRegionIds] = useState<readonly RegionId[]>(
     [],
   );
+  const [dismissedEventIds, setDismissedEventIds] = useState<
+    ReadonlySet<string>
+  >(() => new Set());
 
   useEffect(() => {
     recordRef.current = record;
@@ -220,6 +225,28 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     [record],
   );
   const playerCountry = record.world.countries[PLAYER_ID];
+  const decisionSurface = useMemo(
+    () =>
+      deriveContextualDecisionSurface({
+        scenario: GAMEBUILDERS_DEMO_SCENARIO,
+        world: record.world,
+        playerCountryId: PLAYER_ID,
+        catalog: GAMEBUILDERS_PRODUCTION_CONTEXTUAL_CATALOG,
+        agendas,
+        recentEvents: record.eventStore.events,
+      }),
+    [agendas, record],
+  );
+  const eventPresentation = useMemo(
+    () =>
+      deriveEventPresentation({
+        eventStore: record.eventStore,
+        politicalProposals: record.world.politicalProposals,
+        playerCountryId: PLAYER_ID,
+        playerGovernmentId: playerCountry?.currentGovernmentId ?? null,
+      }),
+    [playerCountry?.currentGovernmentId, record],
+  );
   const policyState = record.world.policies[PLAYER_ID];
   const consolidation = useMemo(
     () =>
@@ -263,44 +290,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     ) ??
     presentation.regions[0] ??
     null;
-  const candidates = Object.values(
-    GAMEBUILDERS_DEMO_SCENARIO.interventionCatalog,
-  )
-    .sort((first, second) => first.id.localeCompare(second.id))
-    .map((definition) => ({
-      definition,
-      feasibility: evaluateInterventionFeasibility({
-        scenario: GAMEBUILDERS_DEMO_SCENARIO,
-        world: record.world,
-        interventionId: definition.id,
-        countryId: PLAYER_ID,
-      }),
-    }));
-  const policySurfaceIds: readonly PolicyDefinition["id"][] = [
-    POLICY_FIXTURE_IDS.abolishRoyalVeto,
-    POLICY_FIXTURE_IDS.universalSuffrage,
-    POLICY_FIXTURE_IDS.nationalizeProductiveProperty,
-  ];
-  const policyCandidates = policySurfaceIds.flatMap((policyId) => {
-    const definition = GAMEBUILDERS_DEMO_SCENARIO.policyCatalog[policyId];
-    if (definition === undefined || policyState === undefined) return [];
-    return [
-      {
-        definition,
-        availability: evaluatePolicyAvailability(
-          policyState,
-          definition,
-          GAMEBUILDERS_DEMO_SCENARIO.policyCatalog,
-        ),
-      },
-    ];
-  });
   const visibleEvents = selectSignificantEvents(record.eventStore.events, 10);
-  const crisisEvent = visibleEvents.find(
-    (event) =>
-      event.type === "COUP_ATTEMPT_STARTED" ||
-      event.type === "REBELLION_STARTED",
-  );
   const activeConflicts = presentation.activeConflicts;
   const playerControlledLandHexCount = presentation.landHexes.filter(
     (hex) =>
@@ -339,24 +329,6 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     ].includes(action.actionType),
   ).length;
   const leadAgenda = agendas[0] ?? null;
-  const crisisFocusRegionId = (() => {
-    const conflictRegion =
-      activeConflicts[0]?.affectedRegionIds[0] ??
-      activeConflicts[0]?.contestedRegionIds[0];
-    if (conflictRegion !== undefined) return conflictRegion;
-    const payload = crisisEvent?.payload;
-    if (typeof payload === "object" && payload !== null) {
-      const affectedRegionIds = (payload as { affectedRegionIds?: unknown })
-        .affectedRegionIds;
-      if (Array.isArray(affectedRegionIds)) {
-        const affectedRegion = presentation.regions.find((region) =>
-          affectedRegionIds.some((regionId) => regionId === region.regionId),
-        );
-        if (affectedRegion !== undefined) return affectedRegion.regionId;
-      }
-    }
-    return presentation.regions[0]?.regionId ?? null;
-  })();
 
   const applyTimeReaction = useCallback(
     (next: DemoRuntimeState, newEvents: readonly GameEvent[]) => {
@@ -527,6 +499,36 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     });
   };
 
+  const respondPoliticalProposal = (
+    proposalId: PoliticalProposalId,
+    response: PoliticalProposalResponse,
+  ) => {
+    void activateAudioFromGesture();
+    const current = recordRef.current;
+    const next = submitRuntimePoliticalProposalResponse(
+      current,
+      proposalId,
+      response,
+    );
+    const newEvents = commitRuntimeTransition(current, next);
+    const timeReaction = applyTimeReaction(next, newEvents);
+    if (timeReaction === "NONE") {
+      setFlowNotice(
+        `정치 제안 ${response === "accept" ? "수락" : "거절"} · ${isPlaying ? "재생 계속" : "일시정지 유지"}`,
+      );
+    }
+    playResolvedAudio({
+      interactionCues: [
+        {
+          cueId: "ui.confirm",
+          dedupeKey: `interaction:proposal:${proposalId}:${response}:${current.world.tick}`,
+          sourceId: `proposal:${proposalId}:${current.world.tick}`,
+        },
+      ],
+      currentTick: current.world.tick,
+    });
+  };
+
   const focusRegion = (regionId: RegionId) => {
     void activateAudioFromGesture();
     playResolvedAudio({
@@ -558,6 +560,20 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       data-audio-status={audioStatus}
       data-audio-enabled={soundEnabled ? "true" : "false"}
       data-audio-ambient-cue={resolveAmbientCue("map")}
+      data-demo-speed={speed}
+      data-demo-is-playing={isPlaying ? "true" : "false"}
+      data-contextual-shortlist-order={decisionSurface.primaryShortlist
+        .map((candidate) => `${candidate.kind}:${candidate.id}`)
+        .join(",")}
+      data-event-presentation-kinds={eventPresentation
+        .filter((item) => item.kind !== "CHRONICLE_ONLY")
+        .map((item) => `${item.kind}:${item.eventType}`)
+        .join(",")}
+      data-open-political-proposal-count={
+        Object.values(record.world.politicalProposals ?? {}).filter(
+          (proposal) => proposal.status === "open",
+        ).length
+      }
     >
       <GameHeader
         playerCountry={playerCountry}
@@ -584,16 +600,6 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       />
 
       <section className="world-stage" aria-label="정치 세계 지도">
-        <CrisisBanner
-          event={crisisEvent}
-          activeConflicts={activeConflicts}
-          scenario={GAMEBUILDERS_DEMO_SCENARIO}
-          onFocusMap={
-            crisisFocusRegionId === null
-              ? undefined
-              : () => focusRegion(crisisFocusRegionId)
-          }
-        />
         <div className="world-map-surface">
           <div className="map-surface-heading">
             <div>
@@ -614,6 +620,21 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
             visualDeltas={visualDeltas}
             focusRegionId={mapFocusRegionId}
             previewRegionIds={previewRegionIds}
+          />
+          <EventPresentationOverlay
+            items={eventPresentation}
+            dismissedEventIds={dismissedEventIds}
+            scenario={GAMEBUILDERS_DEMO_SCENARIO}
+            world={record.world}
+            events={record.eventStore.events}
+            onDismiss={(eventId) =>
+              setDismissedEventIds((current) => {
+                const next = new Set(current);
+                next.add(eventId);
+                return next;
+              })
+            }
+            onRespond={respondPoliticalProposal}
           />
           <div className="map-fact-strip" aria-label="현재 세계 사실">
             <span>
@@ -701,12 +722,11 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
             />
           ) : activePanel === "decisions" ? (
             <DecisionPanel
-              candidates={candidates}
+              primaryShortlist={decisionSurface.primaryShortlist}
               agendas={agendas}
               scenario={GAMEBUILDERS_DEMO_SCENARIO}
               world={record.world}
               policyState={policyState}
-              policyCandidates={policyCandidates}
               roadmap={roadmap}
               projects={projects}
               onFocusProject={focusRegion}

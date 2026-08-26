@@ -1,5 +1,6 @@
 export { WorldArtGallery } from "./WorldArtGallery";
 export { WorldAssetGallery } from "./WorldAssetGallery";
+export { WorldAssetModel } from "./WorldAssetModel";
 export {
   createWorldArtGallerySnapshot,
   WORLD_ART_GALLERY_ROLES,
