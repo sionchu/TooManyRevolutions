@@ -494,7 +494,7 @@ h3 {
   position: relative;
   height: clamp(560px, calc(100svh - 250px), 820px);
   margin: 0 auto 1rem;
-  max-width: 1500px;
+  width: 100%;
 }
 .world-map-surface {
   position: relative;
