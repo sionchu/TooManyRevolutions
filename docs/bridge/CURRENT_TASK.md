@@ -11,6 +11,7 @@ GAMEPLAY_REALITY_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAM
 GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM.md
 GAME_VISUAL_UX_RENDER_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_VISUAL_UX_RENDER_ADDENDUM.md
 GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM.md
+PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM.md
 RESULT_PATH: docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md
 
 ## Accepted predecessor
@@ -27,17 +28,18 @@ V02: NOT_STARTED
 
 ## Current blocking product finding
 
-Hands-on review of the in-progress P0 Site shows three separate blockers:
+Hands-on review of the in-progress P0 Site shows four linked blockers:
 
 1. **gameplay reality / dynamism:** real state changes now occur, but the player still experiences too much of the loop as time -> banner/counter -> text choice;
 2. **visual grammar:** the screen still risks reading as a parchment-themed responsive website/admin dashboard instead of a game world;
-3. **history/progression communication:** low-level ideology/faction events can become repetitive Chronicle rows while major spatial/institutional consequences are not dominant enough. The player needs accumulated institutional path + map-linked projects/landmarks + spatial event feedback.
+3. **history/progression communication:** low-level ideology/faction events can become repetitive Chronicle rows while major spatial/institutional consequences are not dominant enough;
+4. **medium-term state-building fantasy:** policy choices do not yet create enough visible accumulated institutional path and map-linked project/landmark history, so the player lacks the satisfying sense of building a distinct state over time.
 
 The next work must repair those blockers before more decorative static art is accepted.
 
 ## Mandatory execution order
 
-Read and execute all six documents. Later addenda strengthen earlier ones; they do not authorize bypassing simulation truth.
+Read and execute all seven documents. Later addenda strengthen earlier ones; they do not authorize bypassing simulation truth.
 
 1. `GAMEBUILDERS_PRODUCT_SURFACE_P0.md`
 2. `GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_FIRST_ADDENDUM.md`
@@ -45,11 +47,13 @@ Read and execute all six documents. Later addenda strengthen earlier ones; they 
 4. `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM.md`
 5. `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_VISUAL_UX_RENDER_ADDENDUM.md`
 6. `GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_LOOP_CHRONICLE_PROGRESSION_ADDENDUM.md`
+7. `GAMEBUILDERS_PRODUCT_SURFACE_P0_PLAYER_GAME_LOOP_AND_WORLD_FEEL_ADDENDUM.md`
 
 Priority inside the remaining sprint:
 
 ```text
 Gameplay Reality repair
+-> audit/relax routine auto-pause so flow is observation + selective intervention rather than modal paperwork
 -> factual changes visible on map
 -> ChronicleDigest / event hierarchy so low-level changes do not become log spam
 -> bounded PixiJS renderer spike / renderer decision
@@ -74,6 +78,7 @@ PLAYER_POLICY_ACTIONS: YES
 CONSOLIDATION_OBJECTIVE_BLOCKERS_VISIBLE: YES
 PLAYER_OBSERVABLE_DYNAMICS_AUDIT: PASS_OR_BLOCKER_DOCUMENTED
 DAY_1000_LOOKS_IDENTICAL_TO_DAY_0: NO
+ROUTINE_AUTO_PAUSE_DOMINATES_GAME_LOOP: NO
 ```
 
 ## Required game-feel / progression outcomes
@@ -89,9 +94,10 @@ COMPLETED_PROJECT_LEAVES_MAP_VISIBLE_TRACE: YES
 WORLD_VISUAL_DELTA_PIPELINE: factual state/event-driven feedback
 CHRONICLE_DIGEST: grouped presentation of low-level factual events with source EventId drill-down
 CONTENT_STUDIO: stable-ID editable player-facing content with branch/variant search/filter/import/export JSON patch
+MEDIUM_TERM_STATE_BUILDING_PATH_VISIBLE: YES
 ```
 
-Institutional Roadmap is a visualization of actual legal/institutional possibilities, not a focus tree/story progression or research-point system.
+Institutional Roadmap is a visualization of actual legal/institutional possibilities, not a focus tree/story progression or research-point system. State Projects are projections of existing authoritative lifecycles, not a second construction economy.
 
 ## Required visual / renderer outcomes
 
@@ -113,7 +119,7 @@ MOBILE_STACKED_CARD_PAGE_FEEL: NO
 SCREENSHOT_VISUAL_REVIEW: PASS_OR_BLOCKERS_DOCUMENTED
 ```
 
-Run the bounded PixiJS v8 + React renderer spike required by the addendum. Keep the existing TMR TypeScript simulation/action/time pipeline authoritative. Do not migrate the simulation into Pixi/Phaser or add a second game clock. If the Pixi spike fails or threatens the deadline, keep one SVG production renderer and implement the same visual-delta/camera principles there; document the renderer decision.
+Run the bounded PixiJS v8 + React renderer spike required by the addenda. Keep the existing TMR TypeScript simulation/action/time pipeline authoritative. Do not migrate the simulation into Pixi/Phaser or add a second game clock. If the Pixi spike fails or threatens the deadline, keep one SVG production renderer and implement the same visual-delta/camera principles there; document the renderer decision in `docs/DECISIONS.md`.
 
 ## Original product direction
 
@@ -133,11 +139,26 @@ authoritative organizations become map markers
 revolution becomes territory
 ```
 
+Player-loop target:
+
+```text
+choose medium-term institutional/state-building direction
+-> let time flow while world remains legible
+-> watch spatial political change
+-> selectively intervene
+-> choices alter future availability
+-> completed choices leave visible history
+-> next decisions emerge from the changed world
+```
+
 Reference roles:
 
-- Plague Inc. / Rebel Inc. -> persistent living world-map game surface and spatial feedback;
+- Plague Inc. / Rebel Inc. -> persistent living world-map game surface, readable spatial feedback and time flow;
+- Civilization -> long-term tree readability/path satisfaction only, not research-point political authority;
 - Rebel Inc. Azure Dam -> major visible map-linked development objective interacting with instability/conflict;
 - Against the Storm -> strategic choices/upgrades becoming visible settlement/world changes and strong game-native HUD hierarchy;
+- Frostpunk -> laws/state-building producing visible consequences, not scripted scenario authority;
+- Victoria / Paradox politics -> laws and organized interests creating trade-offs, not dashboard-heavy persistent UI;
 - CK3 -> political geography / heraldry / territorial identity;
 - Suzerain / Papers Please -> title/briefing/decision flavor only, not persistent main-screen layout.
 
@@ -157,7 +178,7 @@ Design Tokens
 
 Content Registry
 -> stable player-facing copy IDs
--> screen/entity/event/policy/intervention/variant metadata
+-> screen/entity/event/policy/intervention/project/branch/variant metadata
 -> Content Studio edit/diff/import/export
 ```
 
@@ -188,4 +209,4 @@ Normal gameplay and Content Studio must use different UI grammar. Dense forms/ta
 - no unvetted copyleft code import;
 - no successor task self-authorization.
 
-Continue on `gamebuilders-product-surface-p0`, commit/push safe checkpoints, redeploy the actual corrected build to Sites, and stop only after the result reports all applicable gameplay-reality, ChronicleDigest, renderer, visual-UX, progression/project, Content Studio, responsive, and Sites statuses.
+Continue on `gamebuilders-product-surface-p0`, commit/push safe checkpoints, redeploy the actual corrected build to Sites, and stop only after the result reports all applicable gameplay-reality, auto-pause audit, ChronicleDigest, renderer, visual-UX, progression/project, Content Studio, responsive, and Sites statuses.
