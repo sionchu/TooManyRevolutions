@@ -251,20 +251,20 @@ export interface MapMaterialSystem {
 }
 
 export const MAP_MATERIAL_SYSTEM: MapMaterialSystem = {
-  terrainBase: "#a6a47f",
-  terrainSecondary: "#b5ae86",
-  terrainShadow: "#414d40",
+  terrainBase: "#72765b",
+  terrainSecondary: "#8a8060",
+  terrainShadow: "#263b3c",
   palette: {
-    "earth-ochre": "#a9825e",
-    "stone-slate": "#646a70",
-    "civic-cream": "#d5bd86",
-    "crisis-iron": "#783f3c",
+    "earth-ochre": "#a18a61",
+    "stone-slate": "#666761",
+    "civic-cream": "#d8c7a2",
+    "crisis-iron": "#b84f45",
   },
   roughness: 0.92,
   metalness: 0,
   ambientFill: 0.84,
   keyLight: 1.85,
-  fogColor: "#566257",
+  fogColor: "#263b3c",
   fogNear: 24,
   fogFar: 52,
   contactShadowColor: "#313a31",
