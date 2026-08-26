@@ -35,6 +35,8 @@ CURRENT_TASK_STATUS: AUTHORIZED
 TASK_FILE: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0.md
 MAP_FIRST_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_FIRST_ADDENDUM.md
 GAMEPLAY_REALITY_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAMEPLAY_REALITY_ADDENDUM.md
+GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_FEEL_ENGINE_CONTENT_STUDIO_ADDENDUM.md
+GAME_VISUAL_UX_RENDER_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_GAME_VISUAL_UX_RENDER_ADDENDUM.md
 BASE_IMPLEMENTATION_HEAD: ee4b282c767538c39bbf8379528d16761d3d4878
 WORK_BRANCH: gamebuilders-product-surface-p0
 NEXT_AUTHORIZED_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
@@ -42,58 +44,101 @@ NEXT_AUTHORIZED_TASK_ID: GAMEBUILDERS_PRODUCT_SURFACE_P0
 
 ## In-progress P0 review finding — BLOCKING
 
-Latest inspected P0 branch head during hands-on review:
+Latest inspected P0 branch head during this review:
 
 ```text
-P0_INSPECTED_HEAD: a4287a1dd5978bd87713a9ecb019e270331b7239
-P0_COMMITS_AHEAD_OF_DEMO_BASE: 15
+P0_INSPECTED_HEAD: 11cd70d82756cc89bd4b9a8c1f92a55fe7c32991
 USER_OBSERVED_LATE_TICK: ~1528
-USER_REPORTED_FEELING: visually static / text feels fictitious / not game-like
+USER_REPORTED_FEELING: visually static / text feels fictitious / not game-like / normal responsive web page
 ```
 
-The P0 has successfully added modular design registries, replaceable assets, title/briefing flow, real neighbor Countries, a political atlas, responsive components, and map-first decomposition. However, those improvements do not yet solve the more important gameplay-readability/integration problem.
+The P0 has added modular design registries, replaceable assets, title/briefing flow, real neighboring Countries, responsive decomposition and a political atlas. These are useful foundations, but P0 is still blocked because the product does not yet deliver a living game-world or game-native visual grammar.
 
-Independent source review found:
+### Gameplay-reality blockers
 
-1. `runSimulationStep()` emits next-tick system `actionProposals`, but current `demoGame.ts` discards them after each committed step. Faction and foreign heuristic proposals therefore do not become the next tick's ActionRecords in the player runtime.
-2. The accepted monthly ideology diffusion system exists but the demo runtime does not install `createIdeologyDiffusionPhaseHook()`, so cross-border ideology propagation is absent from actual play.
-3. The political atlas base fill uses Region legal ownership rather than current LandHex controller, so rebellion/occupation can change authoritative territorial control without a correspondingly obvious map-color change.
-4. Current coup/rebellion UI derives from a recent-event window; unresolved active Conflicts can disappear from player presentation after routine events accumulate.
-5. Raw recent events and long explanatory decision cards overuse text. Game theory is currently explained rather than made quickly playable.
-6. Current player action UI exposes Interventions but not the already implemented Policy/`ENACT_POLICY` institution path.
-7. The player's territorial substrate remains small enough that crisis territorial movement can exhaust visible front motion quickly while the accepted late-state unresolved-conflict issue persists.
+1. `runSimulationStep()` emits next-tick system `actionProposals`, but the inspected demo runtime discards them after each committed step. Faction and foreign heuristic proposals therefore do not consistently become next-tick ActionRecords in hands-on play.
+2. The accepted monthly ideology-diffusion system exists but the inspected demo runtime does not install it, so cross-border ideology propagation can be absent from actual play.
+3. The atlas can hide authoritative LandHex controller changes behind legal Region owner coloring.
+4. Coup/rebellion visibility can depend on recent-event history rather than persistent current active Conflict state.
+5. Raw routine event churn and long decision prose obscure meaningful political history.
+6. Existing Policy/`ENACT_POLICY` institutional gameplay is not yet fully surfaced to the player.
+7. The player territorial substrate / camera composition can exhaust visible spatial motion quickly.
 
-Therefore static visual polish is no longer the next priority. The mandatory Gameplay Reality addendum must be completed before P0 can pass.
+### Game-feel / motivation blockers
 
-## P0 reality target
-
-The actual player runtime must visibly realize existing accepted systems:
+Current loop risks reading as:
 
 ```text
-player Policy + Intervention input
-+ carried faction/foreign system actions through common ActionRecord intake
-+ contact-driven ideology diffusion
-+ visible current LandHex control changes
-+ persistent active crisis state
-+ meaningful sparse political event feedback
-+ clear consolidation objective/blockers
+time -> crisis text -> intervention text -> time
 ```
 
-The map remains the persistent playfield. Text/dialog/drawers explain changes; they do not substitute for changes.
+The player needs accumulating visible history:
 
-Required new P0 result markers include:
+```text
+real Policy path
++ map-linked State Projects / landmarks backed by existing action lifecycles
++ factual ideology / control / border / crisis visual transitions
++ persistent medium-term objective and blockers
+```
+
+A visual `Institutional Roadmap` may expose actual PolicyDefinition prerequisites/incompatibilities, but must not become a generic focus tree, research system, policy mana, or authored story progression.
+
+### Visual / renderer blockers
+
+The current composition still follows normal web-dashboard grammar:
+
+```text
+page/header
+-> equal metric boxes
+-> form-like time controls
+-> bordered map content card
+-> large empty map margins
+-> more bordered text boxes
+```
+
+The normal gameplay target is instead:
+
+```text
+compact game chrome
+-> world/map fills the primary viewport
+-> factual overlays/landmarks/motion on that world
+-> collapsible contextual drawers/sheets
+```
+
+Mobile must not become a stack of desktop cards. The first gameplay viewport should be map-first with compact HUD and bottom-sheet details.
+
+A bounded PixiJS v8 + React renderer spike is authorized. TMR TypeScript simulation/time/action remains authoritative. Phaser may be evaluated, but no wholesale engine migration or second game clock is authorized in this sprint.
+
+### Content-authoring requirement
+
+Create a separate development-only Content Studio (`?contentStudio=1` or equivalent) backed by stable content IDs. It should support search/filter/edit/live preview where practical, local draft persistence, diff/reset, JSON patch import/export, placeholder validation, and branch/variant metadata. Static Sites cannot directly commit to GitHub; do not fake that capability.
+
+Dense form/admin UI is appropriate in Content Studio only and must not leak into gameplay.
+
+## Required remaining P0 result markers
 
 ```text
 SYSTEM_PROPOSAL_CARRY_LOOP: IMPLEMENTED_AND_TESTED
 IDEOLOGY_DIFFUSION_IN_DEMO_RUNTIME: ENABLED
 CURRENT_CONTROLLER_VISUALLY_DISTINCT_FROM_OWNER: YES
 ACTIVE_CONFLICT_PERSISTENT_PRESENTATION: YES
-SIGNIFICANT_EVENT_FEED: YES
 PLAYER_POLICY_ACTIONS: YES
-CONSOLIDATION_OBJECTIVE_BLOCKERS_VISIBLE: YES
+INSTITUTIONAL_ROADMAP: YES
+GENERIC_TECH_OR_POLICY_MANA: NO
+STATE_PROJECT_PRESENTATION: YES
+COMPLETED_PROJECT_LEAVES_MAP_VISIBLE_TRACE: YES
+WORLD_VISUAL_DELTA_PIPELINE: YES
+CONTENT_STUDIO: YES
+CONTENT_JSON_IMPORT_EXPORT: YES
+WEB_DASHBOARD_VISUAL_GRAMMAR_DOMINANT: NO
+MAP_OCCUPIES_PRIMARY_VIEWPORT: YES
+MAP_WORLD_BOUNDS_FILLED: YES
+RAW_HEX_TEST_STRIP_APPEARANCE: NO
+PERSISTENT_PARAGRAPHS_ON_MAIN_MAP: NO
+CAMERA_PAN_ZOOM_FOCUS: YES
+MOBILE_STACKED_CARD_PAGE_FEEL: NO
 PLAYER_OBSERVABLE_DYNAMICS_AUDIT: PASS_OR_BLOCKER_DOCUMENTED
-DAY_1000_LOOKS_IDENTICAL_TO_DAY_0: NO
-MOBILE_MAP_FIRST_VIEWPORT: PASS
+DAY_1000_VISUALLY_AND_SYSTEMICALLY_DISTINCT_FROM_DAY_0: YES_OR_CORE_BLOCKER_PROVEN
 ```
 
 ## Locked product / spatial direction
@@ -114,11 +159,16 @@ authoritative organizations become map markers
 revolution becomes territory
 ```
 
-Plague Inc. / Rebel Inc. are the primary persistent-map/pacing references. CK3 is political geography. Suzerain/Papers Please are title/briefing/decision framing only.
+Reference roles:
+- Plague Inc. / Rebel Inc.: persistent living map, spatial feedback, pacing;
+- Rebel Inc. Azure Dam: visible map-linked development objective under political/security pressure;
+- Against the Storm: strategic decisions/upgrades producing visible world/building changes and game-native HUD hierarchy;
+- CK3: political geography / heraldry / territory identity;
+- Suzerain / Papers Please: title/briefing/decision flavor only.
 
-## Design system / partial-edit contract
+## Design / partial-edit contract
 
-Keep the in-progress modular stack:
+Keep and extend:
 
 ```text
 Design Tokens
@@ -129,9 +179,13 @@ Design Tokens
 -> Components
 -> Screen Composition
 -> State / Crisis Overlay
+
+Content Registry
+-> stable player-facing text IDs
+-> Content Studio editing and patch export
 ```
 
-Do not regress to a monolithic AI image or one giant component.
+Do not regress to a monolithic AI image, one giant React component, or hardcoded player copy scattered through components.
 
 ## Preserved architecture constraints
 
@@ -142,9 +196,12 @@ Do not regress to a monolithic AI image or one giant component.
 - fronts remain derived;
 - no invented armies/crowds/fronts;
 - no fake countries / Agenda / EventStore facts;
-- no direct UI WorldState mutation;
+- no direct UI/renderer mutation of WorldState;
 - all actions use common action/simulation boundaries;
 - no scripted/scheduled coup/rebellion;
+- no fake project completion;
+- no generic tech/reform/policy currency;
+- no focus-tree/story-node authority;
 - no hidden pacing timer/RNG cheat;
 - no new F05 operational-evidence/settlement implementation in P0;
 - no persistence V9;
@@ -161,4 +218,4 @@ F05_FIX25_CONDITIONAL_DESIGN_MEMO: NON_AUTHORITATIVE
 F05_FIX25_IMPLEMENTATION: NOT_AUTHORIZED
 ```
 
-Do not resume these until the GameBuilders P0 is independently reviewed or explicitly paused.
+Do not resume these until GameBuilders P0 is independently reviewed or explicitly paused.
