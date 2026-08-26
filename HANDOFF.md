@@ -86,5 +86,5 @@ verification, public QA, and Sites deployment details.
 
 ## Next action
 
-Commit and push the result/evidence/handoff update, then stop. Do not start
-F05 follow-up work, Gate 1F, or V02.
+The result/evidence/handoff update is committed and pushed. Stop here. Do not
+start F05 follow-up work, Gate 1F, or V02.
