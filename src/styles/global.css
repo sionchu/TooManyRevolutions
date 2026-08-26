@@ -1313,7 +1313,7 @@ h3 {
   }
   .header-actions button {
     flex: 0 0 auto;
-    min-height: 2.2rem;
+    min-height: 2.5rem;
     padding: 0.34rem 0.48rem;
     font-size: 0.62rem;
   }
@@ -1375,7 +1375,7 @@ h3 {
     justify-content: stretch;
   }
   .time-controls button {
-    min-height: 2.2rem;
+    min-height: 2.5rem;
     padding: 0.32rem 0.24rem;
     font-size: 0.62rem;
   }
