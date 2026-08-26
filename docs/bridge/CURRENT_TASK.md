@@ -7,6 +7,7 @@ REVIEWED_BRANCH_HEAD: f6c3c2bbb03a516d081b859c01838a447d3caacc
 REVIEWED_DEPLOYED_SOURCE: 9befdf7aaee6eafe75a4601369a2624691a4a189
 PRODUCT_REVIEW: docs/P0_CONTINUOUS_WORLD_PRODUCT_REVIEW_2026-08-26.md
 MAP_ARCHITECTURE_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_WORLD_ARCHITECTURE_AND_AUTHORING_ADDENDUM.md
+MAP_VISUAL_SYSTEM_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_VISUAL_SYSTEM_ART_DIRECTION_ADDENDUM.md
 SEMANTIC_WORLD_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_SEMANTIC_WORLD_OBJECT_ART_REWORK_ADDENDUM.md
 CONTENT_TERRAIN_ADDENDUM: docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_CONTINUOUS_TERRAIN_AND_CONTENT_AUTHORING_ADDENDUM.md
 RESULT_PATH: docs/bridge/results/GAMEBUILDERS_PRODUCT_SURFACE_P0_RESULT.md
@@ -22,7 +23,7 @@ R3F_PRODUCTION_RENDERER: PASS / RETAIN
 WORLD_SCENE_MODEL: PASS / RETAIN
 AUTHORED_POI_AND_SEMANTIC_OBJECT_KERNEL: PASS / RETAIN
 P0_MAP_PRODUCT_PASS: NO
-PRIMARY_BLOCKER: MAP_HIERARCHY + GEOGRAPHY + CAMERA + LOD + HUD
+PRIMARY_BLOCKER: MAP_ARCHITECTURE + VISUAL_SYSTEM + GEOGRAPHY + CAMERA + LOD + HUD
 GATE1F: NOT_READY
 V02: NOT_STARTED
 ```
@@ -33,21 +34,30 @@ Do not reopen Content Studio architecture, renderer selection, simulation author
 
 Hands-on desktop/mobile review found:
 
-1. the world-stage container is large, but the actual world content is a small cluster surrounded by empty olive space;
-2. current `TerrainWorldSurface` is still generated one logical-hex triangle fan at a time and does not read as authored geography;
-3. rebellion/controller changes re-expose many complete hex perimeters, restoring a board-game/token look;
-4. ideology/influence rings remain too prominent as board markers rather than geography-embedded political influence;
-5. authored POIs and project objects exist, but they are too small at the default camera to define the world;
-6. mobile still full-fits too much theater and keeps too much HUD above the map;
-7. map content is source-authored but not yet manageable through a dedicated map authoring workflow.
+1. the world-stage container is large, but the actual world content is a small cluster surrounded by empty background;
+2. current terrain is still visually derived from logical Hex patches rather than authored geographic masses;
+3. rebellion/controller changes still trend toward repeated cell outlines/flags instead of one readable occupied area/front;
+4. authored POIs exist but the capital, industrial region, frontier and route corridors do not yet read as distinct spatial compositions without labels;
+5. primitive blockout geometry, flat materials and weak grounding make buildings/POIs look like editor props rather than one world;
+6. object scale hierarchy is weak: trees, mountains, cities, forts, flags and route glyphs compete at similar visual weight;
+7. labels are too numerous and overlap spatial objects instead of following LOD/priority/collision rules;
+8. camera fit is still based too much on showing the whole bounded dataset rather than composing a useful strategic theater;
+9. mobile still keeps too much HUD/control surface above the world;
+10. current map authoring is not yet a true visual-composition workflow.
 
-Reference interpretation is now:
+The key distinction is:
 
 ```text
-RTK XIV -> logical HEX under Area/City Region/City-Port-Gate hierarchy
-HOI4    -> terrain base + political/front/logistics overlays + zoom/map-mode hierarchy
-Plague/Rebel Inc -> persistent geography-first playfield + spatial hotspots/routes
-TMR     -> LandHex remains authority but must become a hidden interaction substrate
+DATA LAYERING != VISUAL HIERARCHY
+```
+
+Reference interpretation:
+
+```text
+RTK / Civilization -> topology is hidden under authored geography, settlements, chokepoints and infrastructure
+HOI4               -> one geographic base supports political/front/logistics layers by zoom/map mode
+Plague/Rebel Inc   -> geography is the persistent playfield; hotspots/routes are immediately readable
+TMR                -> restrained 2.5D political atlas where LandHex remains hidden authority
 ```
 
 ## Mandatory execution order
@@ -60,9 +70,10 @@ Read:
 4. `docs/QA_PLAYTEST.md`
 5. `docs/P0_CONTINUOUS_WORLD_PRODUCT_REVIEW_2026-08-26.md`
 6. `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_WORLD_ARCHITECTURE_AND_AUTHORING_ADDENDUM.md`
-7. current semantic-world/content addenda as preserved constraints
+7. `docs/bridge/tasks/GAMEBUILDERS_PRODUCT_SURFACE_P0_MAP_VISUAL_SYSTEM_ART_DIRECTION_ADDENDUM.md`
+8. current semantic-world/content addenda as preserved constraints
 
-Then perform only the targeted map pass.
+Then perform one coherent targeted map pass. Do not separately polish the old per-Hex rendering.
 
 ## Preserve completed work
 
@@ -80,92 +91,7 @@ Then perform only the targeted map pass.
 - controller/Conflict/front truth;
 - Institutional Roadmap graph kernel.
 
-## Current implementation targets
-
-### 1. Continuous geography
-
-Stop using one visible independent hex fan as the primary terrain concept. Build shared/snap-keyed adjacent terrain vertices into one or a small number of continuous triangulated meshes. Logical LandHex hit areas remain separate and invisible.
-
-### 2. Political boundary extraction
-
-```text
-same owner/controller across adjacent cells -> no internal edge
-different owner/controller -> boundary segment
-faction-controlled cells -> merged territory surface / outer perimeter
-front -> controller-difference boundary segments only
-selected/target cell -> full hex outline allowed
-```
-
-Do not show every rebel/controller hex as a complete outlined token.
-
-### 3. Ideology on geography
-
-Replace dominant torus/ring markers with Region surface tint/pattern/decal/gradient/noise treatment. Rings are allowed only as temporary selection/focus cues.
-
-### 4. Camera / occupancy
-
-Desktop whole-theater fit is allowed only when actual world content fills the stage. Mobile portrait defaults to player-country core + immediate border context, with `전체 보기` as an explicit global-fit action.
-
-### 5. Map LOD
-
-```text
-far    -> geography, polity labels, capitals, major crisis
-medium -> Region identity, POIs, routes, projects, controller/front
-near   -> selected LandHex, minor POIs, fine activity/detail
-```
-
-Do not render all labels/objects at every zoom.
-
-### 6. Mobile HUD reduction
-
-Persistent mobile map screen:
-
-- compact country/date;
-- play/pause/speed;
-- at most 2–3 high-value qualitative status cues;
-- one urgent alert if needed.
-
-Move exact values, `+1/+7/+30`, sound/title return, auto-pause explanation and secondary state to drawers/settings/details.
-
-### 7. Map Studio foundation
-
-Create development-only `?mapStudio=1` for map authoring/management.
-
-Required modes:
-
-- topology inspect (read-only in P0);
-- geography/terrain authoring;
-- POI/institution placement;
-- political snapshot preview;
-- camera preset editing;
-- Day0/rebellion/project/late snapshot preview;
-- validation;
-- MapPatch v1 JSON import/export.
-
-No direct Map Studio -> GitHub write path.
-
-## Map architecture
-
-```text
-MapTopologyDefinition  [authoritative]
--> MapGeographyDefinition [authored presentation + truth-linked geography]
--> MapSemanticContent     [authored POI/institutions]
--> MapPoliticalProjection [runtime derived]
--> MapActivityProjection  [runtime derived]
--> MapViewPreset          [presentation]
--> MapStyleDefinition     [presentation]
--> R3F
-```
-
-Every visual item must remain classifiable as:
-
-```text
-AUTHORITATIVE_PROJECTION
-DERIVED_PRESENTATION
-DECORATIVE_SUBSTRATE
-```
-
-## Acceptance markers
+## Required map architecture outcomes
 
 ```text
 MAP_ARCHITECTURE_LAYERING: PASS
@@ -177,17 +103,36 @@ FRONT_BOUNDARY_SEGMENTS_ONLY: YES
 IDEOLOGY_BOARD_RING_DOMINANT: NO
 MAP_VIEW_PRESETS: YES
 MOBILE_DEFAULT_CAMERA_PLAYER_THEATER: YES
+MAP_LOD_POLICY: IMPLEMENTED
+```
+
+## Required visual-system outcomes
+
+```text
+MAP_VISUAL_SYSTEM: PASS
+MACRO_MESO_MICRO_HIERARCHY: PASS
+AUTHORED_GEOGRAPHY_COMPOSITION: PASS
+PRIMITIVE_BLOCKOUT_LOOK_DOMINANT: NO
+REGION_COMPOSITION_READABLE_WITHOUT_LABELS: YES
+OBJECT_SCALE_HIERARCHY: PASS
+MATERIAL_LIGHTING_GROUNDING: PASS
+LABEL_COLLISION_POLICY: PASS
+DEFAULT_CAMERA_EMPTY_SPACE_DOMINANT: NO
+REBELLION_REPEATED_CELL_ICON_CLUTTER: NO
+MOBILE_GAME_MAP_FIRST_IMPRESSION: PASS
+```
+
+Visual target is a restrained grand-strategy political atlas / 2.5D miniature world. Primitive box/cone/cylinder assets are blockout only and do not qualify for product-art PASS.
+
+## Required occupancy / HUD outcomes
+
+```text
 WORLD_CONTENT_OCCUPANCY_DESKTOP_WIDTH: >=75%
 WORLD_CONTENT_OCCUPANCY_DESKTOP_HEIGHT: >=55%
 WORLD_CONTENT_OCCUPANCY_MOBILE_WIDTH: >=88%
 FIRST_MOBILE_VIEWPORT_WORLD_SHARE: >=60%
 PERSISTENT_MOBILE_STATUS_CUES: <=3
-MAP_LOD_POLICY: IMPLEMENTED
 POI_OBJECTS_READ_BEFORE_LABELS: YES
-TITLE_BRIEFING_CONTENT_AUTHORING_PIPELINE: RETAINED
-P0_PRODUCT_PASS: NOT_SELF_DECLARED
-GATE1F: NOT_READY
-V02: NOT_STARTED
 ```
 
 ## Required visual evidence
@@ -195,13 +140,14 @@ V02: NOT_STARTED
 From the exact deployed source commit:
 
 - desktop Day 0 with world-content occupancy measurement;
+- labels-hidden screenshot proving capital/industrial/frontier compositions remain recognisable;
 - mobile default player-theater camera;
-- selected single hex contextual outline;
-- rebellion showing merged occupied area/front rather than full-cell grid;
-- ideology surface treatment without dominant rings;
+- selected single Hex contextual outline;
+- rebellion showing merged occupied area/front rather than repeated cell grid/flag clutter;
+- ideology surface treatment;
 - project implementing/completed;
 - late state;
-- Map Studio geography/POI/camera view;
+- Map Studio geography/POI/camera/style view;
 - 390×844 first viewport showing >=60% world share.
 
 ## Hard boundaries
@@ -215,6 +161,7 @@ From the exact deployed source commit:
 - no decorative element that falsely implies unsupported mechanics;
 - no fake project lifecycle;
 - no generic research/political mana;
+- no copied commercial assets;
 - no persistence V9;
 - no Gate1F PASS;
 - no V02;
