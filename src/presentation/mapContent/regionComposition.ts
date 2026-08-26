@@ -220,10 +220,11 @@ export const REGION_COMPOSITION_TEMPLATES: Readonly<
     displayName: "항구·교역 관문",
     silhouetteCue:
       "수면을 향한 선형 부두, 돛대, 배후 상업 도시가 한 해안 접점으로 읽힘",
-    terrainSignatures: ["coastal-shelf", "tidal-edge", "trade-approach"],
+    terrainSignatures: ["water-shelf", "tidal-edge", "trade-approach"],
     density: "linear",
     groundingMaterial: "terrain-earth",
     readingOrder: [
+      "water-shelf",
       "port-dock",
       "dense-town",
       "small-settlement",
@@ -231,6 +232,7 @@ export const REGION_COMPOSITION_TEMPLATES: Readonly<
       "field-plot",
     ],
     objects: [
+      placement("water-shelf", [0, 0], macroMesoMicro, "DECORATIVE_SUBSTRATE"),
       placement("port-dock", [0, 0], mesoMicro, "AUTHORED_STATIC_POI"),
       placement("dense-town", [-0.48, 0.28], mesoMicro, "AUTHORED_SETTLEMENT"),
       placement("small-settlement", [0.5, -0.3], micro, "AUTHORED_SETTLEMENT"),

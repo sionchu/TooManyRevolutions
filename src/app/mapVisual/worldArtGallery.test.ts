@@ -29,5 +29,11 @@ describe("WORLD_ART_GALLERY", () => {
         expect(kit?.primitives.length).toBeGreaterThanOrEqual(3);
       }
     }
+    expect(snapshot.find((panel) => panel.role === "port")?.placements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ family: "water-shelf" }),
+        expect.objectContaining({ family: "port-dock" }),
+      ]),
+    );
   });
 });

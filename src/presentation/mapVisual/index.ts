@@ -38,6 +38,7 @@ export {
   PROCEDURAL_WORLD_ART_KITS,
   RoadCorridorKit,
   SmallSettlementKit,
+  WaterShelfKit,
 } from "./proceduralKitGeometry";
 export type {
   MapAssetProvenance,
