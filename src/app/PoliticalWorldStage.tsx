@@ -1,6 +1,13 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 
 import { TMR_LAYER_REGISTRY } from "../presentation/design/layerRegistry";
 import {
@@ -10,13 +17,16 @@ import {
 } from "../presentation/worldSceneModel";
 import {
   DEFAULT_MAP_STYLE,
+  deriveFactionPresenceAnchors,
   deriveMapArchitecture,
   deriveMapLodTier,
-  estimateMapOccupancy,
   deriveMapViewportBounds,
+  inspectMapScreenSpaceOccupancy,
   ideologySurfacePaletteIndex,
   type MapArchitecture,
   type MapLodTier,
+  type MapScreenSpaceOccupancy,
+  type MapScreenSpaceRect,
   type MapViewPreset,
 } from "../presentation/mapArchitecture";
 import {
@@ -727,6 +737,24 @@ function CompositionLayer({
   );
 }
 
+function projectWorldPointsToCanvas(
+  camera: THREE.Camera,
+  points: readonly WorldScenePoint[],
+  width: number,
+  height: number,
+): MapScreenSpaceRect | null {
+  if (points.length === 0 || width <= 0 || height <= 0) return null;
+  const projected = points.map((point) =>
+    new THREE.Vector3(...point).project(camera),
+  );
+  return {
+    minX: Math.min(...projected.map((point) => ((point.x + 1) / 2) * width)),
+    maxX: Math.max(...projected.map((point) => ((point.x + 1) / 2) * width)),
+    minY: Math.min(...projected.map((point) => ((1 - point.y) / 2) * height)),
+    maxY: Math.max(...projected.map((point) => ((1 - point.y) / 2) * height)),
+  };
+}
+
 function TerrainWorldSurface({
   runtimeGeometry,
 }: {
@@ -772,6 +800,8 @@ function TerrainWorldSurface({
         geometryMode: "continuous-connected-surfaces",
         sharedVertexCount: runtimeGeometry.terrainMesh.sharedVertexCount,
         polygonCount: runtimeGeometry.terrainMesh.polygonCount,
+        terrainKinds: runtimeGeometry.terrainMesh.terrainKinds.join(","),
+        terrainHeightRange: `${runtimeGeometry.terrainMesh.minHeight.toFixed(3)}:${runtimeGeometry.terrainMesh.maxHeight.toFixed(3)}`,
       }}
     >
       <meshStandardMaterial vertexColors roughness={0.98} metalness={0} />
@@ -983,36 +1013,14 @@ function SurfaceDirectionalTreatment({
 }
 
 function BoundaryLayer({
-  model,
   architecture,
   lodTier,
 }: {
-  readonly model: WorldSceneModel;
   readonly architecture: MapArchitecture;
   readonly lodTier: MapLodTier;
 }) {
-  const hexesById = new Map<string, WorldSceneModel["hexes"][number]>(
-    model.hexes.map((hex) => [hex.id, hex]),
-  );
-  const controllerKey = (hexId: string) => {
-    const controller = hexesById.get(hexId)?.controller;
-    if (controller === undefined) return "missing";
-    switch (controller.kind) {
-      case "country":
-        return `country:${controller.countryId}`;
-      case "faction":
-        return `faction:${controller.factionId}`;
-      case "uncontrolled":
-        return "uncontrolled";
-    }
-  };
   const visibleOwnerSegments =
-    architecture.political.legalOwnerBoundarySegments.filter(
-      (segment) =>
-        segment.secondLandHexId !== null &&
-        controllerKey(segment.firstLandHexId) !==
-          controllerKey(segment.secondLandHexId),
-    );
+    architecture.political.legalOwnerBoundarySegments;
   const visibleControllerSegments =
     lodTier === "far"
       ? []
@@ -1898,10 +1906,12 @@ function WorldScene({
   lodTier,
   cameraState,
   cameraBounds,
+  factionPresenceAnchors,
   highlightedRegionIds,
   selectedHexId,
   onSelectRegion,
   onSelectHex,
+  onProjectedWorldBounds,
 }: {
   readonly model: WorldSceneModel;
   readonly architecture: MapArchitecture;
@@ -1910,10 +1920,12 @@ function WorldScene({
   readonly lodTier: MapLodTier;
   readonly cameraState: CameraState;
   readonly cameraBounds: MapArchitecture["contentBounds"];
+  readonly factionPresenceAnchors: readonly WorldSceneModel["factionPresence"][number][];
   readonly highlightedRegionIds: ReadonlySet<string>;
   readonly selectedHexId: string | null;
   readonly onSelectRegion: (regionId: RegionId) => void;
   readonly onSelectHex: (landHexId: string) => void;
+  readonly onProjectedWorldBounds: (bounds: MapScreenSpaceRect) => void;
 }) {
   const { camera, size } = useThree();
   const fitZoom = Math.min(
@@ -1928,6 +1940,22 @@ function WorldScene({
     camera.zoom = Math.max(12, fitZoom * cameraState.zoom);
     camera.updateProjectionMatrix();
   }, [camera, cameraState, fitZoom]);
+  useEffect(() => {
+    camera.updateMatrixWorld();
+    const projected = projectWorldPointsToCanvas(
+      camera,
+      runtimeGeometry.terrainMesh.vertices,
+      size.width,
+      size.height,
+    );
+    if (projected !== null) onProjectedWorldBounds(projected);
+  }, [
+    camera,
+    onProjectedWorldBounds,
+    runtimeGeometry.terrainMesh.vertices,
+    size.height,
+    size.width,
+  ]);
 
   const regionsById = useMemo(
     () => new Map(model.regions.map((region) => [region.regionId, region])),
@@ -1972,11 +2000,7 @@ function WorldScene({
           runtimeGeometry={runtimeGeometry}
           lodTier={lodTier}
         />
-        <BoundaryLayer
-          model={model}
-          architecture={architecture}
-          lodTier={lodTier}
-        />
+        <BoundaryLayer architecture={architecture} lodTier={lodTier} />
         {model.hexes.map((hex) => (
           <WorldTile
             key={hex.id}
@@ -2045,8 +2069,8 @@ function WorldScene({
               <ProjectLandmark key={project.id} project={project} />
             ))
           : null}
-        {showMinorObjects && model.factionPresence.length > 0
-          ? model.factionPresence.map((presence) => (
+        {showMinorObjects && factionPresenceAnchors.length > 0
+          ? factionPresenceAnchors.map((presence) => (
               <FactionBanner key={presence.id} position={presence.position} />
             ))
           : null}
@@ -2205,6 +2229,10 @@ export function PoliticalWorldStage({
     () => deriveMapRuntimeGeometry(model),
     [model],
   );
+  const factionPresenceAnchors = useMemo(
+    () => deriveFactionPresenceAnchors(model),
+    [model],
+  );
   const viewPresets = architecture.viewPresets;
   const initialPreset = useMemo(
     () => defaultMapPreset(viewPresets),
@@ -2223,6 +2251,64 @@ export function PoliticalWorldStage({
     zoom: initialPreset.zoom,
   }));
   const [selectedHexId, setSelectedHexId] = useState<string | null>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const [screenSpaceOccupancy, setScreenSpaceOccupancy] =
+    useState<MapScreenSpaceOccupancy | null>(null);
+  const onProjectedWorldBounds = useCallback(
+    (projectedBounds: MapScreenSpaceRect) => {
+      if (typeof window === "undefined") return;
+      const viewportElement = viewportRef.current;
+      const canvas = viewportElement?.querySelector("canvas");
+      if (
+        viewportElement === null ||
+        viewportElement === undefined ||
+        canvas === null ||
+        canvas === undefined
+      )
+        return;
+      const canvasRect = canvas.getBoundingClientRect();
+      const stageElement = viewportElement.closest(".world-stage");
+      const stageRect =
+        stageElement?.getBoundingClientRect() ??
+        viewportElement.getBoundingClientRect();
+      const canvasBounds: MapScreenSpaceRect = {
+        minX: canvasRect.left,
+        maxX: canvasRect.right,
+        minY: canvasRect.top,
+        maxY: canvasRect.bottom,
+      };
+      const projectedWorldBounds: MapScreenSpaceRect = {
+        minX: canvasRect.left + projectedBounds.minX,
+        maxX: canvasRect.left + projectedBounds.maxX,
+        minY: canvasRect.top + projectedBounds.minY,
+        maxY: canvasRect.top + projectedBounds.maxY,
+      };
+      const measured = inspectMapScreenSpaceOccupancy({
+        viewport: { width: window.innerWidth, height: window.innerHeight },
+        stageBounds: {
+          minX: stageRect.left,
+          maxX: stageRect.right,
+          minY: stageRect.top,
+          maxY: stageRect.bottom,
+        },
+        canvasBounds,
+        projectedWorldBounds,
+      });
+      setScreenSpaceOccupancy((current) => {
+        if (
+          current?.stage.width === measured.stage.width &&
+          current.stage.height === measured.stage.height &&
+          current.projectedWorld.width === measured.projectedWorld.width &&
+          current.projectedWorld.height === measured.projectedWorld.height &&
+          current.firstMobileViewportWorldShare ===
+            measured.firstMobileViewportWorldShare
+        )
+          return current;
+        return measured;
+      });
+    },
+    [],
+  );
   const pointerRef = useRef<{ id: number; x: number; y: number } | null>(null);
   const highlightedRegionIds = useMemo(
     () =>
@@ -2295,14 +2381,8 @@ export function PoliticalWorldStage({
   const debugLayers =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("designDebug") === "1";
-  const desktopOccupancy = estimateMapOccupancy(
-    model,
-    presetById.get("desktop.global") ?? initialPreset,
-  );
-  const mobileOccupancy = estimateMapOccupancy(
-    model,
-    presetById.get("mobile.player-theater") ?? initialPreset,
-  );
+  const isMobileViewport =
+    typeof window !== "undefined" && window.innerWidth <= 760;
   const lodTier = deriveMapLodTier(camera.zoom);
   const labelsHidden =
     typeof window !== "undefined" &&
@@ -2324,6 +2404,7 @@ export function PoliticalWorldStage({
       <div className="map-wrap world-scene-wrap">
         <div
           className="world-scene-viewport"
+          ref={viewportRef}
           data-world-scene-tick={model.tick}
           data-camera-focus={focusRegionId ?? "world"}
           data-map-preset={focusPresetId}
@@ -2348,6 +2429,7 @@ export function PoliticalWorldStage({
           data-map-faction-surface-count={
             runtimeGeometry.factionSurfaces.length
           }
+          data-map-faction-banner-anchor-count={factionPresenceAnchors.length}
           data-map-front-count={
             architecture.political.frontBoundarySegments.length
           }
@@ -2361,14 +2443,48 @@ export function PoliticalWorldStage({
           )},${runtimeGeometry.renderBounds.minZ.toFixed(
             2,
           )},${runtimeGeometry.renderBounds.maxZ.toFixed(2)}`}
-          data-world-content-occupancy-width={desktopOccupancy.width.toFixed(3)}
-          data-world-content-occupancy-height={desktopOccupancy.height.toFixed(
-            3,
-          )}
-          data-mobile-content-occupancy-width={mobileOccupancy.width.toFixed(3)}
-          data-mobile-content-occupancy-height={mobileOccupancy.height.toFixed(
-            3,
-          )}
+          data-map-occupancy-source={
+            screenSpaceOccupancy === null
+              ? "screen-space-pending"
+              : "screen-space-projection"
+          }
+          data-map-stage-occupancy-width={
+            screenSpaceOccupancy?.stage.width.toFixed(3) ?? "NOT_MEASURED"
+          }
+          data-map-stage-occupancy-height={
+            screenSpaceOccupancy?.stage.height.toFixed(3) ?? "NOT_MEASURED"
+          }
+          data-map-projected-world-occupancy-width={
+            screenSpaceOccupancy?.projectedWorld.width.toFixed(3) ??
+            "NOT_MEASURED"
+          }
+          data-map-projected-world-occupancy-height={
+            screenSpaceOccupancy?.projectedWorld.height.toFixed(3) ??
+            "NOT_MEASURED"
+          }
+          data-first-mobile-viewport-world-share={
+            screenSpaceOccupancy === null
+              ? "NOT_MEASURED"
+              : isMobileViewport
+                ? screenSpaceOccupancy.firstMobileViewportWorldShare.toFixed(3)
+                : "NOT_MOBILE_VIEWPORT"
+          }
+          data-world-content-occupancy-width={
+            screenSpaceOccupancy?.projectedWorld.width.toFixed(3) ??
+            "NOT_MEASURED"
+          }
+          data-world-content-occupancy-height={
+            screenSpaceOccupancy?.projectedWorld.height.toFixed(3) ??
+            "NOT_MEASURED"
+          }
+          data-mobile-content-occupancy-width={
+            screenSpaceOccupancy?.projectedWorld.width.toFixed(3) ??
+            "NOT_MEASURED"
+          }
+          data-mobile-content-occupancy-height={
+            screenSpaceOccupancy?.projectedWorld.height.toFixed(3) ??
+            "NOT_MEASURED"
+          }
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -2404,10 +2520,12 @@ export function PoliticalWorldStage({
               lodTier={lodTier}
               cameraState={camera}
               cameraBounds={cameraBounds}
+              factionPresenceAnchors={factionPresenceAnchors}
               highlightedRegionIds={highlightedRegionIds}
               selectedHexId={selectedHexId}
               onSelectRegion={onSelectRegion}
               onSelectHex={setSelectedHexId}
+              onProjectedWorldBounds={onProjectedWorldBounds}
             />
           </Canvas>
           <div className="world-scene-hud" aria-hidden="true">

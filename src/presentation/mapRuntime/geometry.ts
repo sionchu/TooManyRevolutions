@@ -23,6 +23,9 @@ export interface MapRuntimeTerrainMesh {
   readonly polygonCount: number;
   readonly logicalLandHexCount: number;
   readonly sharedVertexCount: number;
+  readonly terrainKinds: readonly WorldSceneModel["hexes"][number]["terrain"][];
+  readonly minHeight: number;
+  readonly maxHeight: number;
 }
 
 export interface MapRuntimeGeometry {
@@ -48,6 +51,17 @@ interface RuntimeTopology {
   readonly edgesByKey: ReadonlyMap<string, readonly RuntimeEdge[]>;
   readonly hexesById: ReadonlyMap<string, WorldSceneModel["hexes"][number]>;
   readonly cornerSampleCount: ReadonlyMap<string, number>;
+}
+
+interface TerrainVertexSample {
+  readonly terrain: RuntimeTerrain;
+  readonly height: number;
+}
+
+interface TerrainVertexAccumulator {
+  readonly x: number;
+  readonly z: number;
+  readonly samples: TerrainVertexSample[];
 }
 
 const HEX_RADIUS = 1.01;
@@ -86,6 +100,18 @@ function terrainColor(terrain: RuntimeTerrain): [number, number, number] {
     base[0] * (1 - blend) + raw[0] * blend,
     base[1] * (1 - blend) + raw[1] * blend,
     base[2] * (1 - blend) + raw[2] * blend,
+  ];
+}
+
+function averageTerrainColor(
+  samples: readonly TerrainVertexSample[],
+): [number, number, number] {
+  if (samples.length === 0) return terrainColor("plains");
+  const colors = samples.map((sample) => terrainColor(sample.terrain));
+  return [
+    colors.reduce((total, color) => total + color[0], 0) / colors.length,
+    colors.reduce((total, color) => total + color[1], 0) / colors.length,
+    colors.reduce((total, color) => total + color[2], 0) / colors.length,
   ];
 }
 
@@ -493,37 +519,102 @@ function dominantTerrainForRegion(
   );
 }
 
-function combineTerrainMesh(
-  polygons: readonly MapRuntimePolygon[],
+function createContinuousTerrainMesh(
+  topology: RuntimeTopology,
+  polygonCount: number,
   logicalLandHexCount: number,
-  sharedVertexCount: number,
 ): MapRuntimeTerrainMesh {
+  const cornerSamples = new Map<string, TerrainVertexAccumulator>();
+  const centerSamples = new Map<string, TerrainVertexAccumulator>();
+  const addSample = (
+    target: Map<string, TerrainVertexAccumulator>,
+    key: string,
+    x: number,
+    z: number,
+    sample: TerrainVertexSample,
+  ) => {
+    const current = target.get(key);
+    if (current === undefined) {
+      target.set(key, { x: round(x), z: round(z), samples: [sample] });
+    } else {
+      current.samples.push(sample);
+    }
+  };
+  for (const hex of topology.hexesById.values()) {
+    const height = hex.position[1] + hex.height + 0.025;
+    const sample = { terrain: hex.terrain, height };
+    for (let index = 0; index < 6; index += 1) {
+      const angle = (Math.PI / 180) * (60 * index + 30);
+      const x = hex.position[0] + HEX_RADIUS * Math.cos(angle);
+      const z = hex.position[2] + HEX_RADIUS * Math.sin(angle);
+      addSample(cornerSamples, pointKey(x, z), x, z, sample);
+    }
+    addSample(
+      centerSamples,
+      `center:${hex.id}`,
+      hex.position[0],
+      hex.position[2],
+      sample,
+    );
+  }
   const vertices: WorldScenePoint[] = [];
   const colors: [number, number, number][] = [];
   const triangles: [number, number, number][] = [];
-  for (const polygon of polygons) {
-    const offset = vertices.length;
-    const color = terrainColor(polygon.terrain ?? "plains");
-    vertices.push(...polygon.points);
-    colors.push(...polygon.points.map(() => color));
-    triangles.push(
-      ...polygon.triangles.map(
-        ([first, second, third]) =>
-          [offset + first, offset + second, offset + third] as [
-            number,
-            number,
-            number,
-          ],
-      ),
-    );
+  const vertexIndexes = new Map<string, number>();
+  const addVertex = (
+    key: string,
+    accumulator: TerrainVertexAccumulator,
+  ): number => {
+    const existing = vertexIndexes.get(key);
+    if (existing !== undefined) return existing;
+    const index = vertices.length;
+    const height =
+      accumulator.samples.reduce((total, sample) => total + sample.height, 0) /
+      accumulator.samples.length;
+    vertices.push([accumulator.x, height, accumulator.z]);
+    colors.push(averageTerrainColor(accumulator.samples));
+    vertexIndexes.set(key, index);
+    return index;
+  };
+  const cornersForHex = (hex: WorldSceneModel["hexes"][number]) =>
+    Array.from({ length: 6 }, (_, index) => {
+      const angle = (Math.PI / 180) * (60 * index + 30);
+      const x = hex.position[0] + HEX_RADIUS * Math.cos(angle);
+      const z = hex.position[2] + HEX_RADIUS * Math.sin(angle);
+      return pointKey(x, z);
+    });
+  for (const hex of [...topology.hexesById.values()].sort((first, second) =>
+    compareStableText(first.id, second.id),
+  )) {
+    const center = centerSamples.get(`center:${hex.id}`);
+    if (center === undefined) continue;
+    const centerIndex = addVertex(`center:${hex.id}`, center);
+    const cornerKeys = cornersForHex(hex);
+    for (let index = 0; index < cornerKeys.length; index += 1) {
+      const first = cornerSamples.get(cornerKeys[index]!);
+      const second = cornerSamples.get(cornerKeys[(index + 1) % 6]!);
+      if (first === undefined || second === undefined) continue;
+      const firstIndex = addVertex(cornerKeys[index]!, first);
+      const secondIndex = addVertex(cornerKeys[(index + 1) % 6]!, second);
+      triangles.push([centerIndex, firstIndex, secondIndex]);
+    }
   }
+  const heights = vertices.map((vertex) => vertex[1]);
+  const terrainKinds = [
+    ...new Set([...topology.hexesById.values()].map((hex) => hex.terrain)),
+  ].sort(compareStableText);
   return {
     vertices,
     colors,
     triangles,
-    polygonCount: polygons.length,
+    polygonCount,
     logicalLandHexCount,
-    sharedVertexCount,
+    sharedVertexCount: [...cornerSamples.values()].filter(
+      (sample) => sample.samples.length > 1,
+    ).length,
+    terrainKinds,
+    minHeight: Math.min(...heights),
+    maxHeight: Math.max(...heights),
   };
 }
 
@@ -556,9 +647,10 @@ export function deriveMapRuntimeGeometry(
     regionPolygons.length > 0
       ? regionPolygons
       : fallbackPolygons(topology, "region");
-  // Regions form the macro landmasses. Terrain remains authoritative as a
-  // material attribute, but a region is rendered as one continuous plate so
-  // terrain never reintroduces a visible one-hex board.
+  // Regions form the macro landmasses. Their outer polygons are retained for
+  // political surfaces, while terrain uses a shared corner/center mesh below
+  // so the logical Hex boundary stays invisible without discarding terrain or
+  // elevation information.
   const macroTerrainPolygons = finalRegionPolygons.map((polygon) => ({
     ...polygon,
     terrain: dominantTerrainForRegion(topology, polygon.semanticKey),
@@ -572,19 +664,19 @@ export function deriveMapRuntimeGeometry(
           ? terrainPolygons
           : fallbackPolygons(topology, "terrain");
   const finalFactionPolygons = factionPolygons;
+  const terrainMesh = createContinuousTerrainMesh(
+    topology,
+    finalTerrainPolygons.length,
+    model.hexes.length,
+  );
   const allPoints = [
-    ...finalTerrainPolygons.flatMap((polygon) => polygon.points),
+    ...terrainMesh.vertices,
     ...model.settlements.map((item) => item.position),
     ...model.conflicts.map((item) => item.position),
     ...model.projects.map((item) => item.position),
   ];
   return {
-    terrainMesh: combineTerrainMesh(
-      finalTerrainPolygons,
-      model.hexes.length,
-      [...topology.cornerSampleCount.values()].filter((count) => count > 1)
-        .length,
-    ),
+    terrainMesh,
     regionSurfaces: finalRegionPolygons,
     factionSurfaces: finalFactionPolygons,
     renderBounds: boundsForPoints(allPoints),

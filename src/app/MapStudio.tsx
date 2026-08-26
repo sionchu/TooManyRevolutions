@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 
 import {
   deriveMapArchitecture,
+  deriveMapViewportBounds,
   emptyMapPatchV1,
-  estimateMapOccupancy,
   parseMapPatchV1,
   validateMapArchitecture,
   type MapPatchV1,
@@ -456,14 +456,14 @@ export function MapStudio() {
             <>
               <h2>Camera / occupancy</h2>
               {model.viewPresets.map((preset) => {
-                const occupancy = estimateMapOccupancy(sceneModel, preset);
+                const bounds = deriveMapViewportBounds(sceneModel, preset);
                 return (
                   <div key={preset.id} className="map-studio-preset-row">
                     <strong>{preset.label}</strong>
                     <span>{preset.id}</span>
                     <em>
-                      {Math.round(occupancy.width * 100)}% ×{" "}
-                      {Math.round(occupancy.height * 100)}%
+                      camera bounds {(bounds.maxX - bounds.minX).toFixed(2)} ×{" "}
+                      {(bounds.maxZ - bounds.minZ).toFixed(2)} world units
                     </em>
                   </div>
                 );

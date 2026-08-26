@@ -23,6 +23,13 @@ describe("map runtime geometry", () => {
     expect(runtime.terrainMesh.logicalLandHexCount).toBe(model.hexes.length);
     expect(runtime.terrainMesh.polygonCount).toBeLessThan(model.hexes.length);
     expect(runtime.terrainMesh.sharedVertexCount).toBeGreaterThan(0);
+    expect(runtime.terrainMesh.vertices.length).toBeLessThan(
+      model.hexes.length * 7,
+    );
+    expect(runtime.terrainMesh.terrainKinds.length).toBeGreaterThan(1);
+    expect(runtime.terrainMesh.minHeight).toBeLessThan(
+      runtime.terrainMesh.maxHeight,
+    );
     expect(
       runtime.terrainMesh.triangles.every(([first, second, third]) =>
         [first, second, third].every(

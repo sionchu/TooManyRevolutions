@@ -177,11 +177,36 @@ export interface MapArchitecture {
   readonly sharedTerrainMesh: MapSharedTerrainMeshData;
 }
 
-export interface MapOccupancyMetric {
-  readonly width: number;
-  readonly height: number;
-  readonly targetWidth: number;
-  readonly targetHeight: number;
+export interface MapScreenSpaceRect {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minY: number;
+  readonly maxY: number;
+}
+
+export interface MapScreenSpaceOccupancy {
+  /** Stage/container share of the browser viewport. */
+  readonly stage: {
+    readonly width: number;
+    readonly height: number;
+  };
+  /** Meaningful projected world share of the actual canvas viewport. */
+  readonly projectedWorld: {
+    readonly width: number;
+    readonly height: number;
+  };
+  /** Visible meaningful world height in the first browser viewport. */
+  readonly firstMobileViewportWorldShare: number;
+}
+
+export interface MapScreenSpaceOccupancyInput {
+  readonly viewport: {
+    readonly width: number;
+    readonly height: number;
+  };
+  readonly stageBounds: MapScreenSpaceRect;
+  readonly canvasBounds: MapScreenSpaceRect;
+  readonly projectedWorldBounds: MapScreenSpaceRect;
 }
 
 export interface MapPatchV1 {
@@ -239,10 +264,6 @@ const SNAP_DIGITS = 2;
 
 function compareStableText(first: string, second: string): number {
   return first < second ? -1 : first > second ? 1 : 0;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
 }
 
 function round(value: number): number {
@@ -626,6 +647,94 @@ function pointDistance(
   second: WorldScenePoint,
 ): number {
   return Math.hypot(first[0] - second[0], first[2] - second[2]);
+}
+
+function landHexesTouch(
+  first: WorldSceneModel["hexes"][number],
+  second: WorldSceneModel["hexes"][number],
+): boolean {
+  const dq = first.coordinate.q - second.coordinate.q;
+  const dr = first.coordinate.r - second.coordinate.r;
+  return (
+    (dq === 1 && dr === 0) ||
+    (dq === -1 && dr === 0) ||
+    (dq === 0 && dr === 1) ||
+    (dq === 0 && dr === -1) ||
+    (dq === 1 && dr === -1) ||
+    (dq === -1 && dr === 1)
+  );
+}
+
+/**
+ * Faction territory and surfaces carry the primary political signal. This
+ * helper keeps near-LOD banners as a small set of strong spatial anchors:
+ * one representative per connected faction cluster, capped at two overall.
+ */
+export function deriveFactionPresenceAnchors(
+  model: WorldSceneModel,
+  maxAnchors = 2,
+): readonly WorldSceneModel["factionPresence"][number][] {
+  if (maxAnchors <= 0 || model.factionPresence.length === 0) return [];
+  const hexesById = new Map<string, WorldSceneModel["hexes"][number]>(
+    model.hexes.map((hex) => [hex.id, hex]),
+  );
+  const presences = [...model.factionPresence].sort((first, second) =>
+    compareStableText(first.id, second.id),
+  );
+  const clusters: WorldSceneModel["factionPresence"][number][][] = [];
+  const unvisited = new Set(presences.map((presence) => presence.id));
+  while (unvisited.size > 0) {
+    const firstId = [...unvisited].sort(compareStableText)[0]!;
+    const first = presences.find((presence) => presence.id === firstId)!;
+    const queue = [first];
+    const cluster: WorldSceneModel["factionPresence"][number][] = [];
+    unvisited.delete(first.id);
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      cluster.push(current);
+      for (const candidate of presences) {
+        if (
+          !unvisited.has(candidate.id) ||
+          candidate.factionId !== current.factionId
+        )
+          continue;
+        const touches = candidate.controlledLandHexIds.some((firstId) =>
+          current.controlledLandHexIds.some((secondId) => {
+            const firstHex = hexesById.get(firstId);
+            const secondHex = hexesById.get(secondId);
+            return (
+              firstId === secondId ||
+              (firstHex !== undefined &&
+                secondHex !== undefined &&
+                landHexesTouch(firstHex, secondHex))
+            );
+          }),
+        );
+        if (!touches) continue;
+        unvisited.delete(candidate.id);
+        queue.push(candidate);
+      }
+    }
+    clusters.push(cluster);
+  }
+  return clusters
+    .map(
+      (cluster) =>
+        [...cluster].sort(
+          (first, second) =>
+            second.organization - first.organization ||
+            second.controlledLandHexIds.length -
+              first.controlledLandHexIds.length ||
+            compareStableText(first.id, second.id),
+        )[0]!,
+    )
+    .sort(
+      (first, second) =>
+        second.organization - first.organization ||
+        compareStableText(first.factionId, second.factionId) ||
+        compareStableText(first.id, second.id),
+    )
+    .slice(0, maxAnchors);
 }
 
 function boundsForPoints(points: readonly WorldScenePoint[]): MapWorldBounds {
@@ -1059,34 +1168,72 @@ export function deriveMapLodTier(zoom: number): MapLodTier {
   return "near";
 }
 
-export function estimateMapOccupancy(
-  model: WorldSceneModel,
-  preset: MapViewPreset,
-): MapOccupancyMetric {
-  const contentBounds = deriveMapViewportBounds(model, preset);
-  const renderedWorldWidth = Math.max(
-    contentBounds.maxX - contentBounds.minX + 1.2,
-    1,
+function intersectScreenRects(
+  first: MapScreenSpaceRect,
+  second: MapScreenSpaceRect,
+): MapScreenSpaceRect {
+  return {
+    minX: Math.max(first.minX, second.minX),
+    maxX: Math.min(first.maxX, second.maxX),
+    minY: Math.max(first.minY, second.minY),
+    maxY: Math.min(first.maxY, second.maxY),
+  };
+}
+
+function rectWidth(rect: MapScreenSpaceRect): number {
+  return Math.max(0, rect.maxX - rect.minX);
+}
+
+function rectHeight(rect: MapScreenSpaceRect): number {
+  return Math.max(0, rect.maxY - rect.minY);
+}
+
+function safeRatio(value: number, denominator: number): number {
+  return denominator <= 0 ? 0 : value / denominator;
+}
+
+/**
+ * Measures rendered screen-space evidence. Inputs are browser-pixel rectangles
+ * produced after the renderer has projected meaningful terrain vertices; this
+ * helper intentionally has no synthetic world-unit padding or 1.0 clamp.
+ */
+export function inspectMapScreenSpaceOccupancy(
+  input: MapScreenSpaceOccupancyInput,
+): MapScreenSpaceOccupancy {
+  const viewportBounds: MapScreenSpaceRect = {
+    minX: 0,
+    maxX: input.viewport.width,
+    minY: 0,
+    maxY: input.viewport.height,
+  };
+  const visibleStage = intersectScreenRects(input.stageBounds, viewportBounds);
+  const projectedInCanvas = intersectScreenRects(
+    input.projectedWorldBounds,
+    input.canvasBounds,
   );
-  const renderedWorldHeight = Math.max(
-    contentBounds.maxZ - contentBounds.minZ + 1.2,
-    1,
+  const projectedInViewport = intersectScreenRects(
+    input.projectedWorldBounds,
+    viewportBounds,
   );
   return {
-    width: clamp(
-      ((contentBounds.maxX - contentBounds.minX) * preset.zoom) /
-        renderedWorldWidth,
-      0,
-      1,
+    stage: {
+      width: safeRatio(rectWidth(visibleStage), input.viewport.width),
+      height: safeRatio(rectHeight(visibleStage), input.viewport.height),
+    },
+    projectedWorld: {
+      width: safeRatio(
+        rectWidth(projectedInCanvas),
+        rectWidth(input.canvasBounds),
+      ),
+      height: safeRatio(
+        rectHeight(projectedInCanvas),
+        rectHeight(input.canvasBounds),
+      ),
+    },
+    firstMobileViewportWorldShare: safeRatio(
+      rectHeight(projectedInViewport),
+      input.viewport.height,
     ),
-    height: clamp(
-      ((contentBounds.maxZ - contentBounds.minZ) * preset.zoom) /
-        renderedWorldHeight,
-      0,
-      1,
-    ),
-    targetWidth: 0.75,
-    targetHeight: 0.55,
   };
 }
 
@@ -1469,35 +1616,6 @@ export function validateMapArchitecture(
       message: "front가 물리 통제 경계에서 파생되지 않았습니다.",
       severity: "error",
     });
-  }
-  const desktop = architecture.viewPresets.find(
-    (preset) => preset.id === "desktop.global",
-  );
-  const mobile = architecture.viewPresets.find(
-    (preset) => preset.id === "mobile.player-theater",
-  );
-  if (desktop !== undefined) {
-    const occupancy = estimateMapOccupancy(model, desktop);
-    if (
-      occupancy.width < occupancy.targetWidth ||
-      occupancy.height < occupancy.targetHeight
-    )
-      issues.push({
-        code: "DESKTOP_OCCUPANCY",
-        message:
-          "데스크톱 기본 카메라에서 world-content 점유율이 목표보다 작습니다.",
-        severity: "warning",
-      });
-  }
-  if (mobile !== undefined) {
-    const occupancy = estimateMapOccupancy(model, mobile);
-    if (occupancy.width < 0.88)
-      issues.push({
-        code: "MOBILE_OCCUPANCY",
-        message:
-          "모바일 플레이어 극장의 world-content 가로 점유율이 목표보다 작습니다.",
-        severity: "warning",
-      });
   }
   if (
     !architecture.viewPresets.every((preset) =>

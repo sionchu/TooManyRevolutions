@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   createSharedTerrainMeshData,
+  deriveFactionPresenceAnchors,
   deriveMapArchitecture,
   deriveMapLodTier,
   deriveMapViewPresets,
-  estimateMapOccupancy,
   emptyMapPatchV1,
+  inspectMapScreenSpaceOccupancy,
   parseMapPatchV1,
   validateMapArchitecture,
   validateMapPatchV1,
@@ -100,6 +101,43 @@ describe("MAP_WORLD_ARCHITECTURE_AND_AUTHORING", () => {
         ),
       ).toBe(true);
     }
+    expect(deriveFactionPresenceAnchors(model).length).toBeLessThanOrEqual(2);
+  });
+
+  it("keeps legal owner boundaries when the physical controller matches", () => {
+    const { model } = createFixture();
+    const baseline = deriveMapArchitecture(model);
+    const legal = baseline.political.legalOwnerBoundarySegments.find(
+      (segment) => segment.secondLandHexId !== null,
+    );
+    expect(legal).toBeDefined();
+    const firstHex = model.hexes.find(
+      (hex) => hex.id === legal!.firstLandHexId,
+    );
+    expect(firstHex).toBeDefined();
+    const occupiedModel = {
+      ...model,
+      hexes: model.hexes.map((hex) =>
+        hex.id === legal!.secondLandHexId
+          ? { ...hex, controller: firstHex!.controller }
+          : hex,
+      ),
+    };
+    const occupied = deriveMapArchitecture(occupiedModel);
+    expect(
+      occupied.political.legalOwnerBoundarySegments.some(
+        (segment) =>
+          segment.firstLandHexId === legal!.firstLandHexId &&
+          segment.secondLandHexId === legal!.secondLandHexId,
+      ),
+    ).toBe(true);
+    expect(
+      occupied.political.physicalControllerBoundarySegments.some(
+        (segment) =>
+          segment.firstLandHexId === legal!.firstLandHexId &&
+          segment.secondLandHexId === legal!.secondLandHexId,
+      ),
+    ).toBe(false);
   });
 
   it("provides ideology surfaces, camera presets, LOD, and occupancy signals", () => {
@@ -123,15 +161,17 @@ describe("MAP_WORLD_ARCHITECTURE_AND_AUTHORING", () => {
     );
     expect(desktop).toBeDefined();
     expect(mobile).toBeDefined();
-    expect(estimateMapOccupancy(model, desktop!).width).toBeGreaterThanOrEqual(
-      0.75,
-    );
-    expect(estimateMapOccupancy(model, desktop!).height).toBeGreaterThanOrEqual(
-      0.55,
-    );
-    expect(estimateMapOccupancy(model, mobile!).width).toBeGreaterThanOrEqual(
-      0.88,
-    );
+    const measured = inspectMapScreenSpaceOccupancy({
+      viewport: { width: 390, height: 844 },
+      stageBounds: { minX: 0, maxX: 390, minY: 120, maxY: 694 },
+      canvasBounds: { minX: 0, maxX: 390, minY: 240, maxY: 698 },
+      projectedWorldBounds: { minX: 14, maxX: 374, minY: 254, maxY: 660 },
+    });
+    expect(measured.stage.width).toBe(1);
+    expect(measured.stage.height).toBeCloseTo(574 / 844, 6);
+    expect(measured.projectedWorld.width).toBeCloseTo(360 / 390, 6);
+    expect(measured.projectedWorld.height).toBeCloseTo(406 / 458, 6);
+    expect(measured.firstMobileViewportWorldShare).toBeCloseTo(406 / 844, 6);
     expect(deriveMapLodTier(0.9)).toBe("far");
     expect(deriveMapLodTier(1.25)).toBe("medium");
     expect(deriveMapLodTier(1.8)).toBe("near");
