@@ -4,6 +4,7 @@
 
 - 작업 branch: `parallel-p0-contextual-decisions-v1`
 - 실행 기준 base / authorized HEAD: `7ab69a9309c9e6a2f7c6a1c1068d65cf95042df2`
+- selector/catalog implementation HEAD at verification start: `ee11f4029f190366974e9d8ff808e196cb44d684`
 - 기준 remote: `origin/parallel-p0-contextual-decisions-v1`
 - 권한 문서: `docs/parallel/tasks/P0_CONTEXTUAL_DECISIONS_V1.md`
 - 대상: GameBuilders production decision content, F04C-R 근거 matrix, 순수 contextual decision read model
@@ -142,24 +143,23 @@ deriveContextualDecisionSurface({
 | 명령 | 실제 결과 |
 | --- | --- |
 | `pnpm install --frozen-lockfile` | exit 0 |
-| production catalog + selector targeted tests | 5 files, 22 tests passed, exit 0 |
+| `pnpm exec vitest run` production catalog/selector/policy/intervention/agenda tests | 6 files, 98 tests passed, exit 0 |
 | `pnpm run inspect:f04d` | 1 test passed, exit 0; 기존 F04D validation output 유지 |
-| `pnpm run inspect:t018` | 1 test passed, exit 0 |
-| `pnpm run inspect:t021` | 1 test passed, exit 0 |
-| `pnpm run inspect:t024` | 1 test passed, exit 0 |
-| `pnpm run inspect:v01` | 1 test passed, exit 0 |
-| `pnpm typecheck` | exit 0 |
-| `pnpm lint` | exit 0 |
-| `pnpm format` | all files matched, exit 0 |
+| `pnpm exec vitest run` T018/T021/T024/V01 inspections | 4 files, 4 tests passed, exit 0 |
+| `pnpm run typecheck` | exit 0 |
+| `pnpm run lint` | exit 0 |
+| `pnpm run format` | all files matched, exit 0 |
 | `pnpm build` | `tsc`, Vite production build, Sites worker build 모두 exit 0; Vite chunk-size warning 1건 |
-| `git diff --check` | exit 0 |
-| protected-file comparison | PASS; 보호 hotspot 변경 없음 |
+| `git diff --check` | exit 0 before documentation commit; staged recheck required at handoff |
+| protected-file comparison | `git diff 7ab69a9..HEAD` changed no `App.tsx`, `DecisionPanel.tsx`, `PoliticalWorldStage.tsx`, `global.css`, audio, icon, or world-art path |
 
 전체 `pnpm test`도 실행했다. 86개 test file의 625개 assertion은 모두 통과했지만 Vitest worker의 `onTaskUpdate` unhandled timeout 4건으로 process exit는 1이었다. assertion failure와 runner error를 분리하면 다음과 같다.
 
 - assertion: 625 passed / failed 0
 - runner: `Error: [vitest-worker]: Timeout calling "onTaskUpdate"` 4건
 - process: exit 1
+
+The full-suite result is a process-level runner failure, not an assertion failure in the selector or catalog tests above.
 
 ## Integration handoff
 
