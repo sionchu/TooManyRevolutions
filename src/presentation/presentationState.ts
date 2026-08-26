@@ -114,6 +114,17 @@ export interface FrontEdgePresentation {
   readonly secondController: TerritorialController;
 }
 
+/** Persistent read model for active conflicts; derived from WorldState.conflicts. */
+export interface PresentationConflict {
+  readonly conflictId: ConflictId;
+  readonly kind: ConflictKind;
+  readonly participantCountryIds: readonly CountryId[];
+  readonly participantFactionIds: readonly FactionId[];
+  readonly affectedRegionIds: readonly RegionId[];
+  readonly contestedRegionIds: readonly RegionId[];
+  readonly startedAtTick: number;
+}
+
 export interface PresentationRunState {
   readonly outcome: RunOutcome;
   readonly consolidation: {
@@ -138,6 +149,7 @@ export interface PresentationState {
   readonly organizationTokens: readonly OrganizationTokenPresentation[];
   readonly contactRoutes: readonly ContactRoutePresentation[];
   readonly fronts: readonly FrontEdgePresentation[];
+  readonly activeConflicts: readonly PresentationConflict[];
   readonly run: PresentationRunState;
 }
 
@@ -383,6 +395,31 @@ function deriveFronts(
     .sort((first, second) => compareStableText(first.frontId, second.frontId));
 }
 
+function deriveActiveConflicts(
+  world: WorldState,
+): readonly PresentationConflict[] {
+  return Object.values(world.conflicts)
+    .filter((conflict) => conflict.status === "active")
+    .sort((first, second) => compareStableText(first.id, second.id))
+    .map((conflict) => ({
+      conflictId: conflict.id,
+      kind: conflict.kind,
+      participantCountryIds: [...conflict.participantCountryIds].sort(
+        compareStableText,
+      ),
+      participantFactionIds: [...conflict.participantFactionIds].sort(
+        compareStableText,
+      ),
+      affectedRegionIds: [...(conflict.affectedRegionIds ?? [])].sort(
+        compareStableText,
+      ),
+      contestedRegionIds: [...conflict.contestedRegionIds].sort(
+        compareStableText,
+      ),
+      startedAtTick: conflict.startedAtTick,
+    }));
+}
+
 function deriveRunState(world: WorldState): PresentationRunState {
   return {
     outcome: cloneOutcome(world.run.outcome),
@@ -413,6 +450,7 @@ export function derivePresentationState(
     organizationTokens: deriveOrganizationTokens(scenario, world),
     contactRoutes: deriveContactRoutes(scenario, world),
     fronts: deriveFronts(scenario, world),
+    activeConflicts: deriveActiveConflicts(world),
     run: deriveRunState(world),
   };
 }

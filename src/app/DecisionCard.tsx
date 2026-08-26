@@ -93,68 +93,83 @@ export function DecisionCard({
         </span>
       </div>
       <h3>{definition.name}</h3>
-      <div className="decision-sections">
-        <section className="decision-section decision-cost">
-          <h4>{PLAYER_COPY.main.certainty} 비용</h4>
-          <p>
-            국고 <b>{formatAmount(definition.treasuryCost)}</b> · 행정 여력{" "}
-            <b>{formatAmount(definition.administrativeLoad)}</b> · 기간{" "}
-            <b>{definition.durationDays}일</b>
-          </p>
-        </section>
-        <section className="decision-section decision-change">
-          <h4>{PLAYER_COPY.main.certainty} 변화</h4>
-          {effects.length === 0 ? (
-            <p>선언된 완료 효과가 없습니다.</p>
-          ) : (
-            <ul>
-              {effects.map((effect, index) => (
-                <li key={`${definition.id}-effect-${index}`}>
-                  {effectLabel(effect, scenario)}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        <section className="decision-section decision-observation">
-          <h4>{PLAYER_COPY.main.observation}</h4>
-          {observations.length === 0 ? (
-            <p>현재 대상에 대한 추가 관측이 없습니다.</p>
-          ) : (
-            <ul>
-              {observations.map((observation, index) => (
-                <li key={`${definition.id}-observation-${index}`}>
-                  {observation}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        <section className="decision-section decision-response">
-          <h4>{PLAYER_COPY.main.uncertain}</h4>
-          <p>선언된 효과 밖의 정치적 반응은 현재 상태에서 다시 관측합니다.</p>
-        </section>
+      <div className="decision-summary">
+        <span className="decision-badge badge-confirmed">
+          국고 {formatAmount(definition.treasuryCost)} ·{" "}
+          {definition.durationDays}일
+        </span>
+        <span className="decision-badge badge-current">
+          {effects[0] === undefined
+            ? "확정 변화 없음"
+            : effectLabel(effects[0], scenario)}
+        </span>
       </div>
-      <div className="decision-tradeoffs">
-        <div>
-          <span>{PLAYER_COPY.main.opportunityCost}</span>
-          <p>
-            국고 {formatAmount(definition.treasuryCost)}와 행정 여력{" "}
-            {formatAmount(definition.administrativeLoad)}을 이 선택에 묶습니다.
-            {adminRoom === null
-              ? ""
-              : ` 제출 후 남는 행정 여력은 ${formatAmount(Math.max(0, adminRoom - definition.administrativeLoad))}입니다.`}
-          </p>
+      <details className="decision-details">
+        <summary>조건·관측·반응 보기</summary>
+        <div className="decision-sections">
+          <section className="decision-section decision-cost">
+            <h4>{PLAYER_COPY.main.certainty} 비용</h4>
+            <p>
+              국고 <b>{formatAmount(definition.treasuryCost)}</b> · 행정 여력{" "}
+              <b>{formatAmount(definition.administrativeLoad)}</b> · 기간{" "}
+              <b>{definition.durationDays}일</b>
+            </p>
+          </section>
+          <section className="decision-section decision-change">
+            <h4>{PLAYER_COPY.main.certainty} 변화</h4>
+            {effects.length === 0 ? (
+              <p>선언된 완료 효과가 없습니다.</p>
+            ) : (
+              <ul>
+                {effects.map((effect, index) => (
+                  <li key={`${definition.id}-effect-${index}`}>
+                    {effectLabel(effect, scenario)}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <section className="decision-section decision-observation">
+            <h4>{PLAYER_COPY.main.observation}</h4>
+            {observations.length === 0 ? (
+              <p>현재 대상에 대한 추가 관측이 없습니다.</p>
+            ) : (
+              <ul>
+                {observations.map((observation, index) => (
+                  <li key={`${definition.id}-observation-${index}`}>
+                    {observation}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <section className="decision-section decision-response">
+            <h4>{PLAYER_COPY.main.uncertain}</h4>
+            <p>선언된 효과 밖의 정치적 반응은 현재 상태에서 다시 관측합니다.</p>
+          </section>
         </div>
-        <div>
-          <span>{PLAYER_COPY.main.waitingCost}</span>
-          <p>
-            {firstAgenda === undefined
-              ? "현재 주요 의제가 없습니다. 다음 상태는 미리 약속하지 않습니다."
-              : `${firstAgenda.title}의 ${firstAgenda.severityBand ?? "현재"} 압력이 관측됩니다. 시간을 보내면 조건이 달라질 수 있습니다.`}
-          </p>
+        <div className="decision-tradeoffs">
+          <div>
+            <span>{PLAYER_COPY.main.opportunityCost}</span>
+            <p>
+              국고 {formatAmount(definition.treasuryCost)}와 행정 여력{" "}
+              {formatAmount(definition.administrativeLoad)}을 이 선택에
+              묶습니다.
+              {adminRoom === null
+                ? ""
+                : ` 제출 후 남는 행정 여력은 ${formatAmount(Math.max(0, adminRoom - definition.administrativeLoad))}입니다.`}
+            </p>
+          </div>
+          <div>
+            <span>{PLAYER_COPY.main.waitingCost}</span>
+            <p>
+              {firstAgenda === undefined
+                ? "현재 주요 의제가 없습니다. 다음 상태는 미리 약속하지 않습니다."
+                : `${firstAgenda.title}의 ${firstAgenda.severityBand ?? "현재"} 압력이 관측됩니다. 시간을 보내면 조건이 달라질 수 있습니다.`}
+            </p>
+          </div>
         </div>
-      </div>
+      </details>
       {feasibility.feasible ? (
         <button
           className="action-button"

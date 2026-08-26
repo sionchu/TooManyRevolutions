@@ -124,6 +124,102 @@ export interface PolicyState {
   readonly institutionalRules: InstitutionalRuleState;
 }
 
+export type PolicyAvailabilityFailure =
+  "ALREADY_ACTIVE" | "PREREQUISITE_NOT_MET" | "INCOMPATIBLE_POLICY";
+
+export interface PolicyAvailabilityResult {
+  readonly feasible: boolean;
+  readonly reasons: readonly PolicyAvailabilityFailure[];
+}
+
+export function policyPrerequisitesAreMet(
+  policyState: PolicyState,
+  prerequisites: readonly PolicyPrerequisite[] | undefined,
+): boolean {
+  for (const prerequisite of prerequisites ?? []) {
+    switch (prerequisite.kind) {
+      case "policyActive":
+        if (!policyState.activePolicyIds.includes(prerequisite.policyId)) {
+          return false;
+        }
+        break;
+      case "policyInactive":
+        if (policyState.activePolicyIds.includes(prerequisite.policyId)) {
+          return false;
+        }
+        break;
+      case "ruleEquals":
+        if (
+          policyState.institutionalRules[prerequisite.rule] !==
+          prerequisite.value
+        ) {
+          return false;
+        }
+        break;
+      case "ruleNotEquals":
+        if (
+          policyState.institutionalRules[prerequisite.rule] ===
+          prerequisite.value
+        ) {
+          return false;
+        }
+        break;
+    }
+  }
+
+  return true;
+}
+
+export function findIncompatiblePolicyId(
+  activePolicyIds: readonly PolicyId[],
+  definition: PolicyDefinition,
+  catalog: Readonly<Record<PolicyId, PolicyDefinition>>,
+): PolicyId | undefined {
+  const declaredIncompatibilities = new Set(
+    definition.incompatiblePolicyIds ?? [],
+  );
+
+  for (const activePolicyId of activePolicyIds) {
+    if (declaredIncompatibilities.has(activePolicyId)) {
+      return activePolicyId;
+    }
+  }
+
+  for (const activePolicyId of activePolicyIds) {
+    const activeDefinition = catalog[activePolicyId];
+    if (activeDefinition?.incompatiblePolicyIds?.includes(definition.id)) {
+      return activePolicyId;
+    }
+  }
+
+  return undefined;
+}
+
+/** Presentation-only eligibility read model; the policy phase remains authoritative. */
+export function evaluatePolicyAvailability(
+  policyState: PolicyState,
+  definition: PolicyDefinition,
+  catalog: Readonly<Record<PolicyId, PolicyDefinition>>,
+): PolicyAvailabilityResult {
+  const reasons: PolicyAvailabilityFailure[] = [];
+  if (policyState.activePolicyIds.includes(definition.id)) {
+    reasons.push("ALREADY_ACTIVE");
+  }
+  if (!policyPrerequisitesAreMet(policyState, definition.prerequisites)) {
+    reasons.push("PREREQUISITE_NOT_MET");
+  }
+  if (
+    findIncompatiblePolicyId(
+      policyState.activePolicyIds,
+      definition,
+      catalog,
+    ) !== undefined
+  ) {
+    reasons.push("INCOMPATIBLE_POLICY");
+  }
+  return { feasible: reasons.length === 0, reasons };
+}
+
 /** Baseline used by small fixtures; scenarios remain free to choose their own rules. */
 export function createDefaultInstitutionalRuleState(): InstitutionalRuleState {
   return {

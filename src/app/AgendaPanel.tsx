@@ -6,6 +6,8 @@ import type {
 import type { RegionId } from "../sim/state/ids";
 import type { ScenarioDefinition } from "../sim/state/scenario";
 import { formatAmount } from "./gamePresentation";
+import { ConsolidationChecklist } from "./ConsolidationChecklist";
+import type { OrderConsolidationEligibilitySnapshot } from "../sim/systems/orderConsolidation";
 
 const SEVERITY_LABELS: Readonly<Record<AgendaSeverityBand, string>> = {
   low: "낮음",
@@ -86,10 +88,12 @@ function AgendaCard({
 export function AgendaPanel({
   agendas,
   scenario,
+  consolidation,
   onFocusRegion,
 }: {
   readonly agendas: readonly PrimaryAgenda[];
   readonly scenario: ScenarioDefinition;
+  readonly consolidation: OrderConsolidationEligibilitySnapshot;
   readonly onFocusRegion?: (regionId: RegionId) => void;
 }) {
   return (
@@ -116,6 +120,7 @@ export function AgendaPanel({
           ))
         )}
       </div>
+      <ConsolidationChecklist snapshot={consolidation} scenario={scenario} />
       <div className="thesis-note">
         <span className="eyebrow">플레이 원칙</span>
         <p>

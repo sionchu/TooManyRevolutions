@@ -202,6 +202,22 @@ export interface EnactPolicyActionPayload {
   readonly countryId?: CountryId;
 }
 
+/** Convenience constructor for the existing T012 policy action pipeline. */
+export function createEnactPolicyActionProposal(
+  tick: number,
+  source: ActionSource,
+  policyId: PolicyId,
+  countryId?: CountryId,
+): ActionProposal {
+  return {
+    tick,
+    source,
+    actionType: ENACT_POLICY_ACTION_TYPE,
+    payload: countryId === undefined ? { policyId } : { policyId, countryId },
+    schemaVersion: ENACT_POLICY_ACTION_SCHEMA_VERSION,
+  };
+}
+
 function isFactionActionType(value: string): value is FactionActionType {
   return FACTION_ACTION_TYPES.includes(value as FactionActionType);
 }

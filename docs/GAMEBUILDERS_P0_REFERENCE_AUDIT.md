@@ -8,6 +8,8 @@
 
 | Source | Observed principle | P0 decision |
 | --- | --- | --- |
+| [Plague Inc. Evolved on Steam](https://store.steampowered.com/app/246620/Plague_Inc_Evolved/) | 세계 지도가 지속적인 systemic playfield가 되어 확산과 압력의 공간적 변화를 즉시 읽게 한다. | 원칙 채택: TMR의 정치 atlas를 계속 노출하고 실제 Region/Faction 변화만 지도 layer로 갱신한다. art, assets, UI, code는 재사용하지 않는다. |
+| [Rebel Inc. Escalation on Steam](https://store.steampowered.com/app/1088790/Rebel_Inc_Escalation/) | 지도 위 안정화·반란 압력과 시간 흐름을 주 상호작용으로 두고, initiative와 정보는 공간 판단을 보조한다. | 원칙 채택: 지역을 먼저 선택하고 국정·결정·기록을 contextual drawer/sheet로 호출한다. art, assets, UI, code는 재사용하지 않는다. |
 | [Suzerain official site](https://www.suzeraingame.com/) | 가상의 국가를 짧은 hook으로 제시하고, cabinet/decision framing으로 책임과 결과를 읽게 한다. | 원칙 채택: 첫 15초에 국가·문제·권한을 명시한다. art, copy, screenshot은 재사용하지 않는다. |
 | [Papers, Please official site](https://papersplea.se/) | 직업/역할을 즉시 부여하고, 서류와 제한된 시각 어휘로 diegetic pressure를 만든다. | 원칙 채택: 왕실 서류 브리핑과 짧은 결정 카드. art/assets/code는 재사용하지 않는다. |
 | [Crusader Kings III on Steam](https://store.steampowered.com/app/1158310/Crusader_Kings_III/) | 이웃 정치체와 heraldry가 읽히는 지도 계층, geography-first political context. | 원칙 채택: 실제 Country/Region/LandHex와 문장으로 이웃을 표시한다. 상용 이미지·문장·UI는 복사하지 않는다. |

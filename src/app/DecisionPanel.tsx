@@ -5,10 +5,15 @@ import type {
   InterventionFeasibilityResult,
 } from "../sim/state/intervention";
 import type { PolicyState } from "../sim/state/policy";
+import {
+  type PolicyAvailabilityResult,
+  type PolicyDefinition,
+} from "../sim/state/policy";
 import type { ScenarioDefinition } from "../sim/state/scenario";
 import type { WorldState } from "../sim/state/world";
 import type { PrimaryAgenda } from "../sim/readModels/agenda";
 import { DecisionCard } from "./DecisionCard";
+import { PolicyCard } from "./PolicyCard";
 import {
   REGIME_LABELS,
   RULE_LABELS,
@@ -20,26 +25,36 @@ export interface DecisionCandidate {
   readonly feasibility: InterventionFeasibilityResult;
 }
 
+export interface PolicyCandidate {
+  readonly definition: PolicyDefinition;
+  readonly availability: PolicyAvailabilityResult;
+}
+
 export function DecisionPanel({
   candidates,
   agendas,
   scenario,
   world,
   policyState,
+  policyCandidates,
   onSubmit,
+  onSubmitPolicy,
 }: {
   readonly candidates: readonly DecisionCandidate[];
   readonly agendas: readonly PrimaryAgenda[];
   readonly scenario: ScenarioDefinition;
   readonly world: WorldState;
   readonly policyState: PolicyState | undefined;
+  readonly policyCandidates: readonly PolicyCandidate[];
   readonly onSubmit: (interventionId: InterventionDefinition["id"]) => void;
+  readonly onSubmitPolicy: (policyId: PolicyDefinition["id"]) => void;
 }) {
   const regime =
     policyState === undefined ? null : deriveRegimeClassification(policyState);
-  const availableCount = candidates.filter(
-    (candidate) => candidate.feasibility.feasible,
-  ).length;
+  const availableCount =
+    candidates.filter((candidate) => candidate.feasibility.feasible).length +
+    policyCandidates.filter((candidate) => candidate.availability.feasible)
+      .length;
 
   return (
     <aside className="panel actions-panel">
@@ -51,21 +66,46 @@ export function DecisionPanel({
         <span className="panel-count">{availableCount}개 가능</span>
       </div>
       <p className="panel-intro">
-        각 카드는 확정 비용과 확정 효과를 먼저 보여줍니다. 외부 반응은 현재 국가
-        기록에서 다시 읽습니다.
+        정책과 개입은 공통 action pipeline으로 다음 tick에 반영됩니다. 카드는
+        확정 변화만 먼저 보여주고, 세부 조건은 접어 둡니다.
       </p>
-      <div className="action-list">
-        {candidates.map(({ definition, feasibility }) => (
-          <DecisionCard
-            key={definition.id}
-            definition={definition}
-            feasibility={feasibility}
-            scenario={scenario}
-            world={world}
-            agendas={agendas}
-            onSubmit={onSubmit}
-          />
-        ))}
+      <div className="decision-group">
+        <div className="decision-group-heading">
+          <span className="eyebrow">법과 제도</span>
+          <strong>실제 정책</strong>
+        </div>
+        <div className="action-list">
+          {policyState === undefined
+            ? null
+            : policyCandidates.map(({ definition, availability }) => (
+                <PolicyCard
+                  key={definition.id}
+                  definition={definition}
+                  availability={availability}
+                  policyState={policyState}
+                  onSubmit={onSubmitPolicy}
+                />
+              ))}
+        </div>
+      </div>
+      <div className="decision-group">
+        <div className="decision-group-heading">
+          <span className="eyebrow">국가 집행</span>
+          <strong>행정 개입</strong>
+        </div>
+        <div className="action-list">
+          {candidates.map(({ definition, feasibility }) => (
+            <DecisionCard
+              key={definition.id}
+              definition={definition}
+              feasibility={feasibility}
+              scenario={scenario}
+              world={world}
+              agendas={agendas}
+              onSubmit={onSubmit}
+            />
+          ))}
+        </div>
       </div>
       <div className="institution-box">
         <div className="panel-heading compact-heading">

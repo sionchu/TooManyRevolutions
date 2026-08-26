@@ -1,13 +1,22 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  advanceDemoRuntime,
   advanceDemoRecord,
+  createDemoRuntimeState,
+  createDemoRuntimeStateFromRecord,
   createDemoRunRecord,
+  submitRuntimePolicy,
   submitIntervention,
 } from "./demoGame";
+import {
+  deserializeSimulationSnapshot,
+  serializeSimulationSnapshotJson,
+} from "../sim/core/persistence";
 import { F04D_VALIDATION_INTERVENTION_IDS } from "../sim/state/gate1fValidationFixture";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
 import { INTERVENTION_FIXTURE_IDS } from "../sim/state/interventionFixture";
+import { POLICY_FIXTURE_IDS } from "../sim/state/policyFixture";
 
 describe("GameBuilders demo runtime boundary", () => {
   it("starts from a deterministic named run", () => {
@@ -84,5 +93,81 @@ describe("GameBuilders demo runtime boundary", () => {
         (event) => event.type === "INTERVENTION_REJECTED",
       ),
     ).toBe(true);
+  });
+
+  it("carries valid system proposals into the next common intake after player actions", () => {
+    const afterPoliticalCheckpoint = advanceDemoRuntime(
+      createDemoRuntimeState(),
+      30,
+    );
+
+    expect(
+      afterPoliticalCheckpoint.pendingSystemProposals.length,
+    ).toBeGreaterThan(0);
+    expect(
+      afterPoliticalCheckpoint.pendingSystemProposals.every(
+        (proposal) => proposal.tick === afterPoliticalCheckpoint.world.tick + 1,
+      ),
+    ).toBe(true);
+
+    const pending = [...afterPoliticalCheckpoint.pendingSystemProposals];
+    const playerFirst = submitRuntimePolicy(
+      afterPoliticalCheckpoint,
+      POLICY_FIXTURE_IDS.abolishRoyalVeto,
+    );
+    const acceptedAtNextTick = playerFirst.world.run.actionLog.filter(
+      (action) => action.tick === afterPoliticalCheckpoint.world.tick + 1,
+    );
+
+    expect(acceptedAtNextTick[0]?.source).toBe("player");
+    expect(
+      acceptedAtNextTick
+        .slice(1)
+        .map((action) => [action.source, action.actionType, action.payload]),
+    ).toEqual(
+      pending.map((proposal) => [
+        proposal.source,
+        proposal.actionType,
+        proposal.payload,
+      ]),
+    );
+  });
+
+  it("runs real policy actions and the existing ideology diffusion hook", () => {
+    const policyRun = submitRuntimePolicy(
+      createDemoRuntimeState(),
+      POLICY_FIXTURE_IDS.abolishRoyalVeto,
+    );
+    expect(
+      policyRun.eventStore.events.some(
+        (event) => event.type === "POLICY_ENACTED",
+      ),
+    ).toBe(true);
+    expect(
+      policyRun.world.policies[GAMEBUILDERS_DEMO_SCENARIO.playerCountryId!]
+        ?.institutionalRules,
+    ).toMatchObject({
+      rulerVeto: false,
+      legislatureRequired: true,
+    });
+
+    const diffusionRun = advanceDemoRuntime(createDemoRuntimeState(), 30);
+    expect(
+      diffusionRun.eventStore.events.some(
+        (event) => event.type === "IDEOLOGY_SUPPORT_CHANGED",
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps uninterrupted and V8 save/load replay equal at an intake boundary", () => {
+    const prefix = advanceDemoRuntime(createDemoRuntimeState(), 31);
+    const uninterrupted = advanceDemoRuntime(prefix, 59);
+    const loadedRecord = deserializeSimulationSnapshot(
+      GAMEBUILDERS_DEMO_SCENARIO,
+      serializeSimulationSnapshotJson(GAMEBUILDERS_DEMO_SCENARIO, prefix),
+    );
+    const loaded = createDemoRuntimeStateFromRecord(loadedRecord);
+
+    expect(advanceDemoRuntime(loaded, 59)).toEqual(uninterrupted);
   });
 });

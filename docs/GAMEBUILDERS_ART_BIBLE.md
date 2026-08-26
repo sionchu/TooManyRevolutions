@@ -36,7 +36,8 @@
 
 ## Composition rules
 
-1. 지도는 화면의 가장 큰 단일 표면이다. 국가·지역·지형·수도·압력은
+1. 지도는 지속적인 주 플레이필드이며 데스크톱 usable viewport의 약
+   65–80%를 차지하는 가장 큰 단일 표면이다. 국가·지역·지형·수도·압력은
    서로 다른 layer로 그린다.
 2. 국가는 잉크 외곽선과 옅은 tint wash로 구분한다. LandHex 격자는
    선택·hover·tactical substrate일 때만 강해진다.
@@ -48,6 +49,28 @@
    반복한다. 새 에셋은 style family와 layer registry에 먼저 등록한다.
 6. 실제 simulation이 제공하지 않는 군대, 군중, 난민, 전선, 외국 개입은
    그림으로 보충하지 않는다.
+
+## Map-first screen contract
+
+메인 화면은 지도 위에서 국가와 주변국의 상태를 먼저 읽는 구조로 고정한다.
+상단에는 날짜·시간·핵심 자원·critical alert만 compact HUD로 두고, 지도는
+지속적으로 보인다. Agenda, 결정, 연대기, 외교 세부와 지역 정보는 필요할 때
+오른쪽 edge drawer 또는 모바일 bottom sheet로 호출한다. 기본 화면을
+`텍스트 열 | 지도 카드 | 텍스트 열`로 구성하거나 모든 카드를 동시에 쌓지 않는다.
+
+- 1440px 이상에서는 지도 surface가 화면을 지배하고 drawer가 가장자리에
+  겹쳐도 지도 영역이 축소되지 않는다.
+- 1024–1439px에서는 같은 지도 위에 overlay drawer를 열고, 768–1023px에서는
+  한 번에 하나의 contextual sheet만 연다.
+- 768px 미만에서는 `지도 / 국정 / 결정 / 기록` bottom tab으로 sheet를
+  호출하고 닫을 수 있게 한다. 데스크톱 카드의 긴 세로 스택은 사용하지 않는다.
+- Agenda와 crisis는 영향받는 실제 Region 또는 국가를 지도에서 강조할 수
+  있어야 한다. 지도 클릭은 해당 Region 상세 sheet를 연다.
+
+타이틀 다음 briefing은 짧은 map fragment와 실제 이웃 국가 문장으로 긴장을
+쌓고, 마지막 beat에서 완성된 atlas를 reveal한다. 지도 위 terrain, 국가 tint와
+외곽선, 수도, 실제 ContactGraph 경로, authoritative pressure/front만 표시한다.
+raw LandHex outline은 선택·hover·debug에서만 강하게 보인다.
 
 ## Forbidden visual shortcuts
 

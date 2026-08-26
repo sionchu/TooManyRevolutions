@@ -148,6 +148,89 @@ function interventionName(
   );
 }
 
+function policyName(scenario: ScenarioDefinition, event: GameEvent): string {
+  const id = payloadString(event, "policyId");
+  return (
+    Object.values(scenario.policyCatalog).find(
+      (definition) => definition.id === id,
+    )?.name ?? "정책"
+  );
+}
+
+function ideologyName(scenario: ScenarioDefinition, event: GameEvent): string {
+  const id = payloadString(event, "ideologyId");
+  return (
+    Object.values(scenario.ideologyCatalog).find(
+      (definition) => definition.id === id,
+    )?.name ?? "정치 흐름"
+  );
+}
+
+const SIGNIFICANT_EVENT_TYPES = new Set<GameEvent["type"]>([
+  "POLICY_ENACTED",
+  "POLICY_REJECTED",
+  "INSTITUTION_RULE_CHANGED",
+  "INTERVENTION_STARTED",
+  "INTERVENTION_REJECTED",
+  "INTERVENTION_COMPLETED",
+  "IDEOLOGY_SUPPORT_CHANGED",
+  "IDEOLOGY_RADICALISM_CHANGED",
+  "IDEOLOGY_ORGANIZATION_CHANGED",
+  "FACTION_STRATEGY_CHANGED",
+  "FACTION_FUND_MOVEMENT_COMMITTED",
+  "FACTION_FUND_MOVEMENT_RESOLVED",
+  "POLITICAL_PROPOSAL_OPENED",
+  "POLITICAL_PROPOSAL_ACCEPTED",
+  "POLITICAL_PROPOSAL_REJECTED",
+  "POLITICAL_PROPOSAL_RESPONSE_REJECTED",
+  "REGION_UNREST_BAND_CHANGED",
+  "NATIONAL_INSTABILITY_BAND_CHANGED",
+  "STRIKE_STARTED",
+  "TRADE_DISRUPTED",
+  "FOREIGN_SUPPORT_SENT",
+  "LAND_HEX_CONTROL_CHANGED",
+  "COUP_ATTEMPT_STARTED",
+  "REBELLION_STARTED",
+  "BORDER_CLOSED",
+  "BORDER_REOPENED",
+  "FOREIGN_ACTION_REJECTED",
+  "CONFLICT_RESOLVED",
+  "GOVERNMENT_TRANSITIONED",
+  "CIVIL_WAR_STARTED",
+  "ORDER_CONSOLIDATION_STARTED",
+  "ORDER_CONSOLIDATED",
+  "STATE_DISSOLVED",
+]);
+
+/** Filter the EventStore into a compact, fact-backed player feed. */
+export function isSignificantEvent(event: GameEvent): boolean {
+  if (SIGNIFICANT_EVENT_TYPES.has(event.type)) return true;
+  if (event.type !== "RESOURCE_SHORTAGE_CHANGED") return false;
+  const previous = payloadNumber(event, "previousScarcity");
+  const current = payloadNumber(event, "scarcity");
+  if (current === null) return false;
+  if (previous === null) return true;
+  const previousBand = previous >= 0.6 ? 2 : previous >= 0.3 ? 1 : 0;
+  const currentBand = current >= 0.6 ? 2 : current >= 0.3 ? 1 : 0;
+  return currentBand !== previousBand || Math.abs(current - previous) >= 0.08;
+}
+
+export function selectSignificantEvents(
+  events: readonly GameEvent[],
+  limit = 10,
+): readonly GameEvent[] {
+  if (!Number.isInteger(limit) || limit < 0) {
+    throw new Error("Significant event limit must be a non-negative integer.");
+  }
+  return events
+    .filter(isSignificantEvent)
+    .sort(
+      (first, second) =>
+        second.tick - first.tick || second.sequence - first.sequence,
+    )
+    .slice(0, limit);
+}
+
 export interface EventPresentation {
   readonly title: string;
   readonly detail: string;
@@ -183,6 +266,73 @@ export function eventLabel(
         detail: "현재 국고·행정 여력·제도 조건 중 하나를 충족하지 못했습니다.",
         crisis: false,
       };
+    case "POLICY_ENACTED":
+      return {
+        title: `${policyName(scenario, event)} 시행`,
+        detail: "정책 규칙이 국가 기록에 반영되었습니다.",
+        crisis: false,
+      };
+    case "POLICY_REJECTED":
+      return {
+        title: `${policyName(scenario, event)} 보류`,
+        detail: "현재 제도 선행 조건 또는 충돌 정책을 충족하지 못했습니다.",
+        crisis: false,
+      };
+    case "INSTITUTION_RULE_CHANGED":
+      return {
+        title: "제도 규칙 변경",
+        detail: `${RULE_LABELS[payloadString(event, "rule") ?? ""] ?? "제도"}의 현재 값이 바뀌었습니다.`,
+        crisis: false,
+      };
+    case "IDEOLOGY_SUPPORT_CHANGED":
+      return {
+        title: `${ideologyName(scenario, event)} 지지 변화`,
+        detail: `${regionName(scenario, payloadString(event, "regionId"))}에서 정치 흐름이 바뀌었습니다.`,
+        crisis: false,
+      };
+    case "IDEOLOGY_RADICALISM_CHANGED":
+    case "IDEOLOGY_ORGANIZATION_CHANGED":
+      return {
+        title: `${ideologyName(scenario, event)} 조직 변화`,
+        detail: `${regionName(scenario, payloadString(event, "regionId"))}의 정치 조직 상태가 갱신되었습니다.`,
+        crisis: false,
+      };
+    case "FACTION_FUND_MOVEMENT_COMMITTED":
+      return {
+        title: "세력의 자원 이동 시작",
+        detail: `${factionName(scenario, payloadString(event, "factionId"))} → ${regionName(scenario, payloadString(event, "targetRegionId"))}`,
+        crisis: false,
+      };
+    case "FACTION_FUND_MOVEMENT_RESOLVED":
+      return {
+        title: "세력의 자원 이동 종료",
+        detail: `${factionName(scenario, payloadString(event, "factionId"))}의 행동 의도가 끝났습니다.`,
+        crisis: false,
+      };
+    case "POLITICAL_PROPOSAL_OPENED":
+      return {
+        title: "정치 제안 도착",
+        detail: "다음 반응을 선택할 수 있는 제안이 기록되었습니다.",
+        crisis: false,
+      };
+    case "POLITICAL_PROPOSAL_ACCEPTED":
+      return {
+        title: "정치 제안 수용",
+        detail: "수용된 제안의 결과가 국가 기록에 반영되었습니다.",
+        crisis: false,
+      };
+    case "POLITICAL_PROPOSAL_REJECTED":
+      return {
+        title: "정치 제안 거부",
+        detail: "거부된 제안과 그 actor가 연대기에 남았습니다.",
+        crisis: false,
+      };
+    case "POLITICAL_PROPOSAL_RESPONSE_REJECTED":
+      return {
+        title: "정치 응답 보류",
+        detail: "현재 제안에 대한 응답이 유효하지 않아 반영되지 않았습니다.",
+        crisis: false,
+      };
     case "TREASURY_CHANGED": {
       const delta = payloadNumber(event, "delta") ?? 0;
       return {
@@ -195,6 +345,18 @@ export function eventLabel(
       return {
         title: `${regionName(scenario, payloadString(event, "regionId"))} 자원 부족 변화`,
         detail: `희소성 ${formatAmount(payloadNumber(event, "scarcity") ?? 0)}`,
+        crisis: false,
+      };
+    case "REGION_UNREST_BAND_CHANGED":
+      return {
+        title: `${regionName(scenario, payloadString(event, "regionId"))} 불안 단계 변화`,
+        detail: "지역 불안의 관측 단계가 바뀌었습니다.",
+        crisis: false,
+      };
+    case "NATIONAL_INSTABILITY_BAND_CHANGED":
+      return {
+        title: "국가 불안 단계 변화",
+        detail: "국가 불안의 관측 단계가 바뀌었습니다.",
         crisis: false,
       };
     case "FACTION_STRATEGY_CHANGED": {
@@ -221,6 +383,42 @@ export function eventLabel(
       return {
         title: `${regionName(scenario, payloadString(event, "regionId"))} 통제 변화`,
         detail: "해당 지역의 물리적 통제가 바뀌었습니다.",
+        crisis: false,
+      };
+    case "BORDER_CLOSED":
+      return {
+        title: "국경 경로 폐쇄",
+        detail: "실제 ContactGraph 경로가 외교 행동으로 닫혔습니다.",
+        crisis: false,
+      };
+    case "BORDER_REOPENED":
+      return {
+        title: "국경 경로 재개",
+        detail: "실제 ContactGraph 경로가 다시 열렸습니다.",
+        crisis: false,
+      };
+    case "FOREIGN_ACTION_REJECTED":
+      return {
+        title: "외국 행동 보류",
+        detail: "외국 actor의 제안이 현재 경로·국가 조건과 맞지 않았습니다.",
+        crisis: false,
+      };
+    case "GOVERNMENT_TRANSITIONED":
+      return {
+        title: "정부 전환",
+        detail: "현재 정부 포인터가 국가 기록에서 바뀌었습니다.",
+        crisis: true,
+      };
+    case "CIVIL_WAR_STARTED":
+      return {
+        title: "내전 시작",
+        detail: "현재 충돌 read model에 내전이 추가되었습니다.",
+        crisis: true,
+      };
+    case "ORDER_CONSOLIDATION_STARTED":
+      return {
+        title: "질서 정착 조건 충족 시작",
+        detail: "현재 체크리스트의 모든 조건이 잠시 충족되었습니다.",
         crisis: false,
       };
     case "CONFLICT_RESOLVED":

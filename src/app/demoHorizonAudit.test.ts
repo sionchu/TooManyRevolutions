@@ -289,56 +289,38 @@ function auditTrajectory(
 }
 
 describe("GameBuilders deterministic horizon audit", () => {
-  it("records every required trajectory and checkpoint through the 20-year horizon", () => {
-    const report = TRAJECTORIES.map(auditTrajectory);
-    const deterministicProbe = auditTrajectory(TRAJECTORIES[0]!);
+  it.each(TRAJECTORIES)(
+    "records $id through every required 20-year checkpoint",
+    (trajectory) => {
+      const report = auditTrajectory(trajectory);
 
-    expect(deterministicProbe).toEqual(report[0]);
-    expect(report).toHaveLength(TRAJECTORIES.length);
-    expect(
-      report.every((trajectory) => trajectory.checkpoints.length === 9),
-    ).toBe(true);
-    console.log("GAMEBUILDERS_HORIZON_AUDIT_JSON");
-    console.log(
-      JSON.stringify(
-        report.map((trajectory) => ({
-          id: trajectory.id,
-          description: trajectory.description,
-          submittedAction: trajectory.submittedAction,
-          actionResult: trajectory.actionResult,
-          checkpoints: trajectory.checkpoints.map((checkpoint) => ({
+      expect(report.checkpoints).toHaveLength(CHECKPOINTS.length);
+      expect(
+        report.checkpoints.map((checkpoint) => checkpoint.actualDay),
+      ).toEqual([...CHECKPOINTS]);
+      if (trajectory.id === TRAJECTORIES[0]!.id) {
+        expect(auditTrajectory(trajectory)).toEqual(report);
+      }
+      console.log(
+        "GAMEBUILDERS_HORIZON_AUDIT_TRAJECTORY",
+        JSON.stringify({
+          id: report.id,
+          submittedAction: report.submittedAction,
+          actionResult: report.actionResult,
+          checkpoints: report.checkpoints.map((checkpoint) => ({
             day: checkpoint.actualDay,
             outcome: checkpoint.runOutcome,
             conflicts: checkpoint.activeConflicts,
             agendas: `${checkpoint.agendas.count}/${checkpoint.agendas.highestSeverityBand ?? "none"}/${checkpoint.agendas.highestSeverity.toFixed(3)}`,
             availableActions: checkpoint.actionAvailability.availableCount,
             eventDensity: checkpoint.meaningfulEventDensitySincePrevious,
-            lastPoliticalEvent: checkpoint.lastMeaningfulPoliticalEventTick,
-            country:
-              checkpoint.country === null
-                ? null
-                : {
-                    treasury: Math.round(checkpoint.country.treasury),
-                    legitimacy: Math.round(checkpoint.country.legitimacy),
-                    stateCapacity: Math.round(checkpoint.country.stateCapacity),
-                    instability:
-                      Math.round(checkpoint.country.instability * 100) / 100,
-                    stateContinuity:
-                      Math.round(checkpoint.country.stateContinuity * 100) /
-                      100,
-                  },
-            factions: checkpoint.factions.map((faction) => ({
-              id: faction.id,
-              grievance: Math.round(faction.grievance * 100) / 100,
-              organization: Math.round(faction.organization * 100) / 100,
-              strategy: faction.currentStrategy,
-            })),
             control: checkpoint.territorialControl,
             fronts: checkpoint.activeConflictFronts,
             state: checkpoint.interactionState,
           })),
-        })),
-      ),
-    );
-  }, 120_000);
+        }),
+      );
+    },
+    240_000,
+  );
 });

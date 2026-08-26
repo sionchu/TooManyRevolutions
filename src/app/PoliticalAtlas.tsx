@@ -17,6 +17,7 @@ const MAP_CENTER_X = 400;
 const MAP_CENTER_Y = 225;
 const COUNTRY_TINTS = ["#9e6f45", "#647f83", "#87705e"] as const;
 const COUNTRY_ACCENTS = ["#7f332f", "#3e6570", "#5d463c"] as const;
+const IDEOLOGY_TINTS = ["#7f332f", "#3e6570", "#9b7022", "#6b4c7b"] as const;
 
 interface Point {
   readonly x: number;
@@ -87,6 +88,37 @@ function controllerLabel(hex: PresentationLandHex): string {
     case "uncontrolled":
       return "통제 공백";
   }
+}
+
+function controllerId(hex: PresentationLandHex): string {
+  switch (hex.controller.kind) {
+    case "country":
+      return hex.controller.countryId;
+    case "faction":
+      return hex.controller.factionId;
+    case "uncontrolled":
+      return "uncontrolled";
+  }
+}
+
+function ideologyColor(ideologyId: string): string {
+  const hash = [...ideologyId].reduce(
+    (total, character) => total + character.charCodeAt(0),
+    0,
+  );
+  return IDEOLOGY_TINTS[hash % IDEOLOGY_TINTS.length]!;
+}
+
+function strongestIdeology(
+  region: PresentationRegion,
+): PresentationRegion["politicalInfluence"][number] | null {
+  return (
+    [...region.politicalInfluence].sort(
+      (first, second) =>
+        second.support - first.support ||
+        first.ideologyId.localeCompare(second.ideologyId),
+    )[0] ?? null
+  );
 }
 
 function terrainLabel(terrain: PresentationLandHex["terrain"]): string {
@@ -230,10 +262,22 @@ export function PoliticalAtlas({
       <div className="map-wrap">
         <svg
           className="hex-map political-atlas"
-          viewBox="190 70 570 300"
+          viewBox="195 75 600 405"
           role="img"
           aria-label="아르켄 왕국과 벨로리아·카르센 접경국의 정치 지도"
         >
+          <defs>
+            <pattern
+              id="controller-faction-pattern"
+              width="8"
+              height="8"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(35)"
+            >
+              <rect width="8" height="8" fill="#7f332f" />
+              <path d="M0 0V8" stroke="#f4d4c2" strokeWidth="2" opacity="0.5" />
+            </pattern>
+          </defs>
           <rect
             className="map-paper"
             x="0"
@@ -279,6 +323,66 @@ export function PoliticalAtlas({
                   points={pointsString(vertices)}
                   fill={fill}
                   aria-hidden="true"
+                />
+              );
+            })}
+          </g>
+          <g
+            data-layer-id="tmr.layer.map.political"
+            className="atlas-ideology-layer"
+            aria-label="지역별 정치 흐름"
+          >
+            {presentation.regions.flatMap((region) => {
+              const strongest = strongestIdeology(region);
+              if (strongest === null || strongest.support <= 0) return [];
+              const color = ideologyColor(strongest.ideologyId);
+              return presentation.landHexes
+                .filter((hex) => hex.regionId === region.regionId)
+                .map((hex) => (
+                  <polygon
+                    key={`ideology-${hex.landHexId}`}
+                    className="atlas-ideology-overlay"
+                    points={pointsString(
+                      verticesFor(
+                        centerFor(hex.coordinate.q, hex.coordinate.r),
+                      ),
+                    )}
+                    fill={color}
+                    opacity={0.12 + strongest.support * 0.25}
+                    data-ideology-id={strongest.ideologyId}
+                    data-support={strongest.support.toFixed(4)}
+                    aria-hidden="true"
+                  />
+                ));
+            })}
+          </g>
+          <g
+            data-layer-id="tmr.layer.map.political"
+            className="atlas-controller-layer"
+            aria-label="현재 물리 통제"
+          >
+            {presentation.landHexes.map((hex) => {
+              const owner = regions.get(hex.regionId)?.ownerCountryId;
+              const sameAsOwner =
+                hex.controller.kind === "country" &&
+                hex.controller.countryId === owner;
+              const fill =
+                hex.controller.kind === "country"
+                  ? (visuals.get(hex.controller.countryId)?.accent ?? "#6d4e3a")
+                  : hex.controller.kind === "faction"
+                    ? "#7f332f"
+                    : "#5d655e";
+              const center = centerFor(hex.coordinate.q, hex.coordinate.r);
+              return (
+                <polygon
+                  key={`controller-${hex.landHexId}`}
+                  className={`atlas-controller-overlay controller-${hex.controller.kind}${sameAsOwner ? " controller-same" : ""}`}
+                  points={pointsString(verticesFor(center))}
+                  fill={sameAsOwner ? "none" : fill}
+                  data-controller-kind={hex.controller.kind}
+                  data-controller-id={controllerId(hex)}
+                  data-owner-id={owner ?? "unknown"}
+                  aria-label={`${controllerLabel(hex)} · ${controllerId(hex)}`}
                 />
               );
             })}
@@ -337,6 +441,26 @@ export function PoliticalAtlas({
                 />
               );
             })}
+            {presentation.regions.map((region) => {
+              const center = centers.get(region.regionId);
+              if (center === undefined) return null;
+              const pressure = Math.max(region.unrest, region.scarcity);
+              return (
+                <circle
+                  key={`pressure-${region.regionId}`}
+                  className="atlas-pressure-pulse"
+                  cx={center.x}
+                  cy={center.y}
+                  r={5 + pressure * 18}
+                  opacity={0.18 + pressure * 0.5}
+                  data-pressure={pressure.toFixed(4)}
+                  data-unrest={region.unrest.toFixed(4)}
+                  data-scarcity={region.scarcity.toFixed(4)}
+                >
+                  <title>{`${region.name} 불안 ${Math.round(region.unrest * 100)}% · 희소성 ${Math.round(region.scarcity * 100)}%`}</title>
+                </circle>
+              );
+            })}
             {presentation.organizationTokens.map((token) => {
               const center = centers.get(token.regionId);
               if (center === undefined) return null;
@@ -358,7 +482,7 @@ export function PoliticalAtlas({
                     preserveAspectRatio="xMidYMid meet"
                     data-asset-id={emblem}
                   />
-                  <title>{token.organization.toFixed(2)} 조직도</title>
+                  <title>{`${token.organization.toFixed(2)} 조직도`}</title>
                 </g>
               );
             })}
@@ -426,7 +550,7 @@ export function PoliticalAtlas({
                 >
                   <circle className="atlas-capital" r="8" />
                   <circle className="atlas-capital-core" r="3" />
-                  <title>{country.name} 수도</title>
+                  <title>{`${country.name} 수도`}</title>
                 </g>
               );
             })}
@@ -529,6 +653,12 @@ export function PoliticalAtlas({
           </span>
           <span>
             <i className="legend-line legend-line-border" /> 국경
+          </span>
+          <span>
+            <i className="legend-controller" /> 현재 물리 통제
+          </span>
+          <span>
+            <i className="legend-ideology" /> 정치 흐름
           </span>
         </div>
       </div>

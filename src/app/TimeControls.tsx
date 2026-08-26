@@ -55,7 +55,7 @@ export function TimeControls({
       <span className="time-status" role="status" aria-live="polite">
         {flowNotice}
       </span>
-      <div className="manual-jumps">
+      <div className="manual-jumps manual-jumps-desktop">
         <span>보조 진행</span>
         <button type="button" onClick={() => onAdvance(1)}>
           +1일
@@ -67,6 +67,20 @@ export function TimeControls({
           +30일
         </button>
       </div>
+      <details className="manual-jumps-mobile">
+        <summary>보조 진행</summary>
+        <div>
+          <button type="button" onClick={() => onAdvance(1)}>
+            +1일
+          </button>
+          <button type="button" onClick={() => onAdvance(7)}>
+            +7일
+          </button>
+          <button type="button" onClick={() => onAdvance(30)}>
+            +30일
+          </button>
+        </div>
+      </details>
     </div>
   );
 }

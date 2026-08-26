@@ -4,18 +4,26 @@ import { PLAYER_COPY } from "../presentation/design/copyRegistry.ko";
 import { derivePresentationState } from "../presentation/presentationState";
 import { deriveNationalAgendas } from "../sim/readModels/agenda";
 import type { GameEvent } from "../sim/events/event";
-import type { RunRecord } from "../sim/core/step";
+import type { ConflictKind } from "../sim/state/conflict";
 import {
   evaluateInterventionFeasibility,
   type InterventionDefinition,
 } from "../sim/state/intervention";
+import {
+  evaluatePolicyAvailability,
+  type PolicyDefinition,
+} from "../sim/state/policy";
 import type { CountryId, RegionId } from "../sim/state/ids";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
+import { POLICY_FIXTURE_IDS } from "../sim/state/policyFixture";
+import { deriveOrderConsolidationEligibility } from "../sim/systems/orderConsolidation";
 import {
-  advanceDemoRecord,
-  createDemoRunRecord,
-  submitIntervention,
+  advanceDemoRuntime,
+  createDemoRuntimeState,
+  submitRuntimeIntervention,
+  submitRuntimePolicy,
 } from "./demoGame";
+import type { DemoRuntimeState } from "./demoGame";
 import { AgendaPanel } from "./AgendaPanel";
 import { CrisisBanner } from "./CrisisBanner";
 import { ContextualDock, type ContextPanel } from "./ContextualDock";
@@ -27,7 +35,12 @@ import { PoliticalAtlas } from "./PoliticalAtlas";
 import { RegionInspector } from "./RegionInspector";
 import { ChroniclePanel } from "./ChroniclePanel";
 import { SPEED_INTERVAL_MS, type DemoSpeed } from "./demoSpeed";
-import { eventLabel, formatDate } from "./gamePresentation";
+import {
+  eventLabel,
+  formatDate,
+  isSignificantEvent,
+  selectSignificantEvents,
+} from "./gamePresentation";
 import { TitleScreen } from "./TitleScreen";
 import { transitionProductScreen, type ProductScreen } from "./screenFlow";
 
@@ -42,7 +55,13 @@ const PLAYER_ID: CountryId = PLAYER_COUNTRY_ID;
 const MAJOR_EVENT_TYPES = new Set<GameEvent["type"]>([
   "COUP_ATTEMPT_STARTED",
   "REBELLION_STARTED",
+  "POLICY_ENACTED",
+  "INTERVENTION_STARTED",
+  "INTERVENTION_COMPLETED",
   "CONFLICT_RESOLVED",
+  "LAND_HEX_CONTROL_CHANGED",
+  "BORDER_CLOSED",
+  "BORDER_REOPENED",
   "CIVIL_WAR_STARTED",
   "GOVERNMENT_TRANSITIONED",
   "ORDER_CONSOLIDATION_STARTED",
@@ -50,8 +69,23 @@ const MAJOR_EVENT_TYPES = new Set<GameEvent["type"]>([
   "STATE_DISSOLVED",
 ]);
 
+function conflictKindLabel(kind: ConflictKind): string {
+  switch (kind) {
+    case "rebellion":
+      return "반란";
+    case "coup":
+      return "쿠데타";
+    case "civilWar":
+      return "내전";
+    case "war":
+      return "전쟁";
+  }
+}
+
 function GameScreen({ onReset }: { readonly onReset: () => void }) {
-  const [record, setRecord] = useState<RunRecord>(() => createDemoRunRecord());
+  const [record, setRecord] = useState<DemoRuntimeState>(() =>
+    createDemoRuntimeState(),
+  );
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState<DemoSpeed>(1);
   const [autoPauseMajorEvents, setAutoPauseMajorEvents] = useState(true);
@@ -129,6 +163,14 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
   );
   const playerCountry = record.world.countries[PLAYER_ID];
   const policyState = record.world.policies[PLAYER_ID];
+  const consolidation = useMemo(
+    () =>
+      deriveOrderConsolidationEligibility(
+        GAMEBUILDERS_DEMO_SCENARIO,
+        record.world,
+      ),
+    [record],
+  );
   const selectedRegion =
     presentation.regions.find(
       (region) => region.regionId === selectedRegionId,
@@ -148,14 +190,71 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
         countryId: PLAYER_ID,
       }),
     }));
-  const visibleEvents = [...record.eventStore.events].reverse().slice(0, 10);
+  const policySurfaceIds: readonly PolicyDefinition["id"][] = [
+    POLICY_FIXTURE_IDS.abolishRoyalVeto,
+    POLICY_FIXTURE_IDS.universalSuffrage,
+    POLICY_FIXTURE_IDS.nationalizeProductiveProperty,
+  ];
+  const policyCandidates = policySurfaceIds.flatMap((policyId) => {
+    const definition = GAMEBUILDERS_DEMO_SCENARIO.policyCatalog[policyId];
+    if (definition === undefined || policyState === undefined) return [];
+    return [
+      {
+        definition,
+        availability: evaluatePolicyAvailability(
+          policyState,
+          definition,
+          GAMEBUILDERS_DEMO_SCENARIO.policyCatalog,
+        ),
+      },
+    ];
+  });
+  const visibleEvents = selectSignificantEvents(record.eventStore.events, 10);
   const crisisEvent = visibleEvents.find(
     (event) =>
       event.type === "COUP_ATTEMPT_STARTED" ||
       event.type === "REBELLION_STARTED",
   );
+  const activeConflicts = presentation.activeConflicts;
+  const playerControlledLandHexCount = presentation.landHexes.filter(
+    (hex) =>
+      hex.controller.kind === "country" &&
+      hex.controller.countryId === PLAYER_ID,
+  ).length;
+  const legalPlayerLandHexCount = presentation.landHexes.filter(
+    (hex) =>
+      presentation.regions.find((region) => region.regionId === hex.regionId)
+        ?.ownerCountryId === PLAYER_ID,
+  ).length;
+  const capitalRegionId = playerCountry?.capitalRegionId ?? null;
+  const capitalControlled =
+    capitalRegionId !== null &&
+    presentation.regions.find((region) => region.regionId === capitalRegionId)
+      ?.control.fullyControlledByCountryId === PLAYER_ID;
+  const factionActionCount = record.world.run.actionLog.filter((action) =>
+    [
+      "LOBBY",
+      "BARGAIN",
+      "ORGANIZE",
+      "FUND_MOVEMENT",
+      "ACCEPT",
+      "WAIT",
+    ].includes(action.actionType),
+  ).length;
+  const foreignActionCount = record.world.run.actionLog.filter((action) =>
+    [
+      "CLOSE_BORDER",
+      "REOPEN_BORDER",
+      "RESTRICT_INCOMING_BORDER",
+      "RESTORE_INCOMING_BORDER",
+    ].includes(action.actionType),
+  ).length;
   const leadAgenda = agendas[0] ?? null;
   const crisisFocusRegionId = (() => {
+    const conflictRegion =
+      activeConflicts[0]?.affectedRegionIds[0] ??
+      activeConflicts[0]?.contestedRegionIds[0];
+    if (conflictRegion !== undefined) return conflictRegion;
     const payload = crisisEvent?.payload;
     if (typeof payload === "object" && payload !== null) {
       const affectedRegionIds = (payload as { affectedRegionIds?: unknown })
@@ -185,13 +284,14 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       const previousEventIds = new Set(
         current.eventStore.events.map((event) => event.id),
       );
-      const next = advanceDemoRecord(current, 1);
+      const next = advanceDemoRuntime(current, 1);
       const newEvents = next.eventStore.events.filter(
         (event) => !previousEventIds.has(event.id),
       );
       const majorEvent = newEvents.find((event) =>
         MAJOR_EVENT_TYPES.has(event.type),
       );
+      const significantEvent = newEvents.find(isSignificantEvent);
       recordRef.current = next;
       setRecord(next);
 
@@ -205,6 +305,10 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       } else if (next.world.run.outcome.status !== "active") {
         setFlowNotice("실행 결과가 확정되어 시간이 멈췄습니다.");
         setIsPlaying(false);
+      } else if (significantEvent !== undefined) {
+        const mapped = eventLabel(significantEvent, GAMEBUILDERS_DEMO_SCENARIO);
+        setFlowNotice(`${mapped.title} · ${next.world.tick}일차`);
+        playTone("confirm");
       } else {
         setFlowNotice(`${speed}x 재생 중 · ${next.world.tick}일차`);
       }
@@ -239,7 +343,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const advance = (days: number) => {
     clearClock();
     setIsPlaying(false);
-    const next = advanceDemoRecord(recordRef.current, days);
+    const next = advanceDemoRuntime(recordRef.current, days);
     recordRef.current = next;
     setRecord(next);
     setFlowNotice(`수동 보조 진행 · ${next.world.tick}일차`);
@@ -249,10 +353,20 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
   const submitAction = (interventionId: InterventionDefinition["id"]) => {
     clearClock();
     setIsPlaying(false);
-    const next = submitIntervention(recordRef.current, interventionId);
+    const next = submitRuntimeIntervention(recordRef.current, interventionId);
     recordRef.current = next;
     setRecord(next);
     setFlowNotice("행동 제출 완료 · 시간이 일시정지되었습니다.");
+    playTone("confirm");
+  };
+
+  const submitPolicy = (policyId: PolicyDefinition["id"]) => {
+    clearClock();
+    setIsPlaying(false);
+    const next = submitRuntimePolicy(recordRef.current, policyId);
+    recordRef.current = next;
+    setRecord(next);
+    setFlowNotice("정책 제출 완료 · 제도 기록을 갱신했습니다.");
     playTone("confirm");
   };
 
@@ -289,6 +403,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
 
       <CrisisBanner
         event={crisisEvent}
+        activeConflicts={activeConflicts}
         scenario={GAMEBUILDERS_DEMO_SCENARIO}
         onFocusMap={
           crisisFocusRegionId === null
@@ -311,6 +426,41 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
             selectedRegionId={selectedRegionId}
             onSelectRegion={focusRegion}
           />
+          <div className="map-fact-strip" aria-label="현재 세계 사실">
+            <span>
+              <b>
+                {playerControlledLandHexCount}/{legalPlayerLandHexCount}
+              </b>{" "}
+              내 물리 통제 / 법적 소유
+            </span>
+            <span>
+              <b>{activeConflicts.length}</b> 활성 충돌 ·{" "}
+              {activeConflicts.length === 0
+                ? "없음"
+                : activeConflicts
+                    .map((conflict) => conflictKindLabel(conflict.kind))
+                    .join(" · ")}
+            </span>
+            <span>
+              수도 <b>{capitalControlled ? "통제" : "상실"}</b>
+            </span>
+            <span>
+              세력 행동{" "}
+              <b>
+                {factionActionCount > 0
+                  ? `${factionActionCount}건`
+                  : "현재 없음"}
+              </b>
+            </span>
+            <span>
+              외국 행동{" "}
+              <b>
+                {foreignActionCount > 0
+                  ? `${foreignActionCount}건`
+                  : "현재 없음"}
+              </b>
+            </span>
+          </div>
           {leadAgenda === null ? null : (
             <div className="map-issue-chip" role="status">
               <span className="eyebrow">현재 압력</span>
@@ -348,6 +498,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
             <AgendaPanel
               agendas={agendas}
               scenario={GAMEBUILDERS_DEMO_SCENARIO}
+              consolidation={consolidation}
               onFocusRegion={focusRegion}
             />
           ) : activePanel === "decisions" ? (
@@ -357,7 +508,9 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
               scenario={GAMEBUILDERS_DEMO_SCENARIO}
               world={record.world}
               policyState={policyState}
+              policyCandidates={policyCandidates}
               onSubmit={submitAction}
+              onSubmitPolicy={submitPolicy}
             />
           ) : activePanel === "region" ? (
             <RegionInspector

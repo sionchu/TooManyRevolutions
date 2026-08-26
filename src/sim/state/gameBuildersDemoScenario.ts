@@ -11,6 +11,7 @@ import {
   asRegionId,
   asScenarioId,
   type CountryId,
+  type IdeologyId,
   type RegionId,
 } from "./ids";
 import type { Country, DiplomaticRelation } from "./country";
@@ -18,6 +19,8 @@ import type { Government } from "./government";
 import type { ScenarioRegion } from "./region";
 import type { ScenarioDefinition } from "./scenario";
 import type { LandHexDefinition } from "./territorialTopology";
+import type { IdeologyState } from "./ideology";
+import { IDEOLOGY_FIXTURE_IDS } from "./ideologyFixture";
 
 export const GAMEBUILDERS_DEMO_COUNTRY_IDS = {
   arken: asCountryId("policy-fixture.country"),
@@ -99,6 +102,67 @@ const DEMO_LAND_HEXES: readonly LandHexDefinition[] = [
   },
 ];
 
+// The inherited pressure fixture starts with only three player LandHexes.
+// Keep the same authored regions and current runtime rules, but give the
+// product slice enough contiguous territory for controller changes to remain
+// legible across the long no-action audit horizon.
+const DEMO_ARKEN_LAND_HEXES: readonly LandHexDefinition[] = [
+  {
+    id: asLandHexId("gamebuilders.arken.capital-south"),
+    regionId: asRegionId("ideology-fixture.capital"),
+    coordinate: { q: 0, r: 1 },
+    terrain: "plains",
+  },
+  {
+    id: asLandHexId("gamebuilders.arken.industrial-west"),
+    regionId: asRegionId("ideology-fixture.industrial"),
+    coordinate: { q: 1, r: 1 },
+    terrain: "forest",
+  },
+  {
+    id: asLandHexId("gamebuilders.arken.industrial-east"),
+    regionId: asRegionId("ideology-fixture.industrial"),
+    coordinate: { q: 2, r: 1 },
+    terrain: "hills",
+  },
+  {
+    id: asLandHexId("gamebuilders.arken.capital-north"),
+    regionId: asRegionId("ideology-fixture.capital"),
+    coordinate: { q: 0, r: -1 },
+    terrain: "hills",
+  },
+  {
+    id: asLandHexId("gamebuilders.arken.industrial-north-west"),
+    regionId: asRegionId("ideology-fixture.industrial"),
+    coordinate: { q: 1, r: -1 },
+    terrain: "forest",
+  },
+  {
+    id: asLandHexId("gamebuilders.arken.industrial-north-east"),
+    regionId: asRegionId("ideology-fixture.industrial"),
+    coordinate: { q: 2, r: -1 },
+    terrain: "mountains",
+  },
+  {
+    id: asLandHexId("gamebuilders.arken.capital-south-east"),
+    regionId: asRegionId("ideology-fixture.capital"),
+    coordinate: { q: 0, r: 2 },
+    terrain: "coast",
+  },
+  {
+    id: asLandHexId("gamebuilders.arken.industrial-south-west"),
+    regionId: asRegionId("ideology-fixture.industrial"),
+    coordinate: { q: 1, r: 2 },
+    terrain: "plains",
+  },
+  {
+    id: asLandHexId("gamebuilders.arken.industrial-south-east"),
+    regionId: asRegionId("ideology-fixture.industrial"),
+    coordinate: { q: 2, r: 2 },
+    terrain: "hills",
+  },
+];
+
 function cloneDiplomacy(
   diplomacy: Readonly<Record<CountryId, DiplomaticRelation>>,
 ): Readonly<Record<CountryId, DiplomaticRelation>> {
@@ -139,6 +203,7 @@ function cloneRegion(
     readonly ownerCountryId: CountryId;
     readonly population: number;
     readonly terrainResource: "food" | "material";
+    readonly ideology?: Readonly<Record<IdeologyId, IdeologyState>>;
   },
 ): ScenarioRegion {
   return {
@@ -162,13 +227,46 @@ function cloneRegion(
     infrastructure: 0.42,
     scarcity: 0.04,
     unrest: 0.08,
-    ideology: Object.fromEntries(
-      Object.entries(base.ideology).map(([ideologyId, state]) => [
-        ideologyId,
-        { ...state },
-      ]),
-    ),
+    ideology:
+      input.ideology ??
+      (Object.fromEntries(
+        Object.entries(base.ideology).map(([ideologyId, state]) => [
+          ideologyId,
+          { ...state },
+        ]),
+      ) as Readonly<Record<IdeologyId, IdeologyState>>),
   };
+}
+
+function regionalIdeology(
+  monarchy: number,
+  republicanism: number,
+  democracy: number,
+  communism: number,
+): Readonly<Record<IdeologyId, IdeologyState>> {
+  const values = {
+    [IDEOLOGY_FIXTURE_IDS.monarchy]: {
+      support: monarchy,
+      radicalism: Math.min(1, monarchy * 0.24),
+      organization: Math.min(1, monarchy * 0.42),
+    },
+    [IDEOLOGY_FIXTURE_IDS.republicanism]: {
+      support: republicanism,
+      radicalism: Math.min(1, republicanism * 0.3),
+      organization: Math.min(1, republicanism * 0.38),
+    },
+    [IDEOLOGY_FIXTURE_IDS.democracy]: {
+      support: democracy,
+      radicalism: Math.min(1, democracy * 0.28),
+      organization: Math.min(1, democracy * 0.34),
+    },
+    [IDEOLOGY_FIXTURE_IDS.communism]: {
+      support: communism,
+      radicalism: Math.min(1, communism * 0.46),
+      organization: Math.min(1, communism * 0.5),
+    },
+  } satisfies Readonly<Record<IdeologyId, IdeologyState>>;
+  return values;
 }
 
 function clonePolicy(
@@ -299,6 +397,7 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
       ownerCountryId: veloriaId,
       population: 210,
       terrainResource: "food",
+      ideology: regionalIdeology(0.32, 0.58, 0.46, 0.16),
     }),
     cloneRegion(base.initialRegions[0]!, {
       id: GAMEBUILDERS_DEMO_REGION_IDS.veloriaInland,
@@ -306,6 +405,7 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
       ownerCountryId: veloriaId,
       population: 180,
       terrainResource: "food",
+      ideology: regionalIdeology(0.48, 0.3, 0.24, 0.18),
     }),
     cloneRegion(base.initialRegions[0]!, {
       id: GAMEBUILDERS_DEMO_REGION_IDS.veloriaBorder,
@@ -313,6 +413,7 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
       ownerCountryId: veloriaId,
       population: 130,
       terrainResource: "material",
+      ideology: regionalIdeology(0.25, 0.36, 0.42, 0.31),
     }),
     cloneRegion(base.initialRegions[0]!, {
       id: GAMEBUILDERS_DEMO_REGION_IDS.veloriaHighlands,
@@ -320,6 +421,7 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
       ownerCountryId: veloriaId,
       population: 95,
       terrainResource: "material",
+      ideology: regionalIdeology(0.62, 0.2, 0.17, 0.12),
     }),
     cloneRegion(base.initialRegions[0]!, {
       id: GAMEBUILDERS_DEMO_REGION_IDS.karsenFrontier,
@@ -327,6 +429,7 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
       ownerCountryId: karsenId,
       population: 120,
       terrainResource: "material",
+      ideology: regionalIdeology(0.2, 0.18, 0.27, 0.58),
     }),
     cloneRegion(base.initialRegions[0]!, {
       id: GAMEBUILDERS_DEMO_REGION_IDS.karsenGate,
@@ -334,6 +437,7 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
       ownerCountryId: karsenId,
       population: 145,
       terrainResource: "food",
+      ideology: regionalIdeology(0.38, 0.22, 0.2, 0.43),
     }),
     cloneRegion(base.initialRegions[0]!, {
       id: GAMEBUILDERS_DEMO_REGION_IDS.karsenForest,
@@ -341,6 +445,7 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
       ownerCountryId: karsenId,
       population: 105,
       terrainResource: "material",
+      ideology: regionalIdeology(0.28, 0.16, 0.2, 0.51),
     }),
     cloneRegion(base.initialRegions[0]!, {
       id: GAMEBUILDERS_DEMO_REGION_IDS.karsenMountains,
@@ -348,6 +453,7 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
       ownerCountryId: karsenId,
       population: 80,
       terrainResource: "material",
+      ideology: regionalIdeology(0.55, 0.12, 0.14, 0.29),
     }),
   ];
 
@@ -447,7 +553,11 @@ export function createGameBuildersDemoScenario(): ScenarioDefinition {
       ],
     },
     mapTerritorialTopology: {
-      landHexes: [...base.mapTerritorialTopology.landHexes, ...DEMO_LAND_HEXES],
+      landHexes: [
+        ...base.mapTerritorialTopology.landHexes,
+        ...DEMO_ARKEN_LAND_HEXES,
+        ...DEMO_LAND_HEXES,
+      ],
     },
     interventionCatalog: Object.fromEntries(
       Object.entries(base.interventionCatalog)

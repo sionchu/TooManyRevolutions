@@ -21,7 +21,7 @@ describe("GameBuilders product map authoring", () => {
       GAMEBUILDERS_DEMO_COUNTRY_IDS.karsen,
     ]);
     expect(scenario.initialRegions).toHaveLength(10);
-    expect(scenario.mapTerritorialTopology.landHexes).toHaveLength(11);
+    expect(scenario.mapTerritorialTopology.landHexes).toHaveLength(20);
     expect(
       scenario.mapContactTopology.contactEdges.some(
         (edge) =>
@@ -40,7 +40,7 @@ describe("GameBuilders product map authoring", () => {
     const world = createInitialWorldState(scenario, 18970401);
     const presentation = derivePresentationState(scenario, world);
     expect(presentation.regions).toHaveLength(10);
-    expect(presentation.landHexes).toHaveLength(11);
+    expect(presentation.landHexes).toHaveLength(20);
     expect(
       presentation.regions.filter(
         (region) =>
