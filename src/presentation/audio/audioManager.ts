@@ -54,6 +54,7 @@ export interface AudioContextLike {
   createGain(): GainNodeLike;
   createOscillator(): OscillatorLike;
   createBufferSource?(): BufferSourceLike;
+  decodeAudioData?(data: ArrayBuffer): Promise<AudioBufferLike>;
   resume(): Promise<void>;
   close?(): Promise<void>;
 }
@@ -77,7 +78,7 @@ export interface AudioManagerOptions {
   readonly storage?: AudioPreferenceStorage | null;
   readonly storageKey?: string;
   readonly audioContextFactory?: AudioContextFactory;
-  /** Optional local loader. No network fetch is performed by the manager. */
+  /** Optional local loader. The default loader only fetches registry WAV assets. */
   readonly assetLoader?: (
     asset: SoundAssetDefinition,
     context: AudioContextLike,
@@ -156,6 +157,30 @@ function defaultAudioContextFactory(): AudioContextLike | null {
   if (contextConstructor === undefined) return null;
   try {
     return new contextConstructor() as unknown as AudioContextLike;
+  } catch {
+    return null;
+  }
+}
+
+const LOCAL_AUDIO_ASSET_PREFIX = "/assets/tmr/audio/";
+
+async function defaultAssetLoader(
+  asset: SoundAssetDefinition,
+  context: AudioContextLike,
+): Promise<AudioBufferLike | null> {
+  if (
+    asset.kind !== "file" ||
+    asset.url === undefined ||
+    !asset.url.startsWith(LOCAL_AUDIO_ASSET_PREFIX) ||
+    typeof fetch === "undefined" ||
+    context.decodeAudioData === undefined
+  ) {
+    return null;
+  }
+  try {
+    const response = await fetch(asset.url);
+    if (!response.ok) return null;
+    return await context.decodeAudioData(await response.arrayBuffer());
   } catch {
     return null;
   }
@@ -288,7 +313,7 @@ export class AudioManager {
     this.storageKey = options.storageKey ?? AUDIO_PREFERENCES_KEY;
     this.contextFactory =
       options.audioContextFactory ?? defaultAudioContextFactory;
-    this.assetLoader = options.assetLoader;
+    this.assetLoader = options.assetLoader ?? defaultAssetLoader;
     this.closeContextOnDispose = options.closeContextOnDispose ?? true;
     const defaultPreferences: AudioPreferences = {
       ...DEFAULT_AUDIO_PREFERENCES,
@@ -467,9 +492,7 @@ export class AudioManager {
         cueId,
         status: "played",
         fallbackUsed:
-          asset.fallbackUsed ||
-          (asset.buffer !== null && source === null) ||
-          definition.asset.kind === "file",
+          asset.fallbackUsed || (asset.buffer !== null && source === null),
       };
     } catch {
       this.safeStopSource(fallbackSource);

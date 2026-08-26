@@ -1,3 +1,5 @@
+import { getAudioAssetManifestEntry } from "./audioAssetManifest";
+
 export const SOUND_CUE_IDS = [
   "ui.select",
   "ui.confirm",
@@ -52,7 +54,7 @@ export interface SoundAssetDefinition {
   readonly optional: boolean;
   /** Human-readable provenance kept next to the asset identity. */
   readonly provenance: string;
-  /** Optional local asset URL. The manager never fetches one by default. */
+  /** Optional local asset URL resolved before the procedural fallback. */
   readonly url?: string;
   /** Procedural fallback, also used as the canonical placeholder recipe. */
   readonly procedural: ProceduralSoundDefinition;
@@ -105,116 +107,189 @@ function proceduralAsset(
   };
 }
 
-const uiSelect = proceduralAsset("tmr.audio.ui.select.v1", {
+function generatedFileAsset(
+  cueId: SoundCueId,
+  id: string,
+  recipe: ProceduralSoundDefinition,
+): SoundAssetDefinition {
+  const manifestEntry = getAudioAssetManifestEntry(cueId);
+  if (manifestEntry === undefined || manifestEntry.id !== id) {
+    throw new Error(`Missing audio manifest entry for ${cueId} / ${id}`);
+  }
+  return {
+    ...proceduralAsset(id, recipe),
+    kind: "file",
+    url: `/assets/tmr/audio/${manifestEntry.file}`,
+    provenance: manifestEntry.provenance,
+  };
+}
+
+const uiSelect = generatedFileAsset("ui.select", "tmr.audio.ui.select.v1", {
   tones: [tone("triangle", 420, 75, 0.16, { endFrequencyHz: 300 })],
 });
 
-const uiConfirm = proceduralAsset("tmr.audio.ui.confirm.v1", {
+const uiConfirm = generatedFileAsset("ui.confirm", "tmr.audio.ui.confirm.v1", {
   tones: [
     tone("triangle", 330, 115, 0.13, { endFrequencyHz: 390 }),
     tone("sine", 520, 150, 0.1, { attackMs: 18 }),
   ],
 });
 
-const uiBlocked = proceduralAsset("tmr.audio.ui.blocked.v1", {
+const uiBlocked = generatedFileAsset("ui.blocked", "tmr.audio.ui.blocked.v1", {
   tones: [tone("sawtooth", 135, 190, 0.12, { endFrequencyHz: 78 })],
 });
 
-const policyEnacted = proceduralAsset("tmr.audio.policy.enacted.v1", {
-  tones: [
-    tone("triangle", 190, 130, 0.13, { endFrequencyHz: 245 }),
-    tone("sine", 390, 180, 0.09, { attackMs: 20 }),
-  ],
-});
+const policyEnacted = generatedFileAsset(
+  "policy.enacted",
+  "tmr.audio.policy.enacted.v1",
+  {
+    tones: [
+      tone("triangle", 190, 130, 0.13, { endFrequencyHz: 245 }),
+      tone("sine", 390, 180, 0.09, { attackMs: 20 }),
+    ],
+  },
+);
 
-const institutionChanged = proceduralAsset("tmr.audio.institution.changed.v1", {
-  tones: [tone("triangle", 255, 170, 0.12, { endFrequencyHz: 330 })],
-});
+const institutionChanged = generatedFileAsset(
+  "institution.changed",
+  "tmr.audio.institution.changed.v1",
+  {
+    tones: [tone("triangle", 255, 170, 0.12, { endFrequencyHz: 330 })],
+  },
+);
 
-const projectStarted = proceduralAsset("tmr.audio.project.started.v1", {
-  tones: [tone("triangle", 155, 155, 0.11, { endFrequencyHz: 205 })],
-});
+const projectStarted = generatedFileAsset(
+  "project.started",
+  "tmr.audio.project.started.v1",
+  {
+    tones: [tone("triangle", 155, 155, 0.11, { endFrequencyHz: 205 })],
+  },
+);
 
-const projectCompleted = proceduralAsset("tmr.audio.project.completed.v1", {
-  tones: [
-    tone("triangle", 205, 145, 0.12, { endFrequencyHz: 275 }),
-    tone("sine", 410, 210, 0.1, { attackMs: 22 }),
-  ],
-});
+const projectCompleted = generatedFileAsset(
+  "project.completed",
+  "tmr.audio.project.completed.v1",
+  {
+    tones: [
+      tone("triangle", 205, 145, 0.12, { endFrequencyHz: 275 }),
+      tone("sine", 410, 210, 0.1, { attackMs: 22 }),
+    ],
+  },
+);
 
-const rebellion = proceduralAsset("tmr.audio.crisis.rebellion.v1", {
-  tones: [
-    tone("sawtooth", 150, 280, 0.13, { endFrequencyHz: 78 }),
-    tone("triangle", 92, 340, 0.08, { endFrequencyHz: 62 }),
-  ],
-});
+const rebellion = generatedFileAsset(
+  "crisis.rebellion",
+  "tmr.audio.crisis.rebellion.v1",
+  {
+    tones: [
+      tone("sawtooth", 150, 280, 0.13, { endFrequencyHz: 78 }),
+      tone("triangle", 92, 340, 0.08, { endFrequencyHz: 62 }),
+    ],
+  },
+);
 
-const coup = proceduralAsset("tmr.audio.crisis.coup.v1", {
+const coup = generatedFileAsset("crisis.coup", "tmr.audio.crisis.coup.v1", {
   tones: [
     tone("sawtooth", 185, 245, 0.12, { endFrequencyHz: 105 }),
     tone("triangle", 245, 175, 0.08, { endFrequencyHz: 170 }),
   ],
 });
 
-const civilWar = proceduralAsset("tmr.audio.crisis.civil-war.v1", {
-  tones: [
-    tone("sawtooth", 125, 320, 0.14, { endFrequencyHz: 64 }),
-    tone("triangle", 205, 230, 0.07, { endFrequencyHz: 120 }),
-  ],
-});
-
-const territoryChanged = proceduralAsset("tmr.audio.territory.changed.v1", {
-  tones: [tone("triangle", 175, 120, 0.1, { endFrequencyHz: 125 })],
-});
-
-const capitalThreatened = proceduralAsset("tmr.audio.capital.threatened.v1", {
-  tones: [tone("sawtooth", 170, 235, 0.1, { endFrequencyHz: 100 })],
-});
-
-const borderClosed = proceduralAsset("tmr.audio.border.closed.v1", {
-  tones: [tone("triangle", 230, 135, 0.1, { endFrequencyHz: 145 })],
-});
-
-const borderReopened = proceduralAsset("tmr.audio.border.reopened.v1", {
-  tones: [tone("triangle", 165, 155, 0.1, { endFrequencyHz: 245 })],
-});
-
-const majorEvent = proceduralAsset("tmr.audio.chronicle.major-event.v1", {
-  tones: [
-    tone("triangle", 275, 145, 0.1, { endFrequencyHz: 335 }),
-    tone("sine", 505, 190, 0.07, { attackMs: 22 }),
-  ],
-});
-
-const mapAmbient = proceduralAsset("tmr.audio.ambient.map.v1", {
-  tones: [],
-  ambience: {
-    waveform: "sine",
-    frequencyHz: 82,
-    detuneCents: -4,
-    gain: 0.045,
+const civilWar = generatedFileAsset(
+  "crisis.civilWar",
+  "tmr.audio.crisis.civil-war.v1",
+  {
+    tones: [
+      tone("sawtooth", 125, 320, 0.14, { endFrequencyHz: 64 }),
+      tone("triangle", 205, 230, 0.07, { endFrequencyHz: 120 }),
+    ],
   },
-});
+);
 
-const capitalAmbient = proceduralAsset("tmr.audio.ambient.capital.v1", {
-  tones: [],
-  ambience: {
-    waveform: "sine",
-    frequencyHz: 118,
-    detuneCents: 3,
-    gain: 0.038,
+const territoryChanged = generatedFileAsset(
+  "territory.controllerChanged",
+  "tmr.audio.territory.changed.v1",
+  {
+    tones: [tone("triangle", 175, 120, 0.1, { endFrequencyHz: 125 })],
   },
-});
+);
 
-const industrialAmbient = proceduralAsset("tmr.audio.ambient.industrial.v1", {
-  tones: [],
-  ambience: {
-    waveform: "triangle",
-    frequencyHz: 66,
-    detuneCents: 7,
-    gain: 0.05,
+const capitalThreatened = generatedFileAsset(
+  "capital.threatened",
+  "tmr.audio.capital.threatened.v1",
+  {
+    tones: [tone("sawtooth", 170, 235, 0.1, { endFrequencyHz: 100 })],
   },
-});
+);
+
+const borderClosed = generatedFileAsset(
+  "border.closed",
+  "tmr.audio.border.closed.v1",
+  {
+    tones: [tone("triangle", 230, 135, 0.1, { endFrequencyHz: 145 })],
+  },
+);
+
+const borderReopened = generatedFileAsset(
+  "border.reopened",
+  "tmr.audio.border.reopened.v1",
+  {
+    tones: [tone("triangle", 165, 155, 0.1, { endFrequencyHz: 245 })],
+  },
+);
+
+const majorEvent = generatedFileAsset(
+  "chronicle.majorEvent",
+  "tmr.audio.chronicle.major-event.v1",
+  {
+    tones: [
+      tone("triangle", 275, 145, 0.1, { endFrequencyHz: 335 }),
+      tone("sine", 505, 190, 0.07, { attackMs: 22 }),
+    ],
+  },
+);
+
+const mapAmbient = generatedFileAsset(
+  "map.ambient",
+  "tmr.audio.ambient.map.v1",
+  {
+    tones: [],
+    ambience: {
+      waveform: "sine",
+      frequencyHz: 82,
+      detuneCents: -4,
+      gain: 0.045,
+    },
+  },
+);
+
+const capitalAmbient = generatedFileAsset(
+  "capital.ambient",
+  "tmr.audio.ambient.capital.v1",
+  {
+    tones: [],
+    ambience: {
+      waveform: "sine",
+      frequencyHz: 118,
+      detuneCents: 3,
+      gain: 0.038,
+    },
+  },
+);
+
+const industrialAmbient = generatedFileAsset(
+  "industrial.ambient",
+  "tmr.audio.ambient.industrial.v1",
+  {
+    tones: [],
+    ambience: {
+      waveform: "triangle",
+      frequencyHz: 66,
+      detuneCents: 7,
+      gain: 0.05,
+    },
+  },
+);
 
 function definition(
   id: SoundCueId,
@@ -227,7 +302,7 @@ function definition(
   return { id, channel, priority, cooldownTicks, label, asset };
 }
 
-/** Stable cue IDs and restrained, project-authored placeholder sound recipes. */
+/** Stable cue IDs with generated file assets and retained fallback recipes. */
 export const SOUND_CUE_REGISTRY = {
   "ui.select": definition("ui.select", "ui", 10, 0, "선택", uiSelect),
   "ui.confirm": definition("ui.confirm", "ui", 15, 0, "확정", uiConfirm),

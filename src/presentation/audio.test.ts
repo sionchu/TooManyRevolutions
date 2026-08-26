@@ -330,6 +330,49 @@ describe("presentation audio system", () => {
     manager.dispose();
   });
 
+  it("uses a generated local file before the procedural fallback", async () => {
+    const context = new FakeAudioContext();
+    const loadedUrls: string[] = [];
+    const manager = new AudioManager({
+      audioContextFactory: () => context as unknown as AudioContextLike,
+      assetLoader: async (asset) => {
+        loadedUrls.push(asset.url ?? "");
+        return { duration: 0.24 };
+      },
+    });
+
+    await expect(manager.playCue("ui.select")).resolves.toMatchObject({
+      status: "played",
+      fallbackUsed: false,
+    });
+    expect(loadedUrls).toEqual(["/assets/tmr/audio/ui-select.wav"]);
+    expect(context.oscillators[0]).toBeInstanceOf(FakeBufferSource);
+    manager.dispose();
+  });
+
+  it("keeps a decoded ambience file marked as primary playback", async () => {
+    const context = new FakeAudioContext();
+    const loadedUrls: string[] = [];
+    const manager = new AudioManager({
+      audioContextFactory: () => context as unknown as AudioContextLike,
+      assetLoader: async (asset) => {
+        loadedUrls.push(asset.url ?? "");
+        return { duration: 10 };
+      },
+    });
+
+    await expect(
+      manager.startAmbience("map.ambient", { fadeMs: 0 }),
+    ).resolves.toMatchObject({
+      status: "played",
+      fallbackUsed: false,
+    });
+    expect(loadedUrls).toEqual(["/assets/tmr/audio/map-ambient.wav"]);
+    expect(context.oscillators[0]).toBeInstanceOf(FakeBufferSource);
+    manager.stopAmbience("map.ambient", 0);
+    manager.dispose();
+  });
+
   it("starts, fades, and cleans up ambience without throwing", async () => {
     const context = new FakeAudioContext();
     const manager = new AudioManager({
