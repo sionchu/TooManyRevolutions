@@ -1,50 +1,53 @@
-import type { CSSProperties, ImgHTMLAttributes } from "react";
+import type { CSSProperties, HTMLAttributes } from "react";
 
 import {
   getIconDefinition,
   type TmrIconId,
   type TmrIconSize,
 } from "../../presentation/design/iconRegistry";
+import { getTmrIconRenderStyle, type TmrIconTone } from "./tmrIconRenderer";
 
 export interface TmrIconProps extends Omit<
-  ImgHTMLAttributes<HTMLImageElement>,
-  "alt" | "aria-hidden" | "height" | "src" | "width"
+  HTMLAttributes<HTMLSpanElement>,
+  "aria-hidden" | "aria-label" | "height" | "role" | "width"
 > {
   readonly iconId: TmrIconId;
   readonly size?: TmrIconSize;
   readonly decorative?: boolean;
+  readonly tone?: TmrIconTone;
 }
 
 export function TmrIcon({
   iconId,
   size,
   decorative = false,
+  tone = "neutral",
   className,
   style,
-  ...imageProps
+  ...spanProps
 }: TmrIconProps) {
   const definition = getIconDefinition(iconId);
   const resolvedSize = size ?? definition.defaultSize;
   const iconStyle: CSSProperties = {
-    display: "inline-block",
-    flex: "0 0 auto",
-    height: `${resolvedSize}px`,
-    width: `${resolvedSize}px`,
+    ...getTmrIconRenderStyle({
+      assetPath: definition.assetPath,
+      size: resolvedSize,
+      tone,
+    }),
     ...style,
   };
 
   return (
-    <img
-      {...imageProps}
+    <span
+      {...spanProps}
       className={className}
-      src={definition.assetPath}
-      alt={decorative ? "" : definition.ariaLabel}
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : definition.ariaLabel}
       aria-hidden={decorative ? true : undefined}
-      width={resolvedSize}
-      height={resolvedSize}
-      decoding="async"
       data-icon-id={definition.id}
       data-icon-role={definition.semanticRole}
+      data-icon-tone={tone}
+      data-icon-renderer="css-mask"
       style={iconStyle}
     />
   );

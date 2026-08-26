@@ -69,6 +69,40 @@ type NestedIconIdValues<T> =
 
 export type TmrIconId = NestedIconIdValues<typeof TMR_ICON_IDS>;
 
+/**
+ * P0 integration subset selected from the complete registry. This is a
+ * consumer-facing allow-list, not a second icon catalog.
+ */
+export const TMR_P0_CORE_ICON_IDS = [
+  TMR_ICON_IDS.map.capital,
+  TMR_ICON_IDS.map.city,
+  TMR_ICON_IDS.map.port,
+  TMR_ICON_IDS.map.mine,
+  TMR_ICON_IDS.map.factory,
+  TMR_ICON_IDS.map.fort,
+  TMR_ICON_IDS.map.checkpoint,
+  TMR_ICON_IDS.map.tradeRoute,
+  TMR_ICON_IDS.map.assembly,
+  TMR_ICON_IDS.crisis.rebellion,
+  TMR_ICON_IDS.crisis.coup,
+  TMR_ICON_IDS.crisis.civilConflict,
+  TMR_ICON_IDS.crisis.territoryLost,
+  TMR_ICON_IDS.crisis.capitalThreatened,
+  TMR_ICON_IDS.crisis.stateDissolutionWarning,
+  TMR_ICON_IDS.politics.parliament,
+  TMR_ICON_IDS.politics.suffrage,
+  TMR_ICON_IDS.politics.veto,
+  TMR_ICON_IDS.politics.property,
+  TMR_ICON_IDS.ui.map,
+  TMR_ICON_IDS.ui.governance,
+  TMR_ICON_IDS.ui.decision,
+  TMR_ICON_IDS.ui.chronicle,
+  TMR_ICON_IDS.ui.details,
+  TMR_ICON_IDS.ui.why,
+] as const satisfies readonly TmrIconId[];
+
+export type TmrP0CoreIconId = (typeof TMR_P0_CORE_ICON_IDS)[number];
+
 export interface IconProvenance {
   readonly sourceType: "CUSTOM_SVG";
   readonly author: "TooManyRevolutions design system";
