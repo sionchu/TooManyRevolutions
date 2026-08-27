@@ -16,7 +16,6 @@ import type {
 import type { PoliticalProposalResponse } from "../sim/state/action";
 import { GAMEBUILDERS_DEMO_SCENARIO } from "../sim/state/gameBuildersDemoScenario";
 import { GAMEBUILDERS_PRODUCTION_CONTEXTUAL_CATALOG } from "../sim/state/gameBuildersDecisionCatalog";
-import { deriveOrderConsolidationEligibility } from "../sim/systems/orderConsolidation";
 import { ContentStudio } from "./ContentStudio";
 import { MapStudio } from "./MapStudio";
 import {
@@ -27,7 +26,6 @@ import {
   submitRuntimePoliticalProposalResponse,
 } from "./demoGame";
 import type { DemoRuntimeState } from "./demoGame";
-import { AgendaPanel } from "./AgendaPanel";
 import { ContextualDock, type ContextPanel } from "./ContextualDock";
 import { DecisionPanel } from "./DecisionPanel";
 import { EventPresentationOverlay } from "./EventPresentationOverlay";
@@ -37,6 +35,7 @@ import { OpeningBriefing } from "./OpeningBriefing";
 import { PoliticalAtlas } from "./PoliticalAtlas";
 import { RegionInspector } from "./RegionInspector";
 import { ChroniclePanel } from "./ChroniclePanel";
+import { InstitutionalRoadmapPanel } from "./InstitutionalRoadmapPanel";
 import { SPEED_INTERVAL_MS, type DemoSpeed } from "./demoSpeed";
 import { deriveChronicleDigest } from "./chronicleDigest";
 import type { GameEvent } from "../sim/events/event";
@@ -248,14 +247,6 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
     [playerCountry?.currentGovernmentId, record],
   );
   const policyState = record.world.policies[PLAYER_ID];
-  const consolidation = useMemo(
-    () =>
-      deriveOrderConsolidationEligibility(
-        GAMEBUILDERS_DEMO_SCENARIO,
-        record.world,
-      ),
-    [record],
-  );
   const roadmap = useMemo(
     () =>
       policyState === undefined
@@ -562,6 +553,7 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
       data-audio-ambient-cue={resolveAmbientCue("map")}
       data-demo-speed={speed}
       data-demo-is-playing={isPlaying ? "true" : "false"}
+      data-active-panel={activePanel}
       data-contextual-shortlist-order={decisionSurface.primaryShortlist
         .map((candidate) => `${candidate.kind}:${candidate.id}`)
         .join(",")}
@@ -712,22 +704,28 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
           activePanel={activePanel}
           onSelectPanel={setActivePanel}
           onClose={() => setActivePanel("map")}
+          deepSurface={
+            activePanel === "institutions" ? (
+              <InstitutionalRoadmapPanel
+                roadmap={roadmap}
+                onSubmitPolicy={submitPolicy}
+              />
+            ) : activePanel === "chronicle" ? (
+              <ChroniclePanel
+                events={visibleEvents}
+                digest={chronicleDigest}
+                scenario={GAMEBUILDERS_DEMO_SCENARIO}
+              />
+            ) : null
+          }
         >
-          {activePanel === "agenda" ? (
-            <AgendaPanel
-              agendas={agendas}
-              scenario={GAMEBUILDERS_DEMO_SCENARIO}
-              consolidation={consolidation}
-              onFocusRegion={focusRegion}
-            />
-          ) : activePanel === "decisions" ? (
+          {activePanel === "decisions" ? (
             <DecisionPanel
               primaryShortlist={decisionSurface.primaryShortlist}
               agendas={agendas}
               scenario={GAMEBUILDERS_DEMO_SCENARIO}
               world={record.world}
               policyState={policyState}
-              roadmap={roadmap}
               projects={projects}
               onFocusProject={focusRegion}
               policyRegionIds={playerRegionIds}
@@ -739,12 +737,6 @@ function GameScreen({ onReset }: { readonly onReset: () => void }) {
           ) : activePanel === "region" ? (
             <RegionInspector
               region={selectedRegion}
-              scenario={GAMEBUILDERS_DEMO_SCENARIO}
-            />
-          ) : activePanel === "chronicle" ? (
-            <ChroniclePanel
-              events={visibleEvents}
-              digest={chronicleDigest}
               scenario={GAMEBUILDERS_DEMO_SCENARIO}
             />
           ) : null}

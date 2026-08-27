@@ -987,10 +987,6 @@ h3 {
 .contextual-drawer .panel-heading {
   margin-bottom: 0.65rem;
 }
-.contextual-drawer .event-panel {
-  max-width: none;
-  margin: 0;
-}
 .contextual-drawer .region-inspector {
   margin-top: 0;
   padding: 0;
@@ -1719,55 +1715,6 @@ h3 {
   line-height: 1.5;
 }
 
-.event-panel {
-  max-width: 1500px;
-  margin: 0 auto;
-}
-.event-list {
-  display: grid;
-  gap: 0.3rem;
-}
-.event-row {
-  display: grid;
-  grid-template-columns: 4rem minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.5rem 0.65rem;
-  border-top: 1px solid #ded2bd;
-}
-.chronicle-row-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-.event-row .chronicle-event-icon {
-  margin-top: 0;
-}
-.event-row time {
-  color: #9b7022;
-  font-size: 0.68rem;
-  font-weight: 900;
-}
-.event-row strong,
-.event-row span {
-  display: block;
-}
-.event-row strong {
-  color: #4b392c;
-  font-size: 0.76rem;
-}
-.event-row span {
-  margin-top: 0.12rem;
-  color: #8a7862;
-  font-size: 0.68rem;
-}
-.event-row small {
-  color: #9b8a76;
-  font-size: 0.6rem;
-}
-.event-crisis {
-  background: #f5e2d7;
-}
 .map-fact-strip {
   position: absolute;
   z-index: 6;
@@ -2040,12 +1987,6 @@ h3 {
   .crisis-banner small {
     width: 100%;
     margin-left: 0;
-  }
-  .event-row {
-    grid-template-columns: 3rem minmax(0, 1fr);
-  }
-  .event-row small {
-    display: none;
   }
   .briefing-shell {
     padding: 0.6rem;
@@ -2847,146 +2788,6 @@ body,
     opacity: 1;
   }
 }
-.chronicle-digest-row {
-  align-items: start;
-}
-.chronicle-digest-row[data-chronicle-level="1"] {
-  border-left: 3px solid #a33d34;
-  background: #f5e2d7;
-}
-.chronicle-digest-row[data-chronicle-level="2"] {
-  border-left: 3px solid #9b7022;
-  background: #f5edd8;
-}
-.chronicle-source-details {
-  margin-top: 0.25rem;
-  color: #8a7862;
-  font-size: 0.6rem;
-}
-.chronicle-source-details summary {
-  cursor: pointer;
-  font-weight: 800;
-}
-.chronicle-source-details small {
-  display: block;
-  margin-top: 0.15rem;
-  overflow-wrap: anywhere;
-}
-.roadmap-panel,
-.state-project-panel {
-  margin: 0 0 1.15rem;
-  padding: 0.85rem;
-  border: 1px solid #d2c2a9;
-  background: #f8f0e2;
-}
-.roadmap-panel .panel-intro,
-.state-project-panel .panel-intro {
-  margin-bottom: 0.7rem;
-}
-.roadmap-graph,
-.state-project-list {
-  display: grid;
-  gap: 0.38rem;
-}
-.roadmap-node,
-.state-project {
-  padding: 0.55rem 0.62rem;
-  border: 1px solid #d2c2a9;
-  background: #fffaf0;
-}
-.roadmap-node-head,
-.state-project-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.45rem;
-}
-.roadmap-node-head strong,
-.state-project-head strong {
-  color: #4c3a2b;
-  font-size: 0.72rem;
-}
-.roadmap-node-head span,
-.state-project-head span,
-.derived-label {
-  color: #806e58;
-  font-size: 0.58rem;
-  font-weight: 900;
-}
-.roadmap-node small,
-.state-project p,
-.state-project small {
-  display: block;
-  margin-top: 0.28rem;
-  color: #806e58;
-  font-size: 0.62rem;
-  line-height: 1.45;
-}
-.roadmap-node em {
-  display: block;
-  margin-top: 0.25rem;
-  color: #a33d34;
-  font-size: 0.58rem;
-  font-style: normal;
-  font-weight: 800;
-}
-.roadmap-enacted {
-  border-color: #7da083;
-  background: #edf3e8;
-}
-.roadmap-available {
-  border-color: #b89e73;
-}
-.roadmap-blocked_by_prerequisite,
-.roadmap-blocked_by_incompatibility {
-  border-color: #d7a59a;
-  background: #fbede8;
-}
-.roadmap-edges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.28rem;
-  margin-top: 0.45rem;
-}
-.roadmap-edge {
-  padding: 0.23rem 0.3rem;
-  color: #806e58;
-  background: #eee1cc;
-  font-size: 0.56rem;
-  overflow-wrap: anywhere;
-}
-.roadmap-edge-incompatible {
-  color: #a33d34;
-  background: #f5e2d7;
-}
-.state-project p {
-  margin-bottom: 0;
-}
-.project-progress-track {
-  height: 0.34rem;
-  margin-top: 0.42rem;
-  overflow: hidden;
-  border-radius: 99px;
-  background: #e6d8c0;
-}
-.project-progress-track span {
-  display: block;
-  height: 100%;
-  background: #8b5c3b;
-  transition: width 180ms ease-out;
-}
-.state-project-completed .project-progress-track span {
-  background: #3d784c;
-}
-.project-focus-button {
-  margin-top: 0.45rem;
-  padding: 0.3rem 0.42rem;
-  border: 1px solid #a48655;
-  color: #6e4c2e;
-  background: #eee1cc;
-  font-size: 0.6rem;
-  font-weight: 800;
-}
 .content-studio-shell {
   min-height: 100svh;
   padding: clamp(1rem, 3vw, 3rem);
@@ -3452,220 +3253,6 @@ body,
   }
 }
 
-/* The roadmap is an actual dependency graph, not a policy card list. */
-.roadmap-toolbar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.28rem;
-  margin: 0.45rem 0 0.35rem;
-  color: #806e58;
-  font-size: 0.58rem;
-}
-.roadmap-toolbar button {
-  min-width: 1.55rem;
-  min-height: 1.5rem;
-  padding: 0.18rem 0.32rem;
-  border: 1px solid #c3ad85;
-  color: #674a31;
-  background: #eee1cc;
-  font-size: 0.68rem;
-  font-weight: 900;
-}
-.roadmap-toolbar button:hover,
-.roadmap-toolbar button:focus-visible {
-  border-color: #8b5c3b;
-  background: #f8eddc;
-}
-.roadmap-toolbar span {
-  margin-left: auto;
-}
-.roadmap-graph-viewport {
-  position: relative;
-  height: clamp(16rem, 38vh, 23rem);
-  overflow: hidden;
-  border: 1px solid #d2c2a9;
-  background:
-    linear-gradient(90deg, rgb(188 163 117 / 14%) 1px, transparent 1px),
-    linear-gradient(0deg, rgb(188 163 117 / 14%) 1px, transparent 1px), #f2e8d6;
-  background-size: 2rem 2rem;
-  cursor: grab;
-  touch-action: none;
-}
-.roadmap-graph-viewport:active {
-  cursor: grabbing;
-}
-.roadmap-graph-canvas {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-origin: center;
-  transition: transform 120ms ease-out;
-}
-.roadmap-edge-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-.roadmap-graph-edge {
-  fill: none;
-  stroke-linecap: round;
-  stroke-width: 0.8;
-}
-.roadmap-graph-edge-prerequisite {
-  stroke: #8b5c3b;
-}
-.roadmap-graph-edge-incompatible {
-  stroke: #b64f45;
-  stroke-dasharray: 1.6 1.4;
-}
-.roadmap-graph-canvas .roadmap-node {
-  position: absolute;
-  z-index: 2;
-  width: 28%;
-  min-height: 0;
-  margin: 0;
-  padding: 0.42rem;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 4px 10px rgb(67 47 29 / 10%);
-}
-.roadmap-graph-canvas .roadmap-node-head {
-  display: grid;
-  gap: 0.15rem;
-}
-.roadmap-graph-canvas .roadmap-node-head strong {
-  font-size: 0.63rem;
-  line-height: 1.3;
-}
-.roadmap-graph-canvas .roadmap-node-head span {
-  font-size: 0.52rem;
-}
-.roadmap-graph-canvas .roadmap-node small {
-  max-height: 2.35rem;
-  overflow: hidden;
-  font-size: 0.52rem;
-  line-height: 1.35;
-}
-.roadmap-graph-canvas .roadmap-node em {
-  font-size: 0.5rem;
-}
-.roadmap-edge-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-top: 0.38rem;
-  color: #806e58;
-  font-size: 0.58rem;
-}
-.roadmap-edge-legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-.roadmap-edge-key {
-  display: inline-block;
-  width: 1.1rem;
-  height: 0.12rem;
-  background: #8b5c3b;
-}
-.roadmap-edge-key.incompatible {
-  height: 0.18rem;
-  background: repeating-linear-gradient(
-    90deg,
-    #b64f45 0 0.28rem,
-    transparent 0.28rem 0.48rem
-  );
-}
-.roadmap-details {
-  margin-top: 0.42rem;
-  color: #806e58;
-  font-size: 0.58rem;
-}
-.roadmap-details summary {
-  cursor: pointer;
-  font-weight: 800;
-}
-.roadmap-details ul {
-  display: grid;
-  gap: 0.18rem;
-  margin: 0.3rem 0 0;
-  padding-left: 1rem;
-}
-.metric-qualitative {
-  min-width: 7.7rem;
-}
-.metric-qualitative strong {
-  font-size: 0.68rem;
-  white-space: nowrap;
-}
-.metric-details {
-  align-self: stretch;
-  min-width: 4.6rem;
-  border: 1px solid rgb(200 185 158 / 82%);
-  color: #725f4a;
-  background: rgb(251 246 235 / 78%);
-  font-size: 0.58rem;
-}
-.metric-details summary {
-  height: 100%;
-  display: grid;
-  min-height: 2rem;
-  cursor: pointer;
-  place-items: center;
-  padding: 0.35rem 0.5rem;
-  font-weight: 900;
-}
-.metric-details > div {
-  position: absolute;
-  z-index: 20;
-  display: grid;
-  gap: 0.2rem;
-  margin-top: 0.18rem;
-  padding: 0.45rem;
-  border: 1px solid #b6a27f;
-  color: #4c3a2b;
-  background: #fffaf0;
-  box-shadow: 0 8px 18px rgb(67 47 29 / 15%);
-  white-space: nowrap;
-}
-.metric-details:not([open]) > div {
-  display: none;
-}
-
-@media (max-width: 760px) {
-  .roadmap-toolbar span {
-    width: 100%;
-    margin-left: 0;
-  }
-  .roadmap-graph-viewport {
-    height: 17rem;
-  }
-  .roadmap-graph-canvas .roadmap-node {
-    width: 30%;
-    padding: 0.32rem;
-  }
-  .roadmap-graph-canvas .roadmap-node small {
-    display: none;
-  }
-  .metric-qualitative {
-    min-width: 0;
-  }
-  .metric-qualitative strong {
-    font-size: 0.59rem;
-  }
-  .metric-details {
-    min-width: 0;
-  }
-  .metric-details summary {
-    min-height: 1.7rem;
-    padding: 0.2rem 0.34rem;
-    font-size: 0.56rem;
-  }
-}
-
 /* P0 integration V1 final layout pass. Keep 03 icon tones and hit targets;
    only the surrounding world-first composition is tightened here. */
 html,
@@ -4088,23 +3675,11 @@ body,
   padding-top: 0.45rem;
 }
 
-.contextual-drawer .decision-support-content .roadmap-panel,
 .contextual-drawer .decision-support-content .state-project-panel {
   margin: 0 0 0.6rem;
   padding: 0.55rem 0.45rem;
   border-color: #d2c2a9;
   background: rgb(248 240 226 / 58%);
-}
-
-.contextual-drawer .institution-box {
-  margin-top: 0.7rem;
-  padding-top: 0.65rem;
-}
-
-.contextual-drawer .institution-details .rule-list {
-  margin-top: 0.35rem;
-  padding: 0.5rem 0.55rem;
-  background: rgb(255 250 238 / 48%);
 }
 
 .contextual-drawer .action-button {
@@ -4299,29 +3874,24 @@ body,
   min-height: 44px;
 }
 
-/* PRESENTATION_VISUAL_V2: map-first theatre
-   The map is the primary surface. Supporting controls remain quiet, bounded,
-   and readable without turning every piece of information into a card. */
+/* PRESENTATION_VISUAL_V2_FIX1
+   Four real product surfaces: map, decisions, institutions, chronicle. */
 :root {
   --tmr-water: #263b3c;
   --tmr-water-deep: #172726;
-  --tmr-plains: #72765b;
-  --tmr-forest: #485c46;
-  --tmr-hills: #756b52;
-  --tmr-stone: #666761;
   --tmr-paper: #efe5d2;
   --tmr-ink: #211f1b;
   --tmr-muted: #b5afa0;
   --tmr-gold: #c99a4c;
   --tmr-crisis: #b84f45;
   --tmr-line: rgb(232 220 192 / 18%);
-  --tmr-panel: rgb(18 24 21 / 94%);
+  --tmr-panel: rgb(18 24 21 / 96%);
 }
 
 .map-first-shell {
   position: relative;
-  display: grid;
-  grid-template-rows: 4.45rem 4.2rem minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100svh;
   min-height: 0;
@@ -4329,44 +3899,28 @@ body,
   padding: 0;
   color: var(--tmr-paper);
   background: var(--tmr-water-deep);
-  background-image:
-    radial-gradient(
-      circle at 78% 36%,
-      rgb(127 107 70 / 14%),
-      transparent 34rem
-    ),
-    linear-gradient(135deg, rgb(255 255 255 / 2%), transparent 42%);
 }
-
 .map-first-shell > .game-header {
   z-index: 30;
-  grid-row: 1;
+  order: 0;
+  flex: 0 0 4.45rem;
   width: 100%;
   max-width: none;
   min-height: 0;
-  height: 4.45rem;
   margin: 0;
   padding: 0.6rem clamp(0.8rem, 2.4vw, 2.4rem);
+  border: 0;
   border-bottom: 1px solid var(--tmr-line);
   color: var(--tmr-paper);
   background: rgb(20 26 23 / 96%);
 }
-
-.map-first-shell .brand-lockup {
-  min-width: 0;
+.map-first-shell .brand-lockup,
+.map-first-shell .header-actions {
   gap: 0.6rem;
 }
-
-.map-first-shell .brand-lockup .brand-mark {
-  width: 2.45rem;
+.map-first-shell .brand-lockup {
+  min-width: 0;
 }
-
-.map-first-shell .brand-lockup .eyebrow,
-.map-first-shell .run-meta,
-.map-first-shell .header-actions {
-  color: var(--tmr-muted);
-}
-
 .map-first-shell .brand-lockup h1 {
   margin: 0.1rem 0 0;
   overflow: hidden;
@@ -4375,30 +3929,24 @@ body,
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
+.map-first-shell :is(.brand-lockup .eyebrow, .run-meta, .header-actions) {
+  color: var(--tmr-muted);
+}
 .map-first-shell .run-meta {
   flex: 0 1 auto;
   min-width: 0;
   font-size: 0.7rem;
 }
-
 .map-first-shell .run-meta strong {
   color: var(--tmr-paper);
   font-size: 0.86rem;
 }
-
-.map-first-shell .header-actions {
-  flex-wrap: nowrap;
-  gap: 0.35rem;
-}
-
 .map-first-shell .quiet-button {
   min-height: 2.55rem;
   border-color: rgb(232 220 192 / 28%);
   color: var(--tmr-muted);
   background: transparent;
 }
-
 .map-first-shell .quiet-button:hover {
   border-color: var(--tmr-gold);
   color: var(--tmr-paper);
@@ -4406,11 +3954,11 @@ body,
 
 .map-first-shell > .metric-strip {
   z-index: 29;
-  grid-row: 2;
+  order: 1;
   display: grid;
+  flex: 0 0 4.2rem;
   grid-template-columns: repeat(5, minmax(5rem, 1fr)) minmax(25rem, 2.15fr);
   width: 100%;
-  max-width: none;
   height: 4.2rem;
   min-height: 0;
   margin: 0;
@@ -4419,13 +3967,10 @@ body,
   border-bottom: 1px solid var(--tmr-line);
   color: var(--tmr-muted);
   background: rgb(28 37 32 / 97%);
-  box-shadow: 0 8px 22px rgb(0 0 0 / 14%);
 }
-
 .map-first-shell > .metric-strip .metric {
   display: flex;
   min-width: 0;
-  min-height: 0;
   justify-content: center;
   gap: 0.12rem;
   padding: 0.55rem 0.62rem;
@@ -4434,15 +3979,16 @@ body,
   background: transparent;
   box-shadow: none;
 }
-
+.map-first-shell > .metric-strip .metric span,
+.map-first-shell > .metric-strip .time-status {
+  color: var(--tmr-muted);
+}
 .map-first-shell > .metric-strip .metric span {
   overflow: hidden;
-  color: var(--tmr-muted);
   font-size: 0.62rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .map-first-shell > .metric-strip .metric strong {
   overflow: hidden;
   color: var(--tmr-paper);
@@ -4450,140 +3996,89 @@ body,
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .map-first-shell > .metric-strip .metric-gold strong {
   color: #e0b568;
 }
-
 .map-first-shell > .metric-strip .metric-danger strong {
   color: #e18a72;
 }
-
-.map-first-shell > .metric-strip .metric-details {
+.map-first-shell > .metric-strip .metric-details,
+.map-first-shell > .metric-strip .manual-jumps-mobile {
   display: none;
 }
-
 .map-first-shell > .metric-strip .time-controls {
   display: grid;
-  grid-column: auto;
-  grid-row: auto;
-  grid-template-areas:
-    "playback slow jumps"
-    "status status status";
+  grid-template-areas: "playback slow jumps" "status status status";
   grid-template-columns: max-content minmax(0, 1fr) max-content;
   grid-template-rows: auto auto;
   align-items: center;
   min-width: 0;
   overflow: hidden;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
   gap: 0.42rem;
   padding: 0.38rem 0 0.38rem 0.65rem;
+  border: 0;
+  background: transparent;
 }
-
-.map-first-shell > .metric-strip .time-controls > * {
-  min-width: 0;
-}
-
 .map-first-shell > .metric-strip .playback-buttons {
   grid-area: playback;
-  flex-wrap: nowrap;
   gap: 0.2rem;
 }
-
 .map-first-shell > .metric-strip .time-controls button {
   min-width: 2.45rem;
   min-height: 2.55rem;
   border-color: rgb(232 220 192 / 26%);
-  padding: 0.28rem 0.42rem;
   color: var(--tmr-paper);
   background: rgb(239 229 210 / 8%);
   font-size: 0.67rem;
 }
-
 .map-first-shell > .metric-strip .time-controls .play-button {
   border-color: var(--tmr-gold);
   color: var(--tmr-ink);
   background: var(--tmr-gold);
 }
-
 .map-first-shell > .metric-strip .time-controls .speed-button.active {
   border-color: var(--tmr-crisis);
   color: #fff4e6;
   background: var(--tmr-crisis);
 }
-
 .map-first-shell > .metric-strip .time-status {
   grid-area: status;
   min-width: 0;
-  min-height: 1rem;
   overflow: hidden;
-  color: var(--tmr-muted);
   font-size: 0.62rem;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .map-first-shell > .metric-strip .auto-slow-toggle {
   grid-area: slow;
-  align-self: center;
   color: var(--tmr-muted);
-  font-size: 0.62rem;
+  font-size: 0.57rem;
   white-space: nowrap;
 }
-
-.map-first-shell > .metric-strip .auto-slow-toggle input {
-  accent-color: var(--tmr-gold);
-}
-
 .map-first-shell > .metric-strip .manual-jumps-desktop {
   grid-area: jumps;
-  flex-wrap: nowrap;
   gap: 0.18rem;
   margin-left: auto;
-  white-space: nowrap;
 }
-
 .map-first-shell > .metric-strip .manual-jumps-desktop button {
   min-width: 2rem;
   padding: 0.2rem 0.24rem;
   font-size: 0.58rem;
 }
 
-.map-first-shell > .metric-strip .auto-slow-toggle {
-  font-size: 0.57rem;
-}
-
-.map-first-shell > .metric-strip .manual-jumps-desktop > span {
-  display: none;
-}
-
-.map-first-shell > .metric-strip .manual-jumps-mobile {
-  display: none;
-}
-
 .map-first-shell > .world-stage {
   position: relative;
   z-index: 1;
-  grid-row: 3;
+  order: 2;
+  flex: 1 1 auto;
   width: 100%;
   height: auto;
   min-height: 0;
   margin: 0;
   overflow: hidden;
 }
-
-.map-first-shell .world-map-surface {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border: 0;
-  background: var(--tmr-water);
-  box-shadow: none;
-}
-
+.map-first-shell .world-map-surface,
 .map-first-shell .world-map-surface .atlas-frame,
 .map-first-shell .world-map-surface .map-wrap,
 .map-first-shell .world-scene-frame,
@@ -4593,67 +4088,58 @@ body,
   height: 100%;
   min-height: 0;
 }
-
+.map-first-shell .world-map-surface {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border: 0;
+  background: var(--tmr-water);
+  box-shadow: none;
+}
 .map-first-shell .world-map-surface .map-wrap {
   display: block;
   padding: 0;
   border: 0;
 }
-
 .map-first-shell .world-scene-viewport {
   position: relative;
   overflow: hidden;
   border: 0;
   background: var(--tmr-water);
 }
-
 .map-first-shell .world-scene-canvas {
-  display: block;
   width: 100% !important;
   height: 100% !important;
 }
-
 .map-first-shell .map-surface-heading {
-  top: 0.9rem;
+  top: 0.85rem;
   right: 1.25rem;
   left: 1.25rem;
   z-index: 12;
-  align-items: center;
   pointer-events: none;
 }
-
 .map-first-shell .map-surface-heading h2 {
   margin-top: 0.16rem;
   color: var(--tmr-paper);
   font-size: clamp(1rem, 1.7vw, 1.3rem);
   text-shadow: 0 1px 12px rgb(0 0 0 / 38%);
 }
-
 .map-first-shell .map-surface-heading .map-date {
   border: 0;
   border-left: 2px solid var(--tmr-gold);
-  padding: 0.32rem 0.45rem 0.32rem 0.6rem;
   color: var(--tmr-paper);
   background: rgb(18 24 21 / 68%);
-  font-family: Georgia, serif;
 }
-
 .map-first-shell .world-scene-hud {
   display: none;
 }
-
 .map-first-shell .world-scene-object-key {
-  position: absolute;
-  top: 4.35rem;
+  top: 4.25rem;
   right: auto;
   bottom: auto;
   left: 1.25rem;
   z-index: 9;
   display: flex;
-  width: auto;
-  height: auto;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.8rem;
   max-width: min(34rem, calc(100% - 2.5rem));
   padding: 0;
   border: 0;
@@ -4662,27 +4148,17 @@ body,
   font-size: 0.62rem;
   pointer-events: none;
 }
-
 .map-first-shell .map-camera-controls {
-  top: 3.5rem;
+  top: 3.45rem;
   right: 1.25rem;
   bottom: auto;
   z-index: 12;
-  gap: 0.2rem;
-  width: auto;
-  height: auto;
   padding: 0.25rem;
   border: 1px solid rgb(232 220 192 / 20%);
   color: var(--tmr-muted);
   background: rgb(18 24 21 / 72%);
   box-shadow: none;
 }
-
-.map-first-shell .map-camera-controls .eyebrow,
-.map-first-shell .map-camera-status {
-  font-size: 0.58rem;
-}
-
 .map-first-shell .map-camera-controls button {
   min-width: 2.35rem;
   min-height: 2.35rem;
@@ -4690,175 +4166,97 @@ body,
   border-left: 1px solid rgb(232 220 192 / 14%);
   color: var(--tmr-paper);
   background: transparent;
-  font-size: 0.68rem;
 }
-
 .map-first-shell .map-camera-controls button:hover {
   color: var(--tmr-gold);
   background: rgb(201 154 76 / 12%);
 }
-
-.map-first-shell .map-camera-status {
-  max-width: 6.5rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .map-first-shell .map-legend {
-  position: absolute;
-  top: 5.55rem;
+  top: 5.4rem;
   right: 1.25rem;
   z-index: 8;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.2rem 0.65rem;
-  max-width: min(28rem, calc(100% - 2.5rem));
-  padding: 0.3rem 0;
   color: rgb(239 229 210 / 70%);
   background: transparent;
   font-size: 0.58rem;
   pointer-events: none;
 }
-
 .map-first-shell .map-legend > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.18rem;
   white-space: nowrap;
 }
-
-.map-first-shell .legend-swatch,
-.map-first-shell .legend-controller,
-.map-first-shell .legend-ideology {
-  width: 0.48rem;
-  height: 0.48rem;
-  border: 0;
-}
-
-.map-first-shell .legend-controller {
-  background: var(--tmr-crisis);
-}
-
-.map-first-shell .legend-ideology {
-  background: var(--tmr-gold);
-}
-
 .map-first-shell .world-scene-selection {
-  position: absolute;
   right: 1.25rem;
-  bottom: 4.25rem;
+  bottom: 4.35rem;
   z-index: 9;
-  max-width: min(21rem, calc(100% - 2.5rem));
-  overflow: hidden;
   color: rgb(239 229 210 / 70%);
   font-size: 0.58rem;
-  text-align: right;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  pointer-events: none;
 }
-
 .map-first-shell .map-fact-strip {
-  position: absolute;
   right: 1.25rem;
-  top: auto;
   bottom: 1rem;
   left: 1.25rem;
   z-index: 10;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.9rem;
   color: rgb(239 229 210 / 70%);
   font-size: 0.6rem;
   pointer-events: none;
 }
-
 .map-first-shell .map-fact-strip span {
-  align-self: center;
   padding: 0;
   border: 0;
   color: rgb(239 229 210 / 70%);
   background: transparent;
 }
-
 .map-first-shell .map-fact-strip b {
   color: var(--tmr-paper);
 }
-
 .map-first-shell .map-issue-chip {
   right: auto;
-  bottom: 4.25rem;
+  bottom: 4.35rem;
   left: 1.25rem;
   z-index: 11;
-  display: grid;
   width: min(25rem, calc(100% - 2.5rem));
   max-height: 3.4rem;
-  gap: 0.1rem;
-  overflow: hidden;
   padding: 0.42rem 0.6rem 0.45rem 0.7rem;
   border: 0;
   border-left: 3px solid var(--tmr-gold);
   color: var(--tmr-paper);
   background: rgb(18 24 21 / 78%);
-  box-shadow: none;
 }
-
 .map-first-shell .map-issue-chip strong {
-  overflow: hidden;
   color: var(--tmr-paper);
   font-size: 0.74rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
-
 .map-first-shell .map-issue-chip > span:not(.eyebrow) {
-  overflow: hidden;
   color: var(--tmr-muted);
   font-size: 0.58rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
-
 .map-first-shell .map-issue-chip .map-issue-button {
-  position: absolute;
-  right: 0.45rem;
   top: 0.45rem;
+  right: 0.45rem;
   min-height: 2.2rem;
   border: 1px solid rgb(201 154 76 / 70%);
-  padding: 0.24rem 0.42rem;
   color: var(--tmr-gold);
   background: transparent;
-  font-size: 0.58rem;
 }
-
-.map-first-shell .map-issue-chip .map-issue-button:hover {
-  color: var(--tmr-paper);
-  background: rgb(201 154 76 / 14%);
-}
-
 .map-first-shell .map-fact-details,
 .map-first-shell .world-scene-data-summary {
   display: none;
 }
 
 .map-first-shell .context-tabs {
+  position: absolute;
   right: auto;
-  bottom: 0.7rem;
+  bottom: 0.75rem;
   left: 1.25rem;
-  z-index: 22;
+  z-index: 36;
   display: flex;
   gap: 0.15rem;
   padding: 0;
   border: 0;
   border-top: 1px solid rgb(232 220 192 / 30%);
   background: transparent;
-  box-shadow: none;
 }
-
 .map-first-shell .context-tab {
-  min-width: 4.1rem;
+  min-width: 4.15rem;
   min-height: 2.65rem;
   border: 0;
   border-top: 2px solid transparent;
@@ -4867,29 +4265,27 @@ body,
   background: transparent;
   font-size: 0.65rem;
 }
-
 .map-first-shell .context-tab:hover,
 .map-first-shell .context-tab.active {
   color: var(--tmr-paper);
   background: rgb(239 229 210 / 7%);
 }
-
 .map-first-shell .context-tab.active {
   border-top-color: var(--tmr-gold);
 }
-
 .map-first-shell .context-tab-icon {
   width: 1rem;
   height: 1rem;
 }
 
 .map-first-shell .contextual-drawer {
-  top: 1rem;
+  position: absolute;
+  top: 0.8rem;
   right: 1.25rem;
-  bottom: 1rem;
-  z-index: 21;
-  width: min(25rem, 31vw);
-  min-width: 20rem;
+  bottom: 4.15rem;
+  z-index: 35;
+  width: min(400px, 32vw);
+  min-width: 320px;
   overflow: hidden auto;
   border: 0;
   border-left: 1px solid rgb(232 220 192 / 24%);
@@ -4898,7 +4294,6 @@ body,
   background: var(--tmr-panel);
   box-shadow: -18px 0 36px rgb(0 0 0 / 22%);
 }
-
 .map-first-shell .drawer-heading {
   position: sticky;
   top: 0;
@@ -4908,76 +4303,53 @@ body,
   border-bottom: 1px solid var(--tmr-line);
   background: rgb(18 24 21 / 98%);
 }
-
-.map-first-shell .drawer-heading-title {
-  min-width: 0;
-}
-
 .map-first-shell .drawer-heading h2 {
   margin: 0.12rem 0 0;
   color: var(--tmr-paper);
   font-size: 1rem;
 }
-
 .map-first-shell .drawer-close {
   min-width: 2.75rem;
   min-height: 2.75rem;
   border: 1px solid rgb(232 220 192 / 28%);
   color: var(--tmr-muted);
   background: transparent;
-  font-size: 0.64rem;
 }
-
 .map-first-shell .drawer-close:hover {
   border-color: var(--tmr-gold);
   color: var(--tmr-paper);
 }
-
 .map-first-shell .drawer-content {
   padding: 0.8rem 0.9rem 1.2rem;
 }
-
-.map-first-shell .contextual-drawer .panel,
-.map-first-shell .contextual-drawer .roadmap-panel,
-.map-first-shell .contextual-drawer .state-project-panel,
-.map-first-shell .contextual-drawer .consolidation-box {
+.map-first-shell .contextual-drawer .panel {
+  margin: 0;
   border: 0;
-  border-top: 1px solid var(--tmr-line);
   border-radius: 0;
   color: var(--tmr-paper);
   background: transparent;
   box-shadow: none;
 }
-
-.map-first-shell .contextual-drawer .panel:first-child {
-  border-top: 0;
-}
-
-.map-first-shell .contextual-drawer .panel-heading h2,
-.map-first-shell .contextual-drawer h3,
-.map-first-shell .contextual-drawer strong {
+.map-first-shell .contextual-drawer :is(.panel-heading h2, h3, strong) {
   color: var(--tmr-paper);
 }
-
-.map-first-shell .contextual-drawer .panel-intro,
-.map-first-shell .contextual-drawer .muted,
-.map-first-shell .contextual-drawer .derived-label,
-.map-first-shell .contextual-drawer .agenda-meta,
-.map-first-shell .contextual-drawer .action-status,
-.map-first-shell .contextual-drawer .institution-details,
-.map-first-shell .contextual-drawer .decision-section p {
+.map-first-shell
+  .contextual-drawer
+  :is(
+    .panel-intro,
+    .muted,
+    .derived-label,
+    .action-status,
+    .decision-section p
+  ) {
   color: var(--tmr-muted);
 }
-
-.map-first-shell .contextual-drawer .action-list,
-.map-first-shell .contextual-drawer .agenda-list,
-.map-first-shell .contextual-drawer .event-list {
+.map-first-shell .contextual-drawer .action-list {
+  display: grid;
   gap: 0;
 }
-
-.map-first-shell .contextual-drawer .action-card,
-.map-first-shell .contextual-drawer .agenda-card,
-.map-first-shell .contextual-drawer .event-list > li {
+.map-first-shell .contextual-drawer .action-card {
+  padding: 0.75rem 0.15rem 0.82rem;
   border: 0;
   border-top: 1px solid var(--tmr-line);
   border-radius: 0;
@@ -4985,56 +4357,624 @@ body,
   background: transparent;
   box-shadow: none;
 }
-
-.map-first-shell .contextual-drawer .action-card:first-child,
-.map-first-shell .contextual-drawer .agenda-card:first-child,
-.map-first-shell .contextual-drawer .event-list > li:first-child {
+.map-first-shell .contextual-drawer .action-list > .action-card:first-child {
   border-top: 0;
 }
-
+.map-first-shell
+  .contextual-drawer
+  .action-card:is(.action-available, .action-locked) {
+  padding-left: 0.62rem;
+}
 .map-first-shell .contextual-drawer .action-card.action-available {
   border-left: 3px solid var(--tmr-gold);
-  padding-left: 0.65rem;
 }
-
-.map-first-shell .contextual-drawer .action-button {
-  min-height: 2.75rem;
-  border: 0;
-  border-radius: 0;
-  color: var(--tmr-ink);
-  background: var(--tmr-gold);
-  box-shadow: none;
+.map-first-shell .contextual-drawer .action-card.action-locked {
+  border-left: 3px solid rgb(181 175 160 / 46%);
 }
-
-.map-first-shell .contextual-drawer .action-button:hover {
-  color: var(--tmr-ink);
-  background: #e2b664;
+.map-first-shell .contextual-drawer .action-card h3 {
+  margin: 0.28rem 0 0.34rem;
+  font-size: 0.94rem;
 }
-
-.map-first-shell .contextual-drawer details > summary {
-  min-height: 2.75rem;
+.map-first-shell .contextual-drawer .decision-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+.map-first-shell .contextual-drawer .decision-badge {
+  color: var(--tmr-muted);
+  background: rgb(239 229 210 / 7%);
+}
+.map-first-shell .contextual-drawer .badge-confirmed {
   color: var(--tmr-gold);
+  background: rgb(201 154 76 / 12%);
 }
-
-.map-first-shell .contextual-drawer .decision-section,
-.map-first-shell .contextual-drawer .decision-summary,
-.map-first-shell .contextual-drawer .decision-tradeoffs,
-.map-first-shell .contextual-drawer .cause-list,
-.map-first-shell .contextual-drawer .rule-list {
-  border-color: var(--tmr-line);
+.map-first-shell .contextual-drawer .decision-details,
+.map-first-shell .decision-project-details {
+  margin-top: 0.25rem;
+}
+.map-first-shell
+  .contextual-drawer
+  :is(.decision-details, .decision-project-details)
+  > summary {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.2rem 0.35rem;
+  color: var(--tmr-gold);
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+.map-first-shell .contextual-drawer .decision-details[open] > summary {
+  margin-bottom: 0.25rem;
+}
+.map-first-shell
+  .contextual-drawer
+  :is(.decision-section, .decision-tradeoffs) {
+  margin-top: 0.3rem;
+  padding: 0.48rem 0.55rem;
+  border: 1px solid var(--tmr-line);
   border-radius: 0;
   color: var(--tmr-muted);
   background: rgb(239 229 210 / 5%);
 }
-
-.map-first-shell .event-presentation-stack {
-  top: 1rem;
-  right: 1.25rem;
-  z-index: 26;
-  width: min(24rem, calc(100% - 2.5rem));
-  gap: 0.35rem;
+.map-first-shell .contextual-drawer .action-button,
+.map-first-shell .roadmap-enact-button {
+  min-height: 2.75rem;
+  border: 1px solid var(--tmr-gold);
+  border-radius: 0;
+  color: var(--tmr-ink);
+  background: var(--tmr-gold);
+  box-shadow: none;
+  font-weight: 900;
+}
+.map-first-shell .contextual-drawer .action-button:hover,
+.map-first-shell .roadmap-enact-button:hover {
+  background: #e2b664;
+}
+.map-first-shell .contextual-drawer .locked-reason {
+  margin: 0.45rem 0 0;
+  padding: 0.35rem 0.45rem;
+  color: #e5b2a4;
+  background: rgb(184 79 69 / 13%);
+}
+.map-first-shell .decision-project-details {
+  border-top: 1px solid var(--tmr-line);
+  padding-top: 0.5rem;
+}
+.map-first-shell .decision-project-details > summary {
+  justify-content: space-between;
+  color: var(--tmr-muted);
+}
+.map-first-shell .decision-support-summary-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+}
+.map-first-shell .decision-support-summary-meta {
+  margin-left: auto;
+  color: var(--tmr-muted);
+  font-size: 0.61rem;
+}
+.map-first-shell .decision-support-content {
+  padding-top: 0.45rem;
+}
+.map-first-shell .decision-support-content .state-project-panel {
+  margin: 0;
+  border: 0;
+  background: transparent;
+}
+.map-first-shell .state-project-list {
+  display: grid;
+  gap: 0;
+}
+.map-first-shell .state-project {
+  padding: 0.65rem 0;
+  border: 0;
+  border-top: 1px solid var(--tmr-line);
+  background: transparent;
+}
+.map-first-shell .state-project-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+.map-first-shell .state-project-head strong {
+  color: var(--tmr-paper);
+  font-size: 0.72rem;
+}
+.map-first-shell .state-project :is(p, small),
+.map-first-shell .state-project-head span {
+  color: var(--tmr-muted);
+  font-size: 0.6rem;
+}
+.map-first-shell .state-project p {
+  margin: 0.25rem 0 0;
+}
+.map-first-shell .project-progress-track {
+  height: 0.28rem;
+  margin-top: 0.38rem;
+  background: rgb(239 229 210 / 13%);
+}
+.map-first-shell .project-progress-track span {
+  background: var(--tmr-gold);
+}
+.map-first-shell .project-focus-button {
+  min-height: 2.35rem;
+  margin-top: 0.42rem;
+  border: 1px solid rgb(232 220 192 / 28%);
+  color: var(--tmr-gold);
+  background: transparent;
+  font-size: 0.6rem;
 }
 
+.map-first-shell .deep-surface {
+  position: absolute;
+  inset: 0;
+  z-index: 34;
+  overflow: auto;
+  padding: 1.05rem clamp(1rem, 3vw, 3rem) 5.25rem;
+  color: var(--tmr-paper);
+  background: linear-gradient(145deg, rgb(20 29 25 / 99%), rgb(23 39 38 / 99%));
+}
+.map-first-shell .deep-surface-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto 0.85rem;
+  padding: 0.2rem 0 0.7rem;
+  border-bottom: 1px solid var(--tmr-line);
+  background: rgb(20 29 25 / 98%);
+}
+.map-first-shell .deep-surface-back {
+  min-height: 2.6rem;
+  border: 1px solid rgb(232 220 192 / 28%);
+  padding: 0.4rem 0.65rem;
+  color: var(--tmr-paper);
+  background: rgb(239 229 210 / 6%);
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+.map-first-shell .deep-surface-back:hover {
+  border-color: var(--tmr-gold);
+  color: var(--tmr-gold);
+}
+.map-first-shell .deep-surface > :is(.roadmap-panel, .chronicle-surface) {
+  width: min(1400px, 100%);
+  margin: 0 auto;
+  color: var(--tmr-paper);
+  background: transparent;
+}
+.map-first-shell :is(.roadmap-panel-heading, .chronicle-surface-heading) {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+.map-first-shell :is(.roadmap-panel-heading h2, .chronicle-surface-heading h2) {
+  margin: 0.12rem 0 0;
+  color: var(--tmr-paper);
+  font-size: clamp(1.45rem, 3vw, 2.25rem);
+}
+.map-first-shell :is(.roadmap-count, .chronicle-count) {
+  color: var(--tmr-muted);
+  font-size: 0.68rem;
+}
+.map-first-shell .roadmap-panel > .panel-intro {
+  max-width: 48rem;
+  margin: 0 0 0.7rem;
+  color: var(--tmr-muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+.map-first-shell .roadmap-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin: 0 0 0.55rem;
+  color: var(--tmr-muted);
+  font-size: 0.62rem;
+}
+.map-first-shell .roadmap-toolbar > span {
+  margin: 0;
+}
+.map-first-shell .roadmap-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.22rem;
+}
+.map-first-shell .roadmap-zoom-controls button {
+  min-height: 2.2rem;
+  border: 1px solid rgb(232 220 192 / 24%);
+  padding: 0.3rem 0.45rem;
+  color: var(--tmr-paper);
+  background: rgb(239 229 210 / 6%);
+  font-size: 0.6rem;
+  font-weight: 800;
+}
+.map-first-shell .roadmap-zoom-controls button:hover {
+  border-color: var(--tmr-gold);
+  color: var(--tmr-gold);
+}
+.map-first-shell .roadmap-zoom-controls output {
+  min-width: 2.8rem;
+  color: var(--tmr-gold);
+  text-align: center;
+}
+.map-first-shell .institutions-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  gap: 1rem;
+  min-height: 0;
+}
+.map-first-shell .roadmap-graph-viewport {
+  position: relative;
+  height: clamp(31rem, calc(100svh - 24rem), 43rem);
+  min-height: 31rem;
+  overflow: auto;
+  border: 1px solid rgb(232 220 192 / 18%);
+  background:
+    linear-gradient(90deg, rgb(232 220 192 / 8%) 1px, transparent 1px),
+    linear-gradient(0deg, rgb(232 220 192 / 8%) 1px, transparent 1px),
+    rgb(14 23 22 / 74%);
+  background-size: 2.4rem 2.4rem;
+  cursor: grab;
+  touch-action: none;
+}
+.map-first-shell .roadmap-graph-viewport:active {
+  cursor: grabbing;
+}
+.map-first-shell .roadmap-graph-stage {
+  position: relative;
+  flex: none;
+  transform-origin: top left;
+}
+.map-first-shell .roadmap-graph-canvas {
+  display: block;
+  max-width: none;
+  overflow: visible;
+}
+.map-first-shell .roadmap-depth-headings text {
+  fill: var(--tmr-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.map-first-shell .roadmap-lane {
+  fill: rgb(239 229 210 / 3%);
+  stroke: rgb(232 220 192 / 13%);
+}
+.map-first-shell .roadmap-lane-label {
+  fill: var(--tmr-paper);
+  font-size: 14px;
+  font-weight: 900;
+}
+.map-first-shell .roadmap-lane-count {
+  fill: var(--tmr-muted);
+  font-size: 10px;
+}
+.map-first-shell .roadmap-graph-edge {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+}
+.map-first-shell .roadmap-graph-edge-prerequisite {
+  stroke: rgb(201 154 76 / 70%);
+}
+.map-first-shell .roadmap-graph-edge-incompatible {
+  stroke: rgb(184 79 69 / 68%);
+  stroke-dasharray: 5 4;
+}
+.map-first-shell .roadmap-node {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.12rem;
+  overflow: hidden;
+  border: 1px solid rgb(232 220 192 / 24%);
+  border-radius: 0.28rem;
+  padding: 0.38rem 0.42rem;
+  color: var(--tmr-paper);
+  background: rgb(24 35 31 / 96%);
+  box-shadow: 0 5px 12px rgb(0 0 0 / 18%);
+  text-align: left;
+}
+.map-first-shell .roadmap-node:is(:hover, :focus-visible, .selected) {
+  border-color: var(--tmr-gold);
+  outline: 0;
+  box-shadow:
+    0 0 0 1px var(--tmr-gold),
+    0 6px 14px rgb(0 0 0 / 26%);
+}
+.map-first-shell .roadmap-node-title {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--tmr-paper);
+  font-size: 0.67rem;
+  font-weight: 900;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.map-first-shell .roadmap-node-state {
+  overflow: hidden;
+  color: var(--tmr-muted);
+  font-size: 0.56rem;
+  white-space: nowrap;
+}
+.map-first-shell .roadmap-enacted .roadmap-node-state,
+.map-first-shell .roadmap-inspector-status.roadmap-enacted {
+  color: #92c09e;
+}
+.map-first-shell .roadmap-available .roadmap-node-state,
+.map-first-shell .roadmap-inspector-status.roadmap-available {
+  color: var(--tmr-gold);
+}
+.map-first-shell
+  :is(.roadmap-blocked_by_prerequisite, .roadmap-blocked_by_incompatibility)
+  .roadmap-node-state,
+.map-first-shell
+  .roadmap-inspector-status:is(
+    .roadmap-blocked_by_prerequisite,
+    .roadmap-blocked_by_incompatibility
+  ) {
+  color: #e0a092;
+}
+.map-first-shell .roadmap-inspector {
+  min-width: 0;
+  overflow: auto;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgb(232 220 192 / 18%);
+  border-top: 2px solid var(--tmr-gold);
+  background: rgb(18 28 25 / 88%);
+}
+.map-first-shell .roadmap-inspector-heading {
+  display: flex;
+  align-items: start;
+  gap: 0.48rem;
+}
+.map-first-shell .roadmap-inspector-heading h3 {
+  margin: 0.12rem 0 0;
+  color: var(--tmr-paper);
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+.map-first-shell .roadmap-inspector-status {
+  display: inline-block;
+  margin-top: 0.65rem;
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+.map-first-shell .roadmap-inspector-description {
+  margin: 0.55rem 0 0;
+  color: var(--tmr-muted);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+.map-first-shell .roadmap-inspector-facts {
+  display: grid;
+  gap: 0.42rem;
+  margin: 0.8rem 0 0;
+}
+.map-first-shell .roadmap-inspector-facts > div {
+  display: grid;
+  grid-template-columns: 5.7rem minmax(0, 1fr);
+  gap: 0.4rem;
+  border-top: 1px solid var(--tmr-line);
+  padding-top: 0.38rem;
+}
+.map-first-shell .roadmap-inspector-facts dt {
+  color: var(--tmr-muted);
+  font-size: 0.6rem;
+  font-weight: 800;
+}
+.map-first-shell .roadmap-inspector-facts dd {
+  margin: 0;
+  color: var(--tmr-paper);
+  font-size: 0.64rem;
+  line-height: 1.4;
+}
+.map-first-shell .roadmap-inspector-section {
+  margin-top: 0.72rem;
+  border-top: 1px solid var(--tmr-line);
+  padding-top: 0.5rem;
+}
+.map-first-shell .roadmap-inspector-section h4 {
+  margin: 0 0 0.3rem;
+  color: var(--tmr-paper);
+  font-size: 0.65rem;
+}
+.map-first-shell .roadmap-inspector-section ul {
+  display: grid;
+  gap: 0.24rem;
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--tmr-muted);
+  font-size: 0.63rem;
+  line-height: 1.4;
+}
+.map-first-shell .roadmap-inspector-note {
+  margin: 0.7rem 0 0;
+  color: #e0a092;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+.map-first-shell .roadmap-enact-button {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+}
+.map-first-shell .roadmap-details {
+  margin-top: 0.65rem;
+  border-top: 1px solid var(--tmr-line);
+  padding-top: 0.55rem;
+  color: var(--tmr-muted);
+  font-size: 0.62rem;
+}
+.map-first-shell .roadmap-details summary {
+  cursor: pointer;
+  color: var(--tmr-gold);
+  font-weight: 900;
+}
+.map-first-shell .roadmap-reading-key {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+.map-first-shell .roadmap-reading-key > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.map-first-shell .roadmap-reading-key p {
+  max-width: 46rem;
+  margin: 0.2rem 0 0;
+  line-height: 1.45;
+}
+.map-first-shell .roadmap-edge-key {
+  display: inline-block;
+  width: 1.1rem;
+  height: 0.12rem;
+  background: var(--tmr-gold);
+}
+.map-first-shell .roadmap-edge-key.incompatible {
+  height: 0.18rem;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--tmr-crisis) 0 0.28rem,
+    transparent 0.28rem 0.48rem
+  );
+}
+
+.map-first-shell .chronicle-surface-heading {
+  margin-bottom: 0.85rem;
+}
+.map-first-shell .chronicle-lead {
+  max-width: 56rem;
+  margin-bottom: 1.25rem;
+  border-top: 1px solid var(--tmr-line);
+  border-left: 4px solid var(--tmr-gold);
+  padding: 1rem 1.1rem;
+  background: rgb(239 229 210 / 5%);
+}
+.map-first-shell .chronicle-lead-crisis {
+  border-left-color: var(--tmr-crisis);
+  background: rgb(184 79 69 / 10%);
+}
+.map-first-shell .chronicle-lead-institution {
+  border-left-color: #92c09e;
+}
+.map-first-shell .chronicle-lead-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--tmr-muted);
+}
+.map-first-shell .chronicle-lead-meta time {
+  margin-left: auto;
+  font-family: Georgia, serif;
+  font-size: 0.72rem;
+}
+.map-first-shell .chronicle-lead h3 {
+  margin: 0.62rem 0 0.3rem;
+  color: var(--tmr-paper);
+  font-size: clamp(1.2rem, 2.4vw, 1.8rem);
+  line-height: 1.2;
+}
+.map-first-shell .chronicle-lead p {
+  max-width: 48rem;
+  margin: 0;
+  color: var(--tmr-muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.map-first-shell .chronicle-timeline-section {
+  max-width: 66rem;
+}
+.map-first-shell .chronicle-section-heading {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  color: var(--tmr-muted);
+  font-size: 0.63rem;
+}
+.map-first-shell .chronicle-timeline {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-left: 1px solid rgb(232 220 192 / 28%);
+  list-style: none;
+}
+.map-first-shell .chronicle-timeline-entry {
+  display: grid;
+  grid-template-columns: 6.2rem minmax(0, 1fr);
+  gap: 0.8rem;
+  padding: 0.7rem 0.65rem 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--tmr-line);
+}
+.map-first-shell
+  .chronicle-timeline-entry:is(
+    .chronicle-timeline-entry-major,
+    .chronicle-timeline-entry-institution
+  ) {
+  background: rgb(239 229 210 / 3%);
+}
+.map-first-shell .chronicle-timeline-entry-crisis {
+  border-left: 3px solid var(--tmr-crisis);
+}
+.map-first-shell .chronicle-timeline-entry-institution {
+  border-left: 3px solid #92c09e;
+}
+.map-first-shell .chronicle-timeline-marker {
+  display: flex;
+  align-items: start;
+  gap: 0.36rem;
+  color: var(--tmr-muted);
+}
+.map-first-shell .chronicle-timeline-marker time {
+  font-family: Georgia, serif;
+  font-size: 0.68rem;
+}
+.map-first-shell .chronicle-timeline-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+.map-first-shell .chronicle-entry-label {
+  color: var(--tmr-gold);
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+.map-first-shell .chronicle-timeline-copy strong {
+  color: var(--tmr-paper);
+  font-size: 0.76rem;
+}
+.map-first-shell .chronicle-timeline-copy > span:last-child {
+  color: var(--tmr-muted);
+  font-size: 0.65rem;
+  line-height: 1.4;
+}
+
+.map-first-shell .event-presentation-stack {
+  top: 0.9rem;
+  right: 1.25rem;
+  z-index: 27;
+  width: min(29rem, calc(100% - 2.5rem));
+}
 .map-first-shell .event-presentation {
   min-height: 3.5rem;
   border: 0;
@@ -5042,13 +4982,10 @@ body,
   border-radius: 0;
   color: var(--tmr-paper);
   background: rgb(28 31 26 / 96%);
-  box-shadow: 0 12px 26px rgb(0 0 0 / 24%);
 }
-
 .map-first-shell .event-presentation span:not(.eyebrow) {
   color: var(--tmr-muted);
 }
-
 .map-first-shell .event-presentation button {
   min-width: 2.75rem;
   min-height: 2.75rem;
@@ -5058,86 +4995,66 @@ body,
   background: var(--tmr-gold);
 }
 
-.map-first-shell .event-presentation .event-response-reject {
-  color: var(--tmr-paper);
-  background: rgb(239 229 210 / 12%);
-}
-
-.map-first-shell .event-toast {
-  border-left-color: var(--tmr-gold);
+@media (min-width: 761px) {
+  .map-first-shell
+    .world-stage:has(.contextual-drawer)
+    .event-presentation-stack {
+    right: calc(min(400px, 32vw) + 1.9rem);
+    width: min(29rem, calc(100% - min(400px, 32vw) - 3rem));
+  }
 }
 
 @media (max-width: 760px) {
-  .map-first-shell {
-    grid-template-rows: 3.5rem 4rem minmax(0, 1fr);
-  }
-
   .map-first-shell > .game-header {
+    flex-basis: 3.5rem;
     height: 3.5rem;
     padding: 0.35rem 0.6rem;
   }
-
-  .map-first-shell .brand-lockup {
-    gap: 0.4rem;
-  }
-
-  .map-first-shell .brand-lockup .brand-mark {
-    width: 2.1rem;
-  }
-
   .map-first-shell .brand-lockup .eyebrow,
   .map-first-shell .header-actions .quiet-button:last-child {
     display: none;
   }
-
+  .map-first-shell .brand-lockup {
+    gap: 0.4rem;
+  }
   .map-first-shell .brand-lockup h1 {
     max-width: 13rem;
     font-size: 0.92rem;
   }
-
   .map-first-shell .run-meta {
-    display: block;
     margin-left: auto;
     font-size: 0.56rem;
     text-align: right;
   }
-
   .map-first-shell .run-meta strong {
     display: block;
     font-size: 0.66rem;
   }
-
   .map-first-shell .header-actions .quiet-button:first-child {
     width: 2.5rem;
     min-width: 2.5rem;
     padding: 0.35rem;
     font-size: 0;
   }
-
   .map-first-shell > .metric-strip {
+    flex-basis: 4.35rem;
     grid-template-columns: 6.2rem minmax(0, 1fr);
-    height: 4rem;
+    height: 4.35rem;
     padding: 0 0.45rem;
   }
-
   .map-first-shell > .metric-strip .metric {
     display: none;
     padding: 0.42rem 0.35rem;
-    border-right: 1px solid var(--tmr-line);
   }
-
   .map-first-shell > .metric-strip .metric:nth-child(4) {
     display: flex;
   }
-
   .map-first-shell > .metric-strip .metric span {
     font-size: 0.57rem;
   }
-
   .map-first-shell > .metric-strip .metric strong {
     font-size: 0.68rem;
   }
-
   .map-first-shell > .metric-strip .time-controls {
     grid-column: 2;
     grid-row: 1;
@@ -5146,57 +5063,42 @@ body,
     gap: 0.18rem;
     padding: 0.25rem 0 0.25rem 0.35rem;
   }
-
-  .map-first-shell > .metric-strip .playback-buttons {
-    gap: 0.12rem;
-  }
-
   .map-first-shell > .metric-strip .time-controls button {
     min-width: 2rem;
     min-height: 2.25rem;
     padding: 0.2rem 0.25rem;
     font-size: 0.58rem;
   }
-
   .map-first-shell > .metric-strip .auto-slow-toggle {
     width: 2.2rem;
     overflow: hidden;
     font-size: 0;
     text-align: center;
   }
-
   .map-first-shell > .metric-strip .auto-slow-toggle::after {
     content: "자동";
     color: var(--tmr-muted);
     font-size: 0.58rem;
   }
-
   .map-first-shell > .metric-strip .time-status {
     display: none;
-    font-size: 0.52rem;
   }
-
   .map-first-shell > .metric-strip .manual-jumps-desktop {
     display: none;
   }
-
   .map-first-shell > .metric-strip .manual-jumps-mobile {
     position: relative;
     grid-area: jumps;
     display: block;
     min-width: 3.6rem;
-    color: var(--tmr-muted);
   }
-
   .map-first-shell > .metric-strip .manual-jumps-mobile summary {
     min-height: 2.1rem;
-    border: 0;
     padding: 0.2rem;
     color: var(--tmr-muted);
     background: transparent;
     font-size: 0.55rem;
   }
-
   .map-first-shell > .metric-strip .manual-jumps-mobile > div {
     position: absolute;
     right: 0;
@@ -5208,224 +5110,185 @@ body,
     padding: 0.25rem;
     background: rgb(18 24 21 / 98%);
   }
-
   .map-first-shell > .metric-strip .manual-jumps-mobile > div button {
     min-width: 0;
     min-height: 2.25rem;
   }
-
+  .map-first-shell .world-stage {
+    width: 100vw;
+    min-height: 0;
+    margin-left: calc(50% - 50vw);
+  }
   .map-first-shell .map-surface-heading {
-    top: 0.55rem;
+    top: 0.5rem;
     right: 0.65rem;
     left: 0.65rem;
   }
-
   .map-first-shell .map-surface-heading h2 {
     font-size: 0.9rem;
   }
-
-  .map-first-shell .map-surface-heading .map-date {
-    font-size: 0.58rem;
-  }
-
   .map-first-shell .world-scene-object-key,
-  .map-first-shell .map-legend {
+  .map-first-shell .map-legend,
+  .map-first-shell .world-scene-selection,
+  .map-first-shell .map-fact-strip {
     display: none;
   }
-
   .map-first-shell .map-camera-controls {
-    top: 2.85rem;
+    top: 2.8rem;
     right: 0.6rem;
-    max-width: calc(100% - 1.2rem);
   }
-
-  .map-first-shell .map-camera-controls .eyebrow,
-  .map-first-shell .map-camera-status {
-    display: none;
-  }
-
   .map-first-shell .map-camera-controls button {
     min-width: 2.15rem;
     min-height: 2.15rem;
   }
-
-  .map-first-shell .map-fact-strip {
-    display: none;
-  }
-
-  .map-first-shell .map-fact-strip span:nth-child(n + 3) {
-    display: none;
-  }
-
   .map-first-shell .map-issue-chip {
     right: 0.6rem;
-    bottom: 5.45rem;
+    bottom: 4.9rem;
     left: 0.6rem;
     width: auto;
-    max-height: 2.75rem;
-    padding: 0.34rem 0.45rem 0.36rem 0.55rem;
+    max-height: 3.05rem;
   }
-
-  .map-first-shell .map-issue-chip .eyebrow {
-    display: none;
-  }
-
-  .map-first-shell .map-issue-chip strong {
-    padding-right: 4.8rem;
-    font-size: 0.64rem;
-  }
-
-  .map-first-shell .map-issue-chip > span:not(.eyebrow) {
-    padding-right: 4.8rem;
-    font-size: 0.52rem;
-  }
-
-  .map-first-shell .map-issue-chip .map-issue-button {
-    top: 0.3rem;
-    right: 0.3rem;
-    min-height: 2.1rem;
-    font-size: 0.52rem;
-  }
-
-  .map-first-shell .world-scene-selection {
-    display: none;
-  }
-
   .map-first-shell .context-tabs {
     right: 0.6rem;
     bottom: 0.35rem;
     left: 0.6rem;
     justify-content: space-between;
-    border-top-color: rgb(232 220 192 / 26%);
   }
-
   .map-first-shell .context-tab {
     min-width: 0;
     flex: 1 1 0;
     min-height: 2.7rem;
-    padding-inline: 0.25rem;
+    padding-inline: 0.2rem;
     font-size: 0.58rem;
   }
-
   .map-first-shell .context-tab-icon {
     width: 0.92rem;
     height: 0.92rem;
   }
-
   .map-first-shell:has(.contextual-drawer) .context-tabs {
     display: none;
   }
-
   .map-first-shell .contextual-drawer {
-    top: 34%;
-    right: 0.6rem;
-    bottom: 0.45rem;
-    left: 0.6rem;
+    top: auto;
+    right: 0.55rem;
+    bottom: 3.9rem;
+    left: 0.55rem;
     width: auto;
     min-width: 0;
-    border-left: 0;
+    height: min(62svh, 31rem);
+    max-height: none;
     border-top: 1px solid rgb(232 220 192 / 26%);
+    border-left: 0;
+    border-radius: 0.8rem 0.8rem 0 0;
     box-shadow: 0 -16px 32px rgb(0 0 0 / 30%);
   }
-
   .map-first-shell .drawer-heading {
     min-height: 3.6rem;
     padding: 0.55rem 0.65rem;
   }
-
   .map-first-shell .drawer-heading h2 {
     font-size: 0.86rem;
   }
-
   .map-first-shell .drawer-close {
     min-width: 2.45rem;
     min-height: 2.45rem;
     font-size: 0.58rem;
   }
-
   .map-first-shell .drawer-content {
     padding: 0.55rem 0.65rem 0.9rem;
   }
-
+  .map-first-shell[data-active-panel="decisions"]
+    :is(.map-issue-chip, .event-presentation-stack) {
+    display: none;
+  }
   .map-first-shell .event-presentation-stack {
     top: 0.55rem;
     right: 0.6rem;
     left: 0.6rem;
     width: auto;
   }
-
   .map-first-shell .event-presentation {
     min-height: 3.2rem;
     padding: 0.45rem 0.5rem;
   }
-
   .map-first-shell .event-presentation strong {
     font-size: 0.72rem;
   }
-
   .map-first-shell .event-presentation span:not(.eyebrow) {
     font-size: 0.56rem;
   }
-}
-
-@media (min-width: 761px) {
-  .map-first-shell .map-fact-strip {
-    right: 1.25rem;
-    left: 18rem;
+  .map-first-shell .deep-surface {
+    padding: 0.8rem 0.65rem 4.8rem;
   }
-}
-
-@media (min-width: 901px) {
-  .map-first-shell
-    .world-stage:has(.contextual-drawer)
-    .event-presentation-stack {
-    right: calc(360px + 1.25rem);
-    width: min(29rem, calc(100% - 360px - 2.5rem));
+  .map-first-shell .deep-surface-toolbar {
+    gap: 0.55rem;
+    margin-bottom: 0.65rem;
+    padding-bottom: 0.55rem;
   }
-}
-
-@media (max-width: 760px) {
-  .event-presentation-stack {
-    top: 3.15rem;
-    right: 0.5rem;
-    width: calc(100% - 1rem);
-    max-height: 34svh;
-    overflow: auto;
-    gap: 0.32rem;
+  .map-first-shell .deep-surface-toolbar > .eyebrow {
+    max-width: 12rem;
+    line-height: 1.3;
   }
-
-  .event-presentation {
-    gap: 0.45rem;
-    padding: 0.48rem 0.52rem;
+  .map-first-shell .deep-surface-back {
+    min-height: 2.45rem;
+    padding-inline: 0.5rem;
+    font-size: 0.58rem;
   }
-
-  .event-presentation strong {
-    font-size: 0.78rem;
-  }
-
-  .event-presentation span:not(.eyebrow) {
-    font-size: 0.61rem;
-  }
-
-  .event-decision-required {
-    align-items: stretch;
+  .map-first-shell :is(.roadmap-panel-heading, .chronicle-surface-heading) {
+    align-items: start;
     flex-direction: column;
+    gap: 0.3rem;
   }
-
-  .event-response-actions {
+  .map-first-shell
+    :is(.roadmap-panel-heading h2, .chronicle-surface-heading h2) {
+    font-size: 1.45rem;
+  }
+  .map-first-shell .roadmap-toolbar {
+    align-items: start;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .map-first-shell .roadmap-toolbar > span {
     width: 100%;
   }
-
-  .event-response-actions button {
-    flex: 1 1 0;
+  .map-first-shell .roadmap-zoom-controls {
+    width: 100%;
   }
-}
-
-@media (min-width: 761px) {
-  .map-first-shell .contextual-drawer .thesis-note {
-    margin-top: 0.35rem;
-    padding-top: 0.35rem;
-    font-size: 0.64rem;
-    line-height: 1.3;
+  .map-first-shell .roadmap-zoom-controls button {
+    min-height: 2.45rem;
+    flex: 1 1 auto;
+  }
+  .map-first-shell .institutions-workspace {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .map-first-shell .roadmap-graph-viewport {
+    height: 29rem;
+    min-height: 29rem;
+  }
+  .map-first-shell .roadmap-inspector {
+    max-height: none;
+    padding: 0.85rem 0.8rem;
+  }
+  .map-first-shell .roadmap-inspector-heading h3 {
+    font-size: 0.98rem;
+  }
+  .map-first-shell .chronicle-lead {
+    margin-bottom: 1rem;
+    padding: 0.8rem 0.85rem;
+  }
+  .map-first-shell .chronicle-lead h3 {
+    font-size: 1.2rem;
+  }
+  .map-first-shell .chronicle-timeline-entry {
+    grid-template-columns: 4.7rem minmax(0, 1fr);
+    gap: 0.45rem;
+    padding: 0.65rem 0.45rem 0.65rem 0.65rem;
+  }
+  .map-first-shell .chronicle-timeline-copy strong {
+    font-size: 0.7rem;
+  }
+  .map-first-shell .chronicle-timeline-copy > span:last-child {
+    font-size: 0.6rem;
   }
 }

@@ -47,9 +47,9 @@ describe("player-facing TMR icon integration", () => {
     expect(markup).toContain('data-icon-id="tmr.icon.ui.decision"');
     expect(markup).toContain('data-icon-id="tmr.icon.ui.chronicle"');
     expect(markup).toContain(">지도<");
-    expect(markup).toContain(">국정<");
+    expect(markup).toContain(">제도<");
     expect(markup).toContain(">결정<");
-    expect(markup).toContain(">기록<");
+    expect(markup).toContain(">연대기<");
   });
 
   it("uses the actual crisis event silhouette in the banner and chronicle row", () => {
@@ -178,7 +178,6 @@ describe("player-facing TMR icon integration", () => {
           scenario={scenario}
           world={world}
           policyState={world.policies[countryId]}
-          roadmap={{ nodes: [], edges: [] }}
           projects={[]}
           onFocusProject={() => undefined}
           policyRegionIds={[]}
@@ -195,11 +194,11 @@ describe("player-facing TMR icon integration", () => {
 
     expect(markup).toContain('data-icon-id="tmr.icon.ui.decision"');
     expect(markup).toContain('data-icon-id="tmr.icon.politics.parliament"');
-    expect(markup).toContain('data-icon-id="tmr.icon.ui.governance"');
     expect(markup).toContain('data-icon-id="tmr.icon.ui.details"');
-    expect(markup).toContain("상황별 우선순위");
-    expect(markup).toContain("지금 결정할 일");
-    expect(markup).toContain("현재 제도");
+    expect(markup).toContain("현재 압력");
+    expect(markup).toContain("지금 필요한 선택");
+    expect(markup).not.toContain("중기 계획·사업 기록");
+    expect(markup).not.toContain("현재 제도");
   });
 
   it("selects policy icons from mutation semantics with a parliament fallback", () => {

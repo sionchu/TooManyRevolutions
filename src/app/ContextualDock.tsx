@@ -7,13 +7,13 @@ import {
 import { TmrIcon } from "./icons/TmrIcon";
 
 export type ContextPanel =
-  "map" | "agenda" | "decisions" | "region" | "chronicle";
+  "map" | "decisions" | "institutions" | "region" | "chronicle";
 
 const CONTEXT_TABS = [
   { id: "map", label: "지도" },
-  { id: "agenda", label: "국정" },
   { id: "decisions", label: "결정" },
-  { id: "chronicle", label: "기록" },
+  { id: "institutions", label: "제도" },
+  { id: "chronicle", label: "연대기" },
 ] as const satisfies ReadonlyArray<{
   readonly id: Exclude<ContextPanel, "region">;
   readonly label: string;
@@ -21,16 +21,16 @@ const CONTEXT_TABS = [
 
 const CONTEXT_TAB_ICONS = {
   map: TMR_ICON_IDS.ui.map,
-  agenda: TMR_ICON_IDS.ui.governance,
   decisions: TMR_ICON_IDS.ui.decision,
+  institutions: TMR_ICON_IDS.ui.governance,
   chronicle: TMR_ICON_IDS.ui.chronicle,
 } as const satisfies Record<Exclude<ContextPanel, "region">, TmrIconId>;
 
 const PANEL_TITLES: Readonly<Record<Exclude<ContextPanel, "map">, string>> = {
-  agenda: "현재 국정",
-  decisions: "결정 테이블",
+  decisions: "결정",
+  institutions: "제도",
   region: "지역 상세",
-  chronicle: "국가 기록",
+  chronicle: "연대기",
 };
 
 function selectedTab(
@@ -46,13 +46,17 @@ export function ContextualDock({
   onSelectPanel,
   onClose,
   children,
+  deepSurface,
 }: {
   readonly activePanel: ContextPanel;
   readonly onSelectPanel: (panel: ContextPanel) => void;
   readonly onClose: () => void;
   readonly children?: ReactNode;
+  readonly deepSurface?: ReactNode;
 }) {
-  const drawerOpen = activePanel !== "map";
+  const drawerOpen = activePanel === "decisions" || activePanel === "region";
+  const deepSurfaceOpen =
+    activePanel === "institutions" || activePanel === "chronicle";
 
   return (
     <>
@@ -112,6 +116,25 @@ export function ContextualDock({
           </div>
           <div className="drawer-content">{children}</div>
         </aside>
+      ) : null}
+      {deepSurfaceOpen ? (
+        <section
+          className={`deep-surface deep-surface-${activePanel}`}
+          data-context-panel={activePanel}
+          aria-label={PANEL_TITLES[activePanel]}
+        >
+          <div className="deep-surface-toolbar">
+            <span className="eyebrow">지도에서 분리된 전체 화면</span>
+            <button
+              className="deep-surface-back"
+              type="button"
+              onClick={onClose}
+            >
+              지도 돌아가기
+            </button>
+          </div>
+          {deepSurface}
+        </section>
       ) : null}
     </>
   );

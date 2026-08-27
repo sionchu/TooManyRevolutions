@@ -23,7 +23,6 @@ import { asConflictId } from "../sim/state/ids";
 import { IDEOLOGY_FIXTURE_IDS } from "../sim/state/ideologyFixture";
 import { createInitialWorldState } from "../sim/state/world";
 import { deriveOrderConsolidationEligibility } from "../sim/systems/orderConsolidation";
-import { deriveInstitutionalRoadmap } from "./institutionalRoadmap";
 import { deriveStateProjectPresentations } from "./stateProjects";
 
 describe("GAMEBUILDERS gameplay reality read models", () => {
@@ -166,10 +165,6 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
         scenario: GAMEBUILDERS_DEMO_SCENARIO,
         world,
         policyState,
-        roadmap: deriveInstitutionalRoadmap(
-          policyState!,
-          GAMEBUILDERS_DEMO_SCENARIO.policyCatalog,
-        ),
         projects: deriveStateProjectPresentations(
           GAMEBUILDERS_DEMO_SCENARIO,
           world,
@@ -197,7 +192,7 @@ describe("GAMEBUILDERS gameplay reality read models", () => {
     );
 
     expect(decisionMarkup).toContain("data-policy-id");
-    expect(decisionMarkup).toContain("지금 결정할 일");
+    expect(decisionMarkup).toContain("지금 필요한 선택");
     expect(decisionMarkup).toContain("data-contextual-shortlist-order");
     expect(
       new Set(decisionSurface.primaryShortlist.map((entry) => entry.kind)),

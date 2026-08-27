@@ -62,8 +62,8 @@ export const TMR_COMPONENT_REGISTRY: readonly DesignComponentDefinition[] = [
     replaceable: true,
   },
   {
-    id: "tmr.component.chronicle.event-row",
-    name: "연대기 사건 행",
+    id: "tmr.component.chronicle.editorial-history",
+    name: "연대기 편집 기록",
     surface: "main",
     replaceable: true,
   },

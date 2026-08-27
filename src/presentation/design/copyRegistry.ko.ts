@@ -50,8 +50,8 @@ export const PLAYER_COPY = {
     continuity: "국가 연속성 기록",
     mapEyebrow: "정치 지도",
     mapTitle: "아르켄과 접경국",
-    actionsEyebrow: "국정 서류",
-    actionsTitle: "지금 결정할 일",
+    actionsEyebrow: "결정 서류",
+    actionsTitle: "결정",
     agendasEyebrow: "현재 압력",
     agendasTitle: "국가 의제",
     chronicleEyebrow: "오늘의 기록",
@@ -73,9 +73,9 @@ export const PLAYER_COPY = {
   },
   navigation: {
     map: "지도",
-    state: "국정",
     decisions: "결정",
-    record: "기록",
+    institutions: "제도",
+    chronicle: "연대기",
   },
 } as const;
 
