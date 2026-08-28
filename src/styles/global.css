@@ -4223,11 +4223,11 @@ body,
 }
 .map-first-shell .map-issue-chip strong {
   color: var(--tmr-paper);
-  font-size: 0.74rem;
+  font-size: 13px;
 }
 .map-first-shell .map-issue-chip > span:not(.eyebrow) {
   color: var(--tmr-muted);
-  font-size: 0.58rem;
+  font-size: 13px;
 }
 .map-first-shell .map-issue-chip .map-issue-button {
   top: 0.45rem;
@@ -4263,7 +4263,7 @@ body,
   padding: 0.35rem 0.55rem;
   color: rgb(239 229 210 / 72%);
   background: transparent;
-  font-size: 0.65rem;
+  font-size: 13px;
 }
 .map-first-shell .context-tab:hover,
 .map-first-shell .context-tab.active {
@@ -4344,6 +4344,13 @@ body,
   ) {
   color: var(--tmr-muted);
 }
+.map-first-shell .contextual-drawer .panel-intro {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.map-first-shell .contextual-drawer .decision-group-heading strong {
+  font-size: 13px;
+}
 .map-first-shell .contextual-drawer .action-list {
   display: grid;
   gap: 0;
@@ -4373,7 +4380,7 @@ body,
 }
 .map-first-shell .contextual-drawer .action-card h3 {
   margin: 0.28rem 0 0.34rem;
-  font-size: 0.94rem;
+  font-size: 15px;
 }
 .map-first-shell .contextual-drawer .decision-summary {
   display: flex;
@@ -4384,6 +4391,7 @@ body,
 .map-first-shell .contextual-drawer .decision-badge {
   color: var(--tmr-muted);
   background: rgb(239 229 210 / 7%);
+  font-size: 13px;
 }
 .map-first-shell .contextual-drawer .badge-confirmed {
   color: var(--tmr-gold);
@@ -4404,7 +4412,7 @@ body,
   padding: 0.2rem 0.35rem;
   color: var(--tmr-gold);
   cursor: pointer;
-  font-size: 0.65rem;
+  font-size: 13px;
   font-weight: 900;
 }
 .map-first-shell .contextual-drawer .decision-details[open] > summary {
@@ -4420,6 +4428,17 @@ body,
   color: var(--tmr-muted);
   background: rgb(239 229 210 / 5%);
 }
+.map-first-shell
+  .contextual-drawer
+  :is(
+    .decision-section h4,
+    .decision-section p,
+    .decision-section ul,
+    .decision-tradeoffs span,
+    .decision-tradeoffs p
+  ) {
+  font-size: 13px;
+}
 .map-first-shell .contextual-drawer .action-button,
 .map-first-shell .roadmap-enact-button {
   min-height: 2.75rem;
@@ -4428,6 +4447,7 @@ body,
   color: var(--tmr-ink);
   background: var(--tmr-gold);
   box-shadow: none;
+  font-size: 13px;
   font-weight: 900;
 }
 .map-first-shell .contextual-drawer .action-button:hover,
@@ -4439,6 +4459,7 @@ body,
   padding: 0.35rem 0.45rem;
   color: #e5b2a4;
   background: rgb(184 79 69 / 13%);
+  font-size: 13px;
 }
 .map-first-shell .decision-project-details {
   border-top: 1px solid var(--tmr-line);
@@ -4540,7 +4561,7 @@ body,
   padding: 0.4rem 0.65rem;
   color: var(--tmr-paper);
   background: rgb(239 229 210 / 6%);
-  font-size: 0.65rem;
+  font-size: 13px;
   font-weight: 900;
 }
 .map-first-shell .deep-surface-back:hover {
@@ -4573,7 +4594,7 @@ body,
   max-width: 48rem;
   margin: 0 0 0.7rem;
   color: var(--tmr-muted);
-  font-size: 0.72rem;
+  font-size: 13px;
   line-height: 1.5;
 }
 .map-first-shell .roadmap-toolbar {
@@ -4583,7 +4604,7 @@ body,
   gap: 0.7rem;
   margin: 0 0 0.55rem;
   color: var(--tmr-muted);
-  font-size: 0.62rem;
+  font-size: 13px;
 }
 .map-first-shell .roadmap-toolbar > span {
   margin: 0;
@@ -4599,7 +4620,7 @@ body,
   padding: 0.3rem 0.45rem;
   color: var(--tmr-paper);
   background: rgb(239 229 210 / 6%);
-  font-size: 0.6rem;
+  font-size: 13px;
   font-weight: 800;
 }
 .map-first-shell .roadmap-zoom-controls button:hover {
@@ -4646,7 +4667,7 @@ body,
 }
 .map-first-shell .roadmap-depth-headings text {
   fill: var(--tmr-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
 }
 .map-first-shell .roadmap-lane {
@@ -4678,7 +4699,8 @@ body,
   display: grid;
   width: 100%;
   height: 100%;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, auto) auto;
+  align-content: center;
   gap: 0.12rem;
   overflow: hidden;
   border: 1px solid rgb(232 220 192 / 24%);
@@ -4697,14 +4719,13 @@ body,
     0 6px 14px rgb(0 0 0 / 26%);
 }
 .map-first-shell .roadmap-node-title {
-  display: -webkit-box;
-  overflow: hidden;
+  display: block;
+  overflow-wrap: anywhere;
   color: var(--tmr-paper);
-  font-size: 0.67rem;
+  font-size: 13px;
   font-weight: 900;
   line-height: 1.25;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  white-space: normal;
 }
 .map-first-shell .roadmap-node-state {
   overflow: hidden;
@@ -4758,7 +4779,7 @@ body,
 .map-first-shell .roadmap-inspector-description {
   margin: 0.55rem 0 0;
   color: var(--tmr-muted);
-  font-size: 0.7rem;
+  font-size: 13px;
   line-height: 1.5;
 }
 .map-first-shell .roadmap-inspector-facts {
@@ -4775,13 +4796,13 @@ body,
 }
 .map-first-shell .roadmap-inspector-facts dt {
   color: var(--tmr-muted);
-  font-size: 0.6rem;
+  font-size: 13px;
   font-weight: 800;
 }
 .map-first-shell .roadmap-inspector-facts dd {
   margin: 0;
   color: var(--tmr-paper);
-  font-size: 0.64rem;
+  font-size: 13px;
   line-height: 1.4;
 }
 .map-first-shell .roadmap-inspector-section {
@@ -4792,7 +4813,7 @@ body,
 .map-first-shell .roadmap-inspector-section h4 {
   margin: 0 0 0.3rem;
   color: var(--tmr-paper);
-  font-size: 0.65rem;
+  font-size: 13px;
 }
 .map-first-shell .roadmap-inspector-section ul {
   display: grid;
@@ -4800,13 +4821,13 @@ body,
   margin: 0;
   padding-left: 1rem;
   color: var(--tmr-muted);
-  font-size: 0.63rem;
+  font-size: 13px;
   line-height: 1.4;
 }
 .map-first-shell .roadmap-inspector-note {
   margin: 0.7rem 0 0;
   color: #e0a092;
-  font-size: 0.62rem;
+  font-size: 13px;
   font-weight: 800;
 }
 .map-first-shell .roadmap-enact-button {
@@ -4822,7 +4843,7 @@ body,
   border-top: 1px solid var(--tmr-line);
   padding-top: 0.55rem;
   color: var(--tmr-muted);
-  font-size: 0.62rem;
+  font-size: 13px;
 }
 .map-first-shell .roadmap-details summary {
   cursor: pointer;
@@ -4898,7 +4919,7 @@ body,
   max-width: 48rem;
   margin: 0;
   color: var(--tmr-muted);
-  font-size: 0.78rem;
+  font-size: 13px;
   line-height: 1.55;
 }
 .map-first-shell .chronicle-timeline-section {
@@ -4961,11 +4982,11 @@ body,
 }
 .map-first-shell .chronicle-timeline-copy strong {
   color: var(--tmr-paper);
-  font-size: 0.76rem;
+  font-size: 13px;
 }
 .map-first-shell .chronicle-timeline-copy > span:last-child {
   color: var(--tmr-muted);
-  font-size: 0.65rem;
+  font-size: 13px;
   line-height: 1.4;
 }
 
@@ -4985,6 +5006,7 @@ body,
 }
 .map-first-shell .event-presentation span:not(.eyebrow) {
   color: var(--tmr-muted);
+  font-size: 13px;
 }
 .map-first-shell .event-presentation button {
   min-width: 2.75rem;
@@ -4993,6 +5015,12 @@ body,
   border-radius: 0;
   color: var(--tmr-ink);
   background: var(--tmr-gold);
+}
+.map-first-shell .world-stage > .crisis-banner span {
+  font-size: 13px;
+}
+.map-first-shell .world-stage > .crisis-banner small {
+  font-size: 13px;
 }
 
 @media (min-width: 761px) {
@@ -5102,7 +5130,7 @@ body,
   .map-first-shell > .metric-strip .manual-jumps-mobile > div {
     position: absolute;
     right: 0;
-    bottom: 2.25rem;
+    top: 2.25rem;
     display: grid;
     width: 7.5rem;
     grid-template-columns: repeat(3, 1fr);
@@ -5146,7 +5174,13 @@ body,
     bottom: 4.9rem;
     left: 0.6rem;
     width: auto;
-    max-height: 3.05rem;
+    max-height: none;
+  }
+  .map-first-shell .map-issue-chip strong {
+    font-size: 14px;
+  }
+  .map-first-shell .map-issue-chip > span:not(.eyebrow) {
+    font-size: 14px;
   }
   .map-first-shell .context-tabs {
     right: 0.6rem;
@@ -5154,12 +5188,15 @@ body,
     left: 0.6rem;
     justify-content: space-between;
   }
+  .map-first-shell:has(.deep-surface) .context-tabs {
+    display: none;
+  }
   .map-first-shell .context-tab {
     min-width: 0;
     flex: 1 1 0;
     min-height: 2.7rem;
     padding-inline: 0.2rem;
-    font-size: 0.58rem;
+    font-size: 14px;
   }
   .map-first-shell .context-tab-icon {
     width: 0.92rem;
@@ -5212,10 +5249,10 @@ body,
     padding: 0.45rem 0.5rem;
   }
   .map-first-shell .event-presentation strong {
-    font-size: 0.72rem;
+    font-size: 14px;
   }
   .map-first-shell .event-presentation span:not(.eyebrow) {
-    font-size: 0.56rem;
+    font-size: 14px;
   }
   .map-first-shell .deep-surface {
     padding: 0.8rem 0.65rem 4.8rem;
@@ -5232,7 +5269,7 @@ body,
   .map-first-shell .deep-surface-back {
     min-height: 2.45rem;
     padding-inline: 0.5rem;
-    font-size: 0.58rem;
+    font-size: 14px;
   }
   .map-first-shell :is(.roadmap-panel-heading, .chronicle-surface-heading) {
     align-items: start;
@@ -5247,6 +5284,7 @@ body,
     align-items: start;
     flex-direction: column;
     gap: 0.45rem;
+    font-size: 14px;
   }
   .map-first-shell .roadmap-toolbar > span {
     width: 100%;
@@ -5257,6 +5295,7 @@ body,
   .map-first-shell .roadmap-zoom-controls button {
     min-height: 2.45rem;
     flex: 1 1 auto;
+    font-size: 14px;
   }
   .map-first-shell .institutions-workspace {
     grid-template-columns: 1fr;
@@ -5271,7 +5310,33 @@ body,
     padding: 0.85rem 0.8rem;
   }
   .map-first-shell .roadmap-inspector-heading h3 {
-    font-size: 0.98rem;
+    font-size: 16px;
+  }
+  .map-first-shell .roadmap-node-title {
+    font-size: 14px;
+  }
+  .map-first-shell .contextual-drawer .panel-intro,
+  .map-first-shell .contextual-drawer .decision-group-heading strong,
+  .map-first-shell .contextual-drawer .decision-badge,
+  .map-first-shell .contextual-drawer .decision-details > summary,
+  .map-first-shell .contextual-drawer .decision-section h4,
+  .map-first-shell .contextual-drawer .decision-section p,
+  .map-first-shell .contextual-drawer .decision-section ul,
+  .map-first-shell .contextual-drawer .decision-tradeoffs span,
+  .map-first-shell .contextual-drawer .decision-tradeoffs p,
+  .map-first-shell .contextual-drawer .action-button,
+  .map-first-shell .contextual-drawer .locked-reason,
+  .map-first-shell .roadmap-enact-button {
+    font-size: 14px;
+  }
+  .map-first-shell .roadmap-inspector-description,
+  .map-first-shell .roadmap-inspector-facts dt,
+  .map-first-shell .roadmap-inspector-facts dd,
+  .map-first-shell .roadmap-inspector-section h4,
+  .map-first-shell .roadmap-inspector-section ul,
+  .map-first-shell .roadmap-inspector-note,
+  .map-first-shell .roadmap-details {
+    font-size: 14px;
   }
   .map-first-shell .chronicle-lead {
     margin-bottom: 1rem;
@@ -5280,15 +5345,18 @@ body,
   .map-first-shell .chronicle-lead h3 {
     font-size: 1.2rem;
   }
+  .map-first-shell .chronicle-lead p {
+    font-size: 14px;
+  }
   .map-first-shell .chronicle-timeline-entry {
     grid-template-columns: 4.7rem minmax(0, 1fr);
     gap: 0.45rem;
     padding: 0.65rem 0.45rem 0.65rem 0.65rem;
   }
   .map-first-shell .chronicle-timeline-copy strong {
-    font-size: 0.7rem;
+    font-size: 14px;
   }
   .map-first-shell .chronicle-timeline-copy > span:last-child {
-    font-size: 0.6rem;
+    font-size: 14px;
   }
 }

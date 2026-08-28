@@ -33,6 +33,11 @@ const PANEL_TITLES: Readonly<Record<Exclude<ContextPanel, "map">, string>> = {
   chronicle: "연대기",
 };
 
+const DEEP_SURFACE_EYEBROWS = {
+  institutions: "국가 제도",
+  chronicle: "국가 연대기",
+} as const;
+
 function selectedTab(
   activePanel: ContextPanel,
   tabId: Exclude<ContextPanel, "region">,
@@ -124,7 +129,9 @@ export function ContextualDock({
           aria-label={PANEL_TITLES[activePanel]}
         >
           <div className="deep-surface-toolbar">
-            <span className="eyebrow">지도에서 분리된 전체 화면</span>
+            <span className="eyebrow">
+              {DEEP_SURFACE_EYEBROWS[activePanel]}
+            </span>
             <button
               className="deep-surface-back"
               type="button"

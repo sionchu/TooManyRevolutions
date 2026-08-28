@@ -101,7 +101,7 @@ export function InstitutionalRoadmapPanel({
   const [selectedPolicyId, setSelectedPolicyId] = useState<PolicyId | null>(
     () => roadmap.nodes[0]?.definition.id ?? null,
   );
-  const [scale, setScale] = useState(0.86);
+  const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const dragRef = useRef<{
     readonly pointerId: number;
@@ -231,7 +231,7 @@ export function InstitutionalRoadmapPanel({
                     x={172 + depth * INSTITUTIONAL_GRAPH_DEPTH_COLUMN_WIDTH}
                     y={12}
                   >
-                    선행 depth {depth + 1}
+                    선행 {depth + 1}단계
                   </text>
                 ))}
               </g>
@@ -304,7 +304,7 @@ export function InstitutionalRoadmapPanel({
                         aria-pressed={selected}
                         data-policy-id={node.definition.id}
                         data-roadmap-domain={position.domain}
-                        data-roadmap-depth={position.depth}
+                        data-roadmap-stage={position.depth}
                         onClick={() => setSelectedPolicyId(node.definition.id)}
                       >
                         <span className="roadmap-node-title">
@@ -323,12 +323,12 @@ export function InstitutionalRoadmapPanel({
         </div>
         <aside
           className="roadmap-inspector"
-          aria-label="선택된 제도 inspector"
+          aria-label="선택한 제도 상세 정보"
           data-selected-policy-id={selectedNode?.definition.id ?? "none"}
         >
           {selectedNode === null ? (
             <div className="roadmap-inspector-empty">
-              <span className="eyebrow">선택된 제도</span>
+              <span className="eyebrow">선택한 제도</span>
               <p>그래프에서 제도를 선택하십시오.</p>
             </div>
           ) : (
@@ -341,7 +341,7 @@ export function InstitutionalRoadmapPanel({
                   tone="neutral"
                 />
                 <div>
-                  <span className="eyebrow">선택된 제도</span>
+                  <span className="eyebrow">선택한 제도</span>
                   <h3>{selectedNode.definition.name}</h3>
                 </div>
               </div>
@@ -461,7 +461,7 @@ export function InstitutionalRoadmapPanel({
           </span>
           <p>
             노드 안에는 제도명과 현재 상태만 표시합니다. 상세 설명과 실제 규칙
-            효과는 선택된 제도 inspector에서 확인합니다.
+            효과는 선택한 제도의 상세 정보에서 확인합니다.
           </p>
         </div>
       </details>
